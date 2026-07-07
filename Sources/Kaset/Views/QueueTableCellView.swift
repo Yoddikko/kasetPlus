@@ -29,6 +29,8 @@ class QueueTableCellView: NSView {
     private let indicatorContainer = NSView()
     private let indicatorLabel = NSTextField()
     private var waveformView: NSView?
+    private let suggestedIndicator = NSImageView()
+    private var isSuggested = false
     private let thumbnailImageView = NSImageView()
     private var imageLoadTask: Task<Void, Never>?
     private var currentSongId: String?
@@ -65,6 +67,17 @@ class QueueTableCellView: NSView {
         self.indicatorLabel.font = NSFont.systemFont(ofSize: 12)
         self.indicatorLabel.translatesAutoresizingMaskIntoConstraints = false
         self.indicatorContainer.addSubview(self.indicatorLabel)
+
+        self.suggestedIndicator.image = NSImage(
+            systemSymbolName: "sparkles",
+            accessibilityDescription: String(localized: "Suggested")
+        )
+        self.suggestedIndicator.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
+        self.suggestedIndicator.contentTintColor = PackageResourceLookup.brandAccentNSColor
+        self.suggestedIndicator.translatesAutoresizingMaskIntoConstraints = false
+        self.suggestedIndicator.isHidden = true
+        self.suggestedIndicator.setAccessibilityLabel(String(localized: "Suggested"))
+        self.indicatorContainer.addSubview(self.suggestedIndicator)
 
         self.thumbnailImageView.wantsLayer = true
         self.thumbnailImageView.layer?.cornerRadius = 4
@@ -118,6 +131,9 @@ class QueueTableCellView: NSView {
 
             self.indicatorLabel.centerXAnchor.constraint(equalTo: self.indicatorContainer.centerXAnchor),
             self.indicatorLabel.centerYAnchor.constraint(equalTo: self.indicatorContainer.centerYAnchor),
+
+            self.suggestedIndicator.centerXAnchor.constraint(equalTo: self.indicatorContainer.centerXAnchor),
+            self.suggestedIndicator.centerYAnchor.constraint(equalTo: self.indicatorContainer.centerYAnchor),
 
             self.thumbnailImageView.leadingAnchor.constraint(
                 equalTo: self.indicatorContainer.trailingAnchor,
@@ -207,13 +223,15 @@ class QueueTableCellView: NSView {
         }
     }
 
-    func configure(song: Song, index: Int, isCurrentTrack: Bool, isPlaying: Bool, actions: QueueCellActions) {
+    // swiftlint:disable:next function_parameter_count
+    func configure(song: Song, index: Int, isCurrentTrack: Bool, isPlaying: Bool, isSuggested: Bool, actions: QueueCellActions) {
         self.onPlay = actions.onPlay
         self.onRemove = actions.onRemove
         self.onToggleLikeAction = actions.onToggleLike
         self.likeButton.isEnabled = actions.allowsLikeAction
         self.isCurrentTrack = isCurrentTrack
         self.isPlaying = isPlaying
+        self.isSuggested = isSuggested
         self.updateAppearance(isCurrentTrack: isCurrentTrack, isPlaying: isPlaying, index: index)
 
         let isExplicit = song.isExplicit ?? false
@@ -273,6 +291,7 @@ class QueueTableCellView: NSView {
         if isCurrentTrack {
             self.indicatorLabel.stringValue = ""
             self.indicatorLabel.isHidden = true
+            self.suggestedIndicator.isHidden = true
 
             if self.waveformView == nil {
                 let waveView = WaveformView(frame: NSRect(x: 0, y: 0, width: 24, height: 16))
@@ -295,10 +314,16 @@ class QueueTableCellView: NSView {
 
             self.layer?.backgroundColor = NSColor.systemRed.withAlphaComponent(0.1).cgColor
         } else {
-            self.indicatorLabel.isHidden = false
-            self.indicatorLabel.stringValue = "\(index + 1)"
-            self.indicatorLabel.textColor = NSColor.tertiaryLabelColor
             self.waveformView?.isHidden = true
+            if self.isSuggested {
+                self.indicatorLabel.isHidden = true
+                self.suggestedIndicator.isHidden = false
+            } else {
+                self.suggestedIndicator.isHidden = true
+                self.indicatorLabel.isHidden = false
+                self.indicatorLabel.stringValue = "\(index + 1)"
+                self.indicatorLabel.textColor = NSColor.tertiaryLabelColor
+            }
             self.layer?.backgroundColor = NSColor.clear.cgColor
         }
     }
@@ -325,6 +350,8 @@ class QueueTableCellView: NSView {
         self.waveformView = nil
         self.onToggleLikeAction = nil
         self.explicitBadge.alphaValue = 0
+        self.suggestedIndicator.isHidden = true
+        self.isSuggested = false
         self.layer?.backgroundColor = NSColor.clear.cgColor
     }
 }

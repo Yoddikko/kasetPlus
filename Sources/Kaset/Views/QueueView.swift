@@ -109,6 +109,7 @@ struct QueueView: View {
                         song: entry.song,
                         isCurrentTrack: index == self.playerService.currentIndex,
                         index: index,
+                        isSuggested: entry.source == .suggested,
                         allowsLikeActions: self.authService.hasPersonalAccount,
                         favoritesManager: self.favoritesManager,
                         playerService: self.playerService,
@@ -136,6 +137,7 @@ private struct QueueRowView: View {
     let song: Song
     let isCurrentTrack: Bool
     let index: Int
+    let isSuggested: Bool
     let allowsLikeActions: Bool
     let favoritesManager: FavoritesManager
     let playerService: PlayerService
@@ -225,6 +227,11 @@ private struct QueueRowView: View {
                     options: .repeating,
                     isActive: self.playerService.isPlaying
                 )
+        } else if self.isSuggested {
+            Image(systemName: "sparkles")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(PackageResourceLookup.brandAccent)
+                .accessibilityLabel(Text("Suggested"))
         } else {
             Text("\(self.index + 1)")
                 .font(.system(size: 12))

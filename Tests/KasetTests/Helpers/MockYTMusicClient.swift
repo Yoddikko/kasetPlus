@@ -251,6 +251,10 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
 
     var shouldThrowError: Error?
 
+    /// Per-seed radio errors: `getRadioQueue(videoId:)` throws the mapped error for that seed only,
+    /// so tests can simulate a transient failure on one seed while others succeed.
+    var radioQueueErrors: [String: Error] = [:]
+
     // MARK: - Protocol Implementation
 
     func getHome() async throws -> HomeResponse {
@@ -958,6 +962,7 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
             try? await Task.sleep(for: getRadioQueueDelay)
         }
         if let error = shouldThrowError { throw error }
+        if let error = radioQueueErrors[videoId] { throw error }
         return self.radioQueueSongs[videoId] ?? []
     }
 
