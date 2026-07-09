@@ -10,7 +10,8 @@ import SwiftUI
 /// - No shuffle/repeat — left/right transport controls seek 30 seconds
 ///   back/forward within the current video.
 /// - Center shows the video thumbnail, title, and channel · views.
-/// - No lyrics/queue buttons.
+/// - No lyrics/queue buttons; chapter breaks appear in the progress bar when
+///   the watch page response exposes chapters.
 /// - The minimize button drives the video pop-out (picture in picture);
 ///   the TV button toggles fullscreen on the popped-out window.
 struct YouTubePlayerBar: View {
@@ -33,6 +34,7 @@ struct YouTubePlayerBar: View {
     @State private var volumeValue: Double = 1.0
     @State private var isAdjustingVolume = false
     @State private var showsVolumeOverlay = false
+    @State private var chapterPreviewMarker: PlayerBarProgressMarker?
 
     var body: some View {
         CompatGlassContainer(spacing: 0) {
@@ -78,6 +80,7 @@ struct YouTubePlayerBar: View {
         }
         .onChange(of: self.currentSeekIdentity) { _, _ in
             self.clearSeekHold()
+            self.chapterPreviewMarker = nil
         }
         .onChange(of: self.youtubePlayer.volume) { _, newValue in
             if !self.isAdjustingVolume {
@@ -146,7 +149,7 @@ struct YouTubePlayerBar: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 4) {
                         PlayerBarMarqueeText(
-                            text: self.resolvedTitle,
+                            text: self.videoDetailsTitle,
                             font: .system(size: 13),
                             color: .primary,
                             height: 13,
@@ -172,11 +175,16 @@ struct YouTubePlayerBar: View {
                         }
                     }
 
-                    PlayerBarMetadataButton(
-                        text: self.youtubePlayer.currentVideo?.channelName ?? String(localized: "YouTube"),
-                        isEnabled: self.canNavigateToCurrentChannel,
-                        action: self.openCurrentChannel
-                    )
+                    if self.isShowingChapterPreview {
+                        Spacer()
+                            .frame(height: 11)
+                    } else {
+                        PlayerBarMetadataButton(
+                            text: self.youtubePlayer.currentVideo?.channelName ?? String(localized: "YouTube"),
+                            isEnabled: self.canNavigateToCurrentChannel,
+                            action: self.openCurrentChannel
+                        )
+                    }
                 }
                 .frame(width: 129, height: 29, alignment: .leading)
             }
@@ -219,26 +227,42 @@ struct YouTubePlayerBar: View {
     private var currentTitleIdentity: String {
         [
             self.youtubePlayer.currentVideo?.id ?? "none",
-            self.resolvedTitle,
+            self.youtubePlayer.currentVideo?.title ?? "none",
+            self.chapterPreviewMarker?.id ?? "none",
+            self.youtubePlayer.showsDearrowOriginal ? "orig" : "dearrow",
+            self.youtubePlayer.dearrowTitle ?? "none",
         ].joined(separator: "|")
     }
 
-    /// Title to display: DeArrow title if available (and not toggled off).
-    /// State lives on YouTubePlayerService so watch view and player bar stay in sync.
+    private var videoDetailsTitle: String {
+        // DeArrow takes priority over chapter preview for the base title
+        let baseTitle: String = {
+            if self.youtubePlayer.showsDearrowOriginal,
+               let orig = self.youtubePlayer.dearrowOriginalTitle
+            {
+                return orig
+            }
+            return self.youtubePlayer.dearrowTitle
+                ?? self.youtubePlayer.currentVideo?.title
+                ?? String(localized: "Not Playing")
+        }()
 
-    private var resolvedTitle: String {
-        if self.youtubePlayer.showsDearrowOriginal,
-           let orig = self.youtubePlayer.dearrowOriginalTitle
-        {
-            return orig
+        // Overlay chapter preview on top if active
+        guard let chapterPreviewMarker, let chapterTitle = chapterPreviewMarker.title else {
+            return baseTitle
         }
-        return self.youtubePlayer.dearrowTitle
-            ?? self.youtubePlayer.currentVideo?.title
-            ?? String(localized: "Not Playing")
+        if let subtitle = chapterPreviewMarker.subtitle {
+            return "\(subtitle) · \(chapterTitle)"
+        }
+        return chapterTitle
     }
 
     private var hasDearrow: Bool {
         self.youtubePlayer.dearrowTitle != nil
+    }
+
+    private var isShowingChapterPreview: Bool {
+        self.chapterPreviewMarker?.title != nil
     }
 
     private var youtubeProgressSection: some View {
@@ -248,6 +272,7 @@ struct YouTubePlayerBar: View {
                 accent: Self.brandAccent,
                 elapsedText: Self.formatTime(self.progressTextValue),
                 remainingText: "-\(Self.formatTime(max(0, self.youtubePlayer.duration - self.progressTextValue)))",
+                markers: self.chapterProgressMarkers,
                 isLive: false,
                 canSeek: self.canSeek,
                 isLoading: self.isProgressLoading,
@@ -259,7 +284,10 @@ struct YouTubePlayerBar: View {
                     self.performSeek()
                 },
                 segmentMarkers: self.segmentFractionMarkers,
-                segmentColor: SponsorSegment.brandColor
+                segmentColor: SponsorSegment.brandColor,
+                onMarkerPreviewChange: { marker in
+                    self.chapterPreviewMarker = marker
+                }
             )
             .padding(.top, 18)
 
@@ -562,6 +590,19 @@ struct YouTubePlayerBar: View {
 
     private var currentSeekIdentity: String {
         self.youtubePlayer.currentVideo?.videoId ?? "none"
+    }
+
+    private var chapterProgressMarkers: [PlayerBarProgressMarker] {
+        guard self.youtubePlayer.duration > 0 else { return [] }
+        return self.youtubePlayer.chapters.compactMap { chapter in
+            guard chapter.startTime > 0, chapter.startTime < self.youtubePlayer.duration else { return nil }
+            return PlayerBarProgressMarker(
+                id: chapter.id,
+                fraction: chapter.startTime / self.youtubePlayer.duration,
+                title: chapter.title,
+                subtitle: chapter.timeText ?? Self.formatTime(chapter.startTime)
+            )
+        }
     }
 
     /// Seeking is unavailable during ads or before a duration is known.

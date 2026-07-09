@@ -1,7 +1,6 @@
-# KasetPlus
+# Kaset
 
 A native macOS client for YouTube Music and YouTube, built with Swift and SwiftUI.
-Fork of Kaset with built-in addons.
 
 <table>
   <tr>
@@ -38,12 +37,8 @@ Fork of Kaset with built-in addons.
 - 📣 **Share** — Share songs, playlists, albums, and artists via the native macOS share sheet
 - 🔗 **[URL Scheme](docs/url-scheme.md)** — Open songs directly with `kaset://play?v=VIDEO_ID`; app-targeted YouTube watch and `youtu.be` links play in YouTube mode
 - 🤖 **[AppleScript Support](docs/applescript.md)** — Automate playback with scripts, Raycast, Alfred, and Shortcuts
-- 🧩 **[Extensions](docs/extensions.md)** — Load WebKit Web Extensions, including [uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home)
-- 🧪 **Addons** — Built-in addons configurable from Settings → Addons:
-  - **Ad Blocker** — API-level ad prevention (json-prune), WKContentRuleList domain blocking, and aggressive ad-skip fallback
-  - **SponsorBlock** — Auto-skip sponsored segments with localized toast and green segment markers on the progress bar
-  - **Return YouTube Dislikes** — Dislike counts fetched from the RYD API, displayed next to the dislike button
-  - **DeArrow** — Clickbait titles replaced with community-submitted accurate titles; toggle icon to see the original
+- 🧩 **[Extensions](docs/extensions.md)** — Load WebKit Web Extensions, including [uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home) and [SponsorBlock](https://github.com/ajayyy/SponsorBlock)
+- 🧪 **[KasetPlus Addons](docs/addons.md)** — Built-in addons: Ad Blocker, SponsorBlock, Return YouTube Dislikes, DeArrow. Configurable from Settings → Addons.
 
 ## Requirements
 
@@ -55,13 +50,7 @@ Fork of Kaset with built-in addons.
 
 ### Download
 
-Download the latest release from the [Releases](https://github.com/sozercan/kaset/releases) page.
-
-### Homebrew
-
-```bash
-brew install sozercan/repo/kaset
-```
+Download the latest release from the [Releases](https://github.com/Yoddikko/kasetPlus/releases) page.
 
 > **Note:** The app is not signed.
 > If you downloaded the app manually, you can clear extended attributes (including quarantine) with:
