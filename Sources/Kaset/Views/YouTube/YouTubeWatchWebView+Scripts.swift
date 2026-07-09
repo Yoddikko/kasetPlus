@@ -300,6 +300,124 @@ extension YouTubeWatchWebView {
         })();
         """
     }
+
+    /// SponsorBlock auto-skip: fetches segments from the SponsorBlock API and
+    /// seeks past them during playback. Config is injected via
+    /// `window.__kasetSponsorBlock` from the page bootstrap script.
+    static var sponsorBlockScript: String {
+        """
+        (function() {
+            'use strict';
+            const cfg = window.__kasetSponsorBlock;
+            if (!cfg || !cfg.enabled || !cfg.categories || !cfg.categories.length) return;
+
+            const API = 'https://sponsor.ajay.app/api/skipSegments';
+            let segments = [];
+            let lastSkipped = null;
+            let toastEl = null;
+            let toastTimer = null;
+
+            const L = cfg.labels || {};
+
+            function getVideoId() {
+                const url = new URL(location.href);
+                return url.searchParams.get('v');
+            }
+
+            function findVideo() {
+                return document.querySelector('#movie_player video') || document.querySelector('video');
+            }
+
+            function showToast(category) {
+                if (toastEl) { toastEl.remove(); toastEl = null; }
+                if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+
+                toastEl = document.createElement('div');
+                toastEl.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:24px;background:#212121;color:#f1f1f1;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;box-shadow:0 4px 24px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);white-space:nowrap;';
+                var catLabel = L[category] || category;
+                toastEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;vertical-align:middle"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z" fill="#3ea6ff"/></svg><span>' + (L.skipped || 'Skipped') + ' <strong>' + catLabel + '</strong></span><button id="kaset-sb-undo" style="all:unset;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:600;color:#3ea6ff;cursor:pointer">' + (L.undo || 'Undo') + '</button>';
+
+                toastEl.querySelector('#kaset-sb-undo').addEventListener('click', function() {
+                    if (lastSkipped) {
+                        const video = findVideo();
+                        if (video) video.currentTime = lastSkipped.startTime;
+                        lastSkipped = null;
+                    }
+                    if (toastEl) { toastEl.remove(); toastEl = null; }
+                    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+                });
+
+                document.body.appendChild(toastEl);
+                toastTimer = setTimeout(function() {
+                    if (toastEl) { toastEl.remove(); toastEl = null; }
+                }, 5000);
+            }
+
+            function postSegments(videoId) {
+                try {
+                    const bridge = window.webkit.messageHandlers.youtubePlayer;
+                    const slim = segments.map(function(s) {
+                        return { start: s.segment[0], end: s.segment[1], category: s.category };
+                    });
+                    bridge.postMessage({
+                        type: 'SPONSOR_SEGMENTS',
+                        videoId: videoId,
+                        segments: slim
+                    });
+                } catch(e) {}
+            }
+
+            async function loadSegments(videoId) {
+                segments = [];
+                try {
+                    const params = new URLSearchParams();
+                    params.set('videoID', videoId);
+                    cfg.categories.forEach(function(c) { params.append('category', c); });
+                    const res = await fetch(API + '?' + params.toString());
+                    if (res.status === 404) { postSegments(videoId); return; }
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (!Array.isArray(data)) return;
+                    segments = data.filter(function(s) {
+                        return s && Array.isArray(s.segment) && s.segment.length === 2
+                            && typeof s.segment[0] === 'number' && typeof s.segment[1] === 'number'
+                            && typeof s.category === 'string';
+                    });
+                    postSegments(videoId);
+                } catch(e) { segments = []; postSegments(videoId); }
+            }
+
+            // Watch for video changes (SPA navigation)
+            let lastVideoId = '';
+            setInterval(async function() {
+                const videoId = getVideoId();
+                if (!videoId || videoId === lastVideoId) return;
+                lastVideoId = videoId;
+                await loadSegments(videoId);
+            }, 1500);
+
+            const initialId = getVideoId();
+            if (initialId) { lastVideoId = initialId; loadSegments(initialId); }
+
+            // Skip monitor — check every 250ms
+            setInterval(function() {
+                if (!segments.length) return;
+                const video = findVideo();
+                if (!video || video.paused) return;
+                const time = video.currentTime;
+                for (var i = 0; i < segments.length; i++) {
+                    var seg = segments[i];
+                    if (time >= seg.segment[0] && time < seg.segment[1]) {
+                        video.currentTime = seg.segment[1];
+                        lastSkipped = { startTime: seg.segment[0], endTime: seg.segment[1], category: seg.category };
+                        showToast(seg.category);
+                        break;
+                    }
+                }
+            }, 250);
+        })();
+        """
+    }
 }
 
 // MARK: - Playback Controls

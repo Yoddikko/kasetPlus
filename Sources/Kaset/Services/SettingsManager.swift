@@ -32,6 +32,11 @@ final class SettingsManager {
         static let ambientBackdropEnabled = "settings.ambientBackdropEnabled"
         static let ambientBackdropStyle = "settings.ambientBackdropStyle"
         static let popOutVideoOnNavigateAway = "settings.popOutVideoOnNavigateAway"
+        static let sponsorBlockEnabled = "settings.sponsorBlock.enabled"
+        static let sponsorBlockCategories = "settings.sponsorBlock.categories"
+        static let adBlockEnabled = "settings.adBlock.enabled"
+        static let returnYouTubeDislikesEnabled = "settings.ryd.enabled"
+        static let dearrowEnabled = "settings.dearrow.enabled"
         #if DEBUG
             static let useLegacyMacOS15UI = "settings.debug.useLegacyMacOS15UI"
         #endif
@@ -384,6 +389,56 @@ final class SettingsManager {
         }
     }
 
+    /// Whether SponsorBlock auto-skip is enabled for YouTube videos.
+    var sponsorBlockEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.sponsorBlockEnabled, forKey: Keys.sponsorBlockEnabled)
+        }
+    }
+
+    /// SponsorBlock categories to skip (e.g. sponsor, selfpromo, intro).
+    var sponsorBlockCategories: [String] {
+        didSet {
+            UserDefaults.standard.set(self.sponsorBlockCategories, forKey: Keys.sponsorBlockCategories)
+        }
+    }
+
+    /// Whether the built-in ad blocker is enabled. Blocks ad/tracking domains
+    /// in all WebViews and auto-skips YouTube in-video ads.
+    var adBlockEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.adBlockEnabled, forKey: Keys.adBlockEnabled)
+        }
+    }
+
+    /// Whether Return YouTube Dislikes is enabled. Shows dislike counts
+    /// fetched from the RYD API next to the dislike button in the player bar.
+    var returnYouTubeDislikesEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.returnYouTubeDislikesEnabled, forKey: Keys.returnYouTubeDislikesEnabled)
+        }
+    }
+
+    /// Whether DeArrow is enabled. Replaces clickbait video titles with
+    /// community-submitted accurate titles from the DeArrow API.
+    var dearrowEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.dearrowEnabled, forKey: Keys.dearrowEnabled)
+        }
+    }
+
+    /// Available SponsorBlock segment categories.
+    static let sponsorBlockCategoryOptions: [(id: String, label: String)] = [
+        ("sponsor", String(localized: "Sponsor")),
+        ("selfpromo", String(localized: "Self-promotion")),
+        ("interaction", String(localized: "Interaction Reminder")),
+        ("intro", String(localized: "Intro")),
+        ("outro", String(localized: "Outro")),
+        ("preview", String(localized: "Preview / Recap")),
+        ("music_offtopic", String(localized: "Non-Music")),
+        ("filler", String(localized: "Filler")),
+    ]
+
     /// The style the YouTube watch page should actually render: the chosen
     /// style when enabled, `.off` when the feature is disabled.
     var resolvedAmbientStyle: AmbientBackdropStyle {
@@ -449,6 +504,11 @@ final class SettingsManager {
         )
         self.ambientBackdropEnabled = UserDefaults.standard.object(forKey: Keys.ambientBackdropEnabled) as? Bool ?? true
         self.popOutVideoOnNavigateAway = UserDefaults.standard.object(forKey: Keys.popOutVideoOnNavigateAway) as? Bool ?? true
+        self.sponsorBlockEnabled = UserDefaults.standard.object(forKey: Keys.sponsorBlockEnabled) as? Bool ?? false
+        self.sponsorBlockCategories = UserDefaults.standard.object(forKey: Keys.sponsorBlockCategories) as? [String] ?? ["sponsor", "selfpromo", "interaction"]
+        self.adBlockEnabled = UserDefaults.standard.object(forKey: Keys.adBlockEnabled) as? Bool ?? false
+        self.returnYouTubeDislikesEnabled = UserDefaults.standard.object(forKey: Keys.returnYouTubeDislikesEnabled) as? Bool ?? false
+        self.dearrowEnabled = UserDefaults.standard.object(forKey: Keys.dearrowEnabled) as? Bool ?? false
         #if DEBUG
             self.useLegacyMacOS15UI = UserDefaults.standard.object(forKey: Keys.useLegacyMacOS15UI) as? Bool ?? false
         #endif

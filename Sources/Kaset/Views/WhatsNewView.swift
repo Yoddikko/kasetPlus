@@ -8,8 +8,8 @@ import SwiftUI
 struct WhatsNewView: View {
     private enum Layout {
         static let sheetWidth: CGFloat = 640
-        static let sheetHeight: CGFloat = 620
-        static let contentMinHeight: CGFloat = 280
+        static let sheetHeight: CGFloat = 660
+        static let contentMinHeight: CGFloat = 340
     }
 
     @Environment(\.colorScheme) private var colorScheme
@@ -94,6 +94,8 @@ struct WhatsNewView: View {
         }
     }
 
+    @State private var onboardingPage = 0
+
     @ViewBuilder
     private var contentContainer: some View {
         if self.whatsNew.releaseNotes != nil {
@@ -104,14 +106,81 @@ struct WhatsNewView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         } else {
-            self.contentView
-                .padding(24)
-                .frame(
-                    maxWidth: .infinity,
-                    minHeight: Self.Layout.contentMinHeight,
-                    maxHeight: .infinity,
-                    alignment: .topLeading
+            VStack(spacing: 0) {
+                if self.onboardingPage == 0 {
+                    self.contentView
+                        .padding(24)
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: Self.Layout.contentMinHeight,
+                            maxHeight: .infinity,
+                            alignment: .topLeading
+                        )
+                } else {
+                    self.addonsPage
+                        .padding(24)
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: Self.Layout.contentMinHeight,
+                            maxHeight: .infinity,
+                            alignment: .topLeading
+                        )
+                }
+
+                // Page indicator dots + navigation
+                HStack(spacing: 8) {
+                    Circle().fill(self.onboardingPage == 0 ? Color.accentColor : Color.secondary.opacity(0.3))
+                        .frame(width: 6, height: 6)
+                        .onTapGesture { self.onboardingPage = 0 }
+                    Circle().fill(self.onboardingPage == 1 ? Color.accentColor : Color.secondary.opacity(0.3))
+                        .frame(width: 6, height: 6)
+                        .onTapGesture { self.onboardingPage = 1 }
+                }
+                .padding(.bottom, 10)
+            }
+        }
+    }
+
+    private var addonsPage: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Addons", comment: "Onboarding addons section title")
+                .font(.headline)
+
+            Text("KasetPlus comes with built-in addons. Enable the ones you'd like — you can change them anytime in Settings → Addons.", comment: "Onboarding addons description")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .lineLimit(3)
+
+            VStack(spacing: 10) {
+                AddonToggleRow(
+                    icon: "shield.lefthalf.filled",
+                    title: String(localized: "Ad Blocker"),
+                    description: String(localized: "Blocks ads and tracking in YouTube videos."),
+                    isOn: Binding(get: { SettingsManager.shared.adBlockEnabled },
+                                  set: { SettingsManager.shared.adBlockEnabled = $0 })
                 )
+                AddonToggleRow(
+                    icon: "forward.end.fill",
+                    title: String(localized: "SponsorBlock"),
+                    description: String(localized: "Auto-skips sponsored segments in videos."),
+                    isOn: Binding(get: { SettingsManager.shared.sponsorBlockEnabled },
+                                  set: { SettingsManager.shared.sponsorBlockEnabled = $0 })
+                )
+                AddonToggleRow(
+                    icon: "hand.thumbsdown.fill",
+                    title: String(localized: "Return YouTube Dislikes"),
+                    description: String(localized: "Shows dislike counts on videos."),
+                    isOn: Binding(get: { SettingsManager.shared.returnYouTubeDislikesEnabled },
+                                  set: { SettingsManager.shared.returnYouTubeDislikesEnabled = $0 })
+                )
+                AddonToggleRow(
+                    icon: "arrow.triangle.swap",
+                    title: String(localized: "DeArrow"),
+                    description: String(localized: "Replaces clickbait titles with accurate ones."),
+                    isOn: Binding(get: { SettingsManager.shared.dearrowEnabled },
+                                  set: { SettingsManager.shared.dearrowEnabled = $0 })
+                )
+            }
         }
     }
 
@@ -412,6 +481,45 @@ private struct WhatsNewFeatureRow: View {
         .overlay {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .strokeBorder(.white.opacity(self.colorScheme == .dark ? 0.05 : 0.18))
+        }
+    }
+}
+
+// MARK: - AddonToggleRow
+
+/// Compact toggle row used in the onboarding addons page.
+private struct AddonToggleRow: View {
+    let icon: String
+    let title: String
+    let description: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: self.icon)
+                .font(.title3)
+                .foregroundStyle(.tint)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(self.title)
+                    .font(.system(size: 13, weight: .semibold))
+                Text(self.description)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 8)
+
+            Toggle("", isOn: self.$isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+        }
+        .padding(12)
+        .background {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(.quaternary.opacity(0.4))
         }
     }
 }

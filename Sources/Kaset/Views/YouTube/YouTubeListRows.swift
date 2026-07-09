@@ -12,7 +12,8 @@ struct VideoRowView: View {
                 .frame(width: 160)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(self.video.title)
+                Text(DearrowCache.shared.displayTitle(
+                    for: self.video.videoId, original: self.video.title))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
@@ -35,6 +36,9 @@ struct VideoRowView: View {
             }
 
             Spacer(minLength: 0)
+        }
+        .onAppear {
+            DearrowCache.shared.fetchOneIfNeeded(videoId: self.video.videoId)
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)

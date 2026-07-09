@@ -1,6 +1,7 @@
-# Kaset
+# KasetPlus
 
 A native macOS client for YouTube Music and YouTube, built with Swift and SwiftUI.
+Fork of Kaset with built-in addons.
 
 <table>
   <tr>
@@ -38,6 +39,11 @@ A native macOS client for YouTube Music and YouTube, built with Swift and SwiftU
 - 🔗 **[URL Scheme](docs/url-scheme.md)** — Open songs directly with `kaset://play?v=VIDEO_ID`; app-targeted YouTube watch and `youtu.be` links play in YouTube mode
 - 🤖 **[AppleScript Support](docs/applescript.md)** — Automate playback with scripts, Raycast, Alfred, and Shortcuts
 - 🧩 **[Extensions](docs/extensions.md)** — Load WebKit Web Extensions, including [uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home)
+- 🧪 **Addons** — Built-in addons configurable from Settings → Addons:
+  - **Ad Blocker** — API-level ad prevention (json-prune), WKContentRuleList domain blocking, and aggressive ad-skip fallback
+  - **SponsorBlock** — Auto-skip sponsored segments with localized toast and green segment markers on the progress bar
+  - **Return YouTube Dislikes** — Dislike counts fetched from the RYD API, displayed next to the dislike button
+  - **DeArrow** — Clickbait titles replaced with community-submitted accurate titles; toggle icon to see the original
 
 ## Requirements
 

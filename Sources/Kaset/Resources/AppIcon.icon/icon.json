@@ -4,6 +4,32 @@
     {
       "layers" : [
         {
+          "blend-mode" : "soft-light",
+          "fill" : "none",
+          "glass" : false,
+          "image-name" : "plus.svg",
+          "name" : "plus",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              265.1677229020979,
+              177.1625171703297
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "layers" : [
+        {
           "glass" : true,
           "hidden" : false,
           "image-name" : "Image Layer.png",

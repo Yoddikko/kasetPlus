@@ -13,8 +13,8 @@ source "$ROOT/version.env"
 CONF=${1:-release}
 SIGNING_MODE=${KASET_SIGNING:-dev}
 SKIP_MAIN_ASSETS=${KASET_SKIP_MAIN_ASSETS:-0}
-APP_NAME="Kaset"
-BUNDLE_ID="com.sertacozercan.Kaset"
+APP_NAME="KasetPlus"
+BUNDLE_ID="com.sertacozercan.KasetPlus"
 DEVELOPMENT_LOCALIZATION="en"
 BUILD_DIR="$ROOT/.build/app"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"

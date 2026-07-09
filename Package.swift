@@ -4,15 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "Kaset",
+    name: "KasetPlus",
     defaultLocalization: "en",
     platforms: [
         .macOS("15.4"),
     ],
     products: [
         .executable(
-            name: "Kaset",
-            targets: ["Kaset"]
+            name: "KasetPlus",
+            targets: ["KasetPlus"]
         ),
         .executable(
             name: "api-explorer",
@@ -25,10 +25,11 @@ let package = Package(
     targets: [
         // Main app executable
         .executableTarget(
-            name: "Kaset",
+            name: "KasetPlus",
             dependencies: [
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
+            path: "Sources/Kaset",
             exclude: [
                 "Resources/AppIcon.icon",
                 "Resources/kaset.icns",
@@ -63,7 +64,8 @@ let package = Package(
         // Unit tests
         .testTarget(
             name: "KasetTests",
-            dependencies: ["Kaset"],
+            dependencies: ["KasetPlus"],
+            path: "Tests/KasetTests",
             // Tests for Apple-Intelligence-powered features are excluded
             // because the underlying APIs are macOS 26+ only and Swift
             // Testing's `@Test` / `@Suite` macros do not compose with

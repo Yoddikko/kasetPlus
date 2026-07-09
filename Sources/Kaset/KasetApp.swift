@@ -152,6 +152,11 @@ struct KasetApp: App {
         if UITestConfig.isUITestMode {
             DiagnosticsLogger.ui.info("App launched in UI Test mode")
         }
+
+        // Compile ad-blocking content rules at startup (async, non-blocking)
+        Task { @MainActor in
+            await AdBlockService.compile()
+        }
     }
 
     var body: some Scene {
@@ -727,6 +732,11 @@ struct SettingsView: View {
             ExtensionsSettingsView()
                 .tabItem {
                     Label("Extensions", systemImage: "puzzlepiece.extension")
+                }
+
+            AddonsSettingsView()
+                .tabItem {
+                    Label("Addons", systemImage: "app.connected.to.app.below.fill")
                 }
         }
         // 520×520 fits the Equalizer tab's six-band slider grid + curve

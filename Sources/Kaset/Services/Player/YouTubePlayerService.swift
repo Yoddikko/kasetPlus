@@ -132,6 +132,78 @@ final class YouTubePlayerService {
     /// Whether the current video is waiting for the WebView to report playable media.
     private(set) var isPlaybackLoading = false
 
+    /// SponsorBlock segments for the current video ([start, end] in seconds, by category).
+    /// Updated by the WebView observer when segments are fetched from the SponsorBlock API.
+    var sponsorSegments: [SponsorSegment] = []
+
+    /// Clears SponsorBlock segments when a new video starts loading.
+    func setSponsorSegments(_ segments: [SponsorSegment]) {
+        self.sponsorSegments = segments
+    }
+
+    // MARK: - Return YouTube Dislikes
+
+    /// RYD dislike count for the current video (nil = not yet fetched or unavailable).
+    private(set) var rydDislikes: Int?
+    /// RYD like count for the current video.
+    private(set) var rydLikes: Int?
+    /// Tracks which videoId we already fetched RYD data for (dedup).
+    private var rydFetchVideoId: String?
+
+    /// Formats an integer count to a compact string (e.g. 12345 → "12.3K").
+    static func formatCount(_ count: Int) -> String {
+        if count >= 1_000_000 {
+            let m = Double(count) / 1_000_000.0
+            return String(format: m >= 100 ? "%.0fM" : (m >= 10 ? "%.1fM" : "%.2fM"), m)
+        }
+        if count >= 1000 {
+            let k = Double(count) / 1000.0
+            return String(format: k >= 100 ? "%.0fK" : (k >= 10 ? "%.1fK" : "%.2fK"), k)
+        }
+        return "\(count)"
+    }
+
+    // MARK: - DeArrow
+
+    /// Shared toggle state — synced between watch view and player bar.
+    var showsDearrowOriginal = false
+
+    /// Computed: the DeArrow title for the current video (from shared cache).
+    var dearrowTitle: String? {
+        guard let videoId = self.currentVideo?.videoId else { return nil }
+        return DearrowCache.shared.hasDearrow(for: videoId)
+            ? DearrowCache.shared.displayTitle(for: videoId, original: self.currentVideo?.title ?? "")
+            : nil
+    }
+
+    /// The original title stored in the cache for toggle-back support.
+    var dearrowOriginalTitle: String? {
+        guard let videoId = self.currentVideo?.videoId else { return nil }
+        return DearrowCache.shared.originalTitle(for: videoId)
+    }
+
+    func fetchReturnYouTubeDislikes(videoId: String) async {
+        guard SettingsManager.shared.returnYouTubeDislikesEnabled,
+              videoId != self.rydFetchVideoId
+        else { return }
+
+        self.rydFetchVideoId = videoId
+
+        guard let url = URL(string: "https://returnyoutubedislikeapi.com/votes?videoId=\(videoId)") else {
+            return
+        }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+            self.rydDislikes = json["dislikes"] as? Int
+            self.rydLikes = json["likes"] as? Int
+        } catch {
+            self.rydDislikes = nil
+            self.rydLikes = nil
+        }
+    }
+
     /// Playback volume (0...1).
     var volume: Double = 1.0 {
         didSet {
@@ -538,6 +610,11 @@ final class YouTubePlayerService {
         self.qualityLevels = []
         self.currentQuality = nil
         self.storyboardSpec = nil
+        self.sponsorSegments = []
+        self.rydDislikes = nil
+        self.rydLikes = nil
+        self.rydFetchVideoId = nil
+        // DeArrow cache is shared — no per-video teardown needed
         self.storyboardFetchVideoId = nil
         self.storyboardFetchInFlightVideoId = nil
         self.playbackOptionsVideoId = nil
@@ -808,6 +885,21 @@ final class YouTubePlayerService {
             Task {
                 await self.refreshPlaybackOptions()
             }
+        }
+
+        // Fetch Return YouTube Dislikes once per video
+        if update.isPlaying,
+           let videoId = self.currentVideo?.videoId,
+           self.rydFetchVideoId == nil
+        {
+            Task {
+                await self.fetchReturnYouTubeDislikes(videoId: videoId)
+            }
+        }
+
+        // Trigger DeArrow fetch via shared cache (non-blocking)
+        if let videoId = self.currentVideo?.videoId {
+            DearrowCache.shared.fetchOneIfNeeded(videoId: videoId)
         }
 
         // Storyboard color drives the ambient backdrop, so only fetch it when

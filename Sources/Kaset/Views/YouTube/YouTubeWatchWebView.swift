@@ -193,8 +193,14 @@ final class YouTubeWatchWebView {
     ) {
         contentController.removeAllUserScripts()
 
+        let sbSettings = SettingsManager.shared
         let bootstrap = WKUserScript(
-            source: Self.pageBootstrapScript(targetVolume: targetVolume, pendingSeek: pendingSeek),
+            source: Self.pageBootstrapScript(
+                targetVolume: targetVolume,
+                pendingSeek: pendingSeek,
+                sponsorBlockEnabled: sbSettings.sponsorBlockEnabled,
+                sponsorBlockCategories: sbSettings.sponsorBlockCategories
+            ),
             injectionTime: .atDocumentStart,
             forMainFrameOnly: true
         )
@@ -221,6 +227,24 @@ final class YouTubeWatchWebView {
             forMainFrameOnly: true
         )
         contentController.addUserScript(extraction)
+
+        let sponsorBlock = WKUserScript(
+            source: Self.sponsorBlockScript,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true
+        )
+        contentController.addUserScript(sponsorBlock)
+
+        // Ad-block: json-prune + skip. MUST run at document-start so
+        // JSON.parse is overridden before YouTube's JS loads ad data.
+        if SettingsManager.shared.adBlockEnabled {
+            let adBlock = WKUserScript(
+                source: AdBlockService.adBlockScript,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true
+            )
+            contentController.addUserScript(adBlock)
+        }
     }
 
     /// Document-start state handed to each new watch page.
@@ -230,12 +254,51 @@ final class YouTubeWatchWebView {
     /// `applyPendingSeek` in the observer script). Injected at document start so
     /// it is in place before the player boots, and naturally scoped to this one
     /// navigation.
-    nonisolated static func pageBootstrapScript(targetVolume: Double, pendingSeek: Double? = nil) -> String {
+    nonisolated static func pageBootstrapScript(
+        targetVolume: Double,
+        pendingSeek: Double? = nil,
+        sponsorBlockEnabled: Bool,
+        sponsorBlockCategories: [String]
+    ) -> String {
         let clamped = targetVolume.isFinite ? min(max(targetVolume, 0), 1) : 1.0
         var script = "window.__kasetTargetVolume = \(clamped);"
         if let pendingSeek, pendingSeek.isFinite, pendingSeek > 0 {
             script += " window.__kasetPendingSeek = \(pendingSeek);"
         }
+
+        // SponsorBlock config — injected so the SB user script can read it
+        let catsJSON = "[" + sponsorBlockCategories.map { "\"\($0)\"" }.joined(separator: ",") + "]"
+
+        // ponytail: inject localized labels so the toast speaks the user's language.
+        // JSON-encode each value to prevent JS injection through localized strings.
+        func jsStr(_ value: String) -> String {
+            guard let data = try? JSONSerialization.data(withJSONObject: value, options: .fragmentsAllowed),
+                  let json = String(data: data, encoding: .utf8)
+            else { return "\"\"" }
+            return json
+        }
+
+        let labelSkipped = String(localized: "Skipped")
+        let labelUndo = String(localized: "Undo")
+        let catSponsor = String(localized: "Sponsor")
+        let catSelfpromo = String(localized: "Self-promotion")
+        let catInteraction = String(localized: "Interaction Reminder")
+        let catIntro = String(localized: "Intro")
+        let catOutro = String(localized: "Outro")
+        let catPreview = String(localized: "Preview / Recap")
+        let catMusicOfftopic = String(localized: "Non-Music")
+        let catFiller = String(localized: "Filler")
+
+        script += """
+         window.__kasetSponsorBlock = {enabled:\(sponsorBlockEnabled),categories:\(catsJSON),\
+        labels:{skipped:\(jsStr(labelSkipped)),undo:\(jsStr(labelUndo)),\
+        sponsor:\(jsStr(catSponsor)),selfpromo:\(jsStr(catSelfpromo)),\
+        interaction:\(jsStr(catInteraction)),intro:\(jsStr(catIntro)),\
+        outro:\(jsStr(catOutro)),preview:\(jsStr(catPreview)),\
+        music_offtopic:\(jsStr(catMusicOfftopic)),filler:\(jsStr(catFiller))}};
+
+        """
+
         return script
     }
 
@@ -270,6 +333,18 @@ final class YouTubeWatchWebView {
                 let videoId = body["videoId"] as? String
                 Task { @MainActor in
                     self.playerService.handleVideoEnded(videoId: videoId)
+                }
+            case "SPONSOR_SEGMENTS":
+                let segmentDictionaries = body["segments"] as? [[String: Any]] ?? []
+                let segments: [SponsorSegment] = segmentDictionaries.compactMap { dict in
+                    guard let start = dict["start"] as? Double,
+                          let end = dict["end"] as? Double,
+                          let category = dict["category"] as? String
+                    else { return nil }
+                    return SponsorSegment(start: start, end: end, category: category)
+                }
+                Task { @MainActor in
+                    self.playerService.setSponsorSegments(segments)
                 }
             default:
                 return

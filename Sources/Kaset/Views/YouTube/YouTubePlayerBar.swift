@@ -144,14 +144,33 @@ struct YouTubePlayerBar: View {
 
             if !usesCompactDetails {
                 VStack(alignment: .leading, spacing: 4) {
-                    PlayerBarMarqueeText(
-                        text: self.youtubePlayer.currentVideo?.title ?? String(localized: "Not Playing"),
-                        font: .system(size: 13),
-                        color: .primary,
-                        height: 13,
-                        reduceMotion: self.reduceMotion
-                    )
-                    .id(self.currentTitleIdentity)
+                    HStack(spacing: 4) {
+                        PlayerBarMarqueeText(
+                            text: self.resolvedTitle,
+                            font: .system(size: 13),
+                            color: .primary,
+                            height: 13,
+                            reduceMotion: self.reduceMotion
+                        )
+                        .id(self.currentTitleIdentity)
+
+                        if self.hasDearrow {
+                            Button {
+                                self.youtubePlayer.showsDearrowOriginal.toggle()
+                            } label: {
+                                Image(systemName: self.youtubePlayer.showsDearrowOriginal ? "arrow.uturn.backward.circle.fill" : "arrow.triangle.swap")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(self.youtubePlayer.showsDearrowOriginal ? .orange : SponsorSegment.brandColor)
+                            }
+                            .buttonStyle(.plain)
+                            .help(self.youtubePlayer.showsDearrowOriginal
+                                ? String(localized: "Show DeArrow title")
+                                : String(localized: "Show original title"))
+                            .accessibilityLabel(self.youtubePlayer.showsDearrowOriginal
+                                ? String(localized: "Show DeArrow title")
+                                : String(localized: "Show original title"))
+                        }
+                    }
 
                     PlayerBarMetadataButton(
                         text: self.youtubePlayer.currentVideo?.channelName ?? String(localized: "YouTube"),
@@ -162,49 +181,7 @@ struct YouTubePlayerBar: View {
                 .frame(width: 129, height: 29, alignment: .leading)
             }
 
-            if self.hasPersonalAccount {
-                HStack(spacing: 6) {
-                    PlayerBarIconButton(
-                        action: {
-                            Task {
-                                await self.youtubePlayer.toggleLike()
-                            }
-                        },
-                        isSelected: self.youtubePlayer.currentRating == .like,
-                        accessibilityID: AccessibilityID.YouTubeContent.watchLikeButton,
-                        accessibilityLabel: String(localized: "Like"),
-                        icon: {
-                            Image(systemName: self.youtubePlayer.currentRating == .like ? "hand.thumbsup.fill" : "hand.thumbsup")
-                                .font(.system(size: 16, weight: .regular))
-                                .frame(width: 10, height: 16)
-                                .foregroundStyle(self.youtubePlayer.currentRating == .like ? Self.brandAccent : .primary)
-                                .contentTransition(.symbolEffect(.replace))
-                        }
-                    )
-                    .symbolEffect(.bounce, value: self.youtubePlayer.currentRating == .like)
-                    .disabled(self.youtubePlayer.currentVideo == nil)
-
-                    PlayerBarIconButton(
-                        action: {
-                            Task {
-                                await self.youtubePlayer.toggleDislike()
-                            }
-                        },
-                        isSelected: self.youtubePlayer.currentRating == .dislike,
-                        accessibilityID: AccessibilityID.YouTubeContent.watchDislikeButton,
-                        accessibilityLabel: String(localized: "Dislike"),
-                        icon: {
-                            Image(systemName: self.youtubePlayer.currentRating == .dislike ? "hand.thumbsdown.fill" : "hand.thumbsdown")
-                                .font(.system(size: 16, weight: .regular))
-                                .frame(width: 10, height: 16)
-                                .foregroundStyle(self.youtubePlayer.currentRating == .dislike ? Self.brandAccent : .primary)
-                                .contentTransition(.symbolEffect(.replace))
-                        }
-                    )
-                    .symbolEffect(.bounce, value: self.youtubePlayer.currentRating == .dislike)
-                    .disabled(self.youtubePlayer.currentVideo == nil)
-                }
-            }
+            // Like/dislike moved to video metadata area (YouTubeWatchView)
         }
         .padding(.leading, 14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -242,8 +219,26 @@ struct YouTubePlayerBar: View {
     private var currentTitleIdentity: String {
         [
             self.youtubePlayer.currentVideo?.id ?? "none",
-            self.youtubePlayer.currentVideo?.title ?? "none",
+            self.resolvedTitle,
         ].joined(separator: "|")
+    }
+
+    /// Title to display: DeArrow title if available (and not toggled off).
+    /// State lives on YouTubePlayerService so watch view and player bar stay in sync.
+
+    private var resolvedTitle: String {
+        if self.youtubePlayer.showsDearrowOriginal,
+           let orig = self.youtubePlayer.dearrowOriginalTitle
+        {
+            return orig
+        }
+        return self.youtubePlayer.dearrowTitle
+            ?? self.youtubePlayer.currentVideo?.title
+            ?? String(localized: "Not Playing")
+    }
+
+    private var hasDearrow: Bool {
+        self.youtubePlayer.dearrowTitle != nil
     }
 
     private var youtubeProgressSection: some View {
@@ -262,7 +257,9 @@ struct YouTubePlayerBar: View {
                 },
                 onCommit: {
                     self.performSeek()
-                }
+                },
+                segmentMarkers: self.segmentFractionMarkers,
+                segmentColor: SponsorSegment.brandColor
             )
             .padding(.top, 18)
 
@@ -270,6 +267,15 @@ struct YouTubePlayerBar: View {
                 .padding(.top, 2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Converts SponsorBlock segments (seconds) to fraction pairs for the progress lane.
+    private var segmentFractionMarkers: [(fractionStart: Double, fractionEnd: Double)] {
+        let dur = self.youtubePlayer.duration
+        guard dur > 0 else { return [] }
+        return self.youtubePlayer.sponsorSegments.map { seg in
+            (fractionStart: seg.start / dur, fractionEnd: seg.end / dur)
+        }
     }
 
     private var youtubeTransportControls: some View {

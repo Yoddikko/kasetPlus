@@ -12,11 +12,13 @@ struct VideoCard: View {
             VideoThumbnailView(video: self.video)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(self.video.title)
+                Text(DearrowCache.shared.displayTitle(
+                    for: self.video.videoId, original: self.video.title))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
+                    .id("dearrow-\(self.video.videoId)-\(DearrowCache.shared.hasDearrow(for: self.video.videoId))")
 
                 if let channelName = self.video.channelName {
                     Text(channelName)
@@ -35,6 +37,9 @@ struct VideoCard: View {
             .padding(.horizontal, 2)
         }
         .contentShape(Rectangle())
+        .onAppear {
+            DearrowCache.shared.fetchOneIfNeeded(videoId: self.video.videoId)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(self.accessibilityText)
     }

@@ -273,6 +273,9 @@ final class WebKitManager: NSObject, WebKitManagerProtocol {
         // Enable AirPlay for streaming to Apple TV, HomePod, etc.
         configuration.allowsAirPlayForMediaPlayback = true
 
+        // Apply ad-blocking content rules if enabled
+        AdBlockService.apply(to: configuration)
+
         return configuration
     }
 

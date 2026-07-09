@@ -45,22 +45,27 @@ struct YouTubeWatchScriptTests {
 
     @Test("Bootstrap script clamps the volume target")
     func bootstrapClampsVolume() {
-        #expect(YouTubeWatchWebView.pageBootstrapScript(targetVolume: 2.0)
-            .contains("__kasetTargetVolume = 1.0"))
-        #expect(YouTubeWatchWebView.pageBootstrapScript(targetVolume: -1)
-            .contains("__kasetTargetVolume = 0.0"))
+        #expect(YouTubeWatchWebView.pageBootstrapScript(
+            targetVolume: 2.0, sponsorBlockEnabled: false, sponsorBlockCategories: []
+        ).contains("__kasetTargetVolume = 1.0"))
+        #expect(YouTubeWatchWebView.pageBootstrapScript(
+            targetVolume: -1, sponsorBlockEnabled: false, sponsorBlockCategories: []
+        ).contains("__kasetTargetVolume = 0.0"))
     }
 
     @Test("Bootstrap carries a pending resume-seek only when present and positive")
     func bootstrapCarriesPendingSeek() {
-        #expect(YouTubeWatchWebView.pageBootstrapScript(targetVolume: 1, pendingSeek: 42.5)
-            .contains("__kasetPendingSeek = 42.5"))
+        #expect(YouTubeWatchWebView.pageBootstrapScript(
+            targetVolume: 1, pendingSeek: 42.5, sponsorBlockEnabled: false, sponsorBlockCategories: []
+        ).contains("__kasetPendingSeek = 42.5"))
         // No seek pending → no marker injected.
-        #expect(!YouTubeWatchWebView.pageBootstrapScript(targetVolume: 1, pendingSeek: nil)
-            .contains("__kasetPendingSeek"))
+        #expect(!YouTubeWatchWebView.pageBootstrapScript(
+            targetVolume: 1, pendingSeek: nil, sponsorBlockEnabled: false, sponsorBlockCategories: []
+        ).contains("__kasetPendingSeek"))
         // Zero/negative is not a resume position.
-        #expect(!YouTubeWatchWebView.pageBootstrapScript(targetVolume: 1, pendingSeek: 0)
-            .contains("__kasetPendingSeek"))
+        #expect(!YouTubeWatchWebView.pageBootstrapScript(
+            targetVolume: 1, pendingSeek: 0, sponsorBlockEnabled: false, sponsorBlockCategories: []
+        ).contains("__kasetPendingSeek"))
     }
 
     @Test("Observer applies the pending seek gated on a seekable element")
@@ -90,5 +95,39 @@ struct YouTubeWatchScriptTests {
         // the load is a no-op beyond clearing the field.)
         webView.loadVideo(videoId: "different-video")
         #expect(webView.pendingSeek == nil)
+    }
+
+    @Test("SponsorBlock script contains skip logic and toast UI")
+    func sponsorBlockScriptContract() {
+        let script = YouTubeWatchWebView.sponsorBlockScript
+        #expect(script.contains("sponsor.ajay.app/api/skipSegments"))
+        #expect(script.contains("__kasetSponsorBlock"))
+        #expect(script.contains("video.currentTime"))
+        #expect(script.contains("Skipped"))
+        #expect(script.contains("Undo"))
+    }
+
+    @Test("Bootstrap carries SponsorBlock config when enabled")
+    func bootstrapCarriesSponsorBlockConfig() {
+        let script = YouTubeWatchWebView.pageBootstrapScript(
+            targetVolume: 1.0,
+            sponsorBlockEnabled: true,
+            sponsorBlockCategories: ["sponsor", "intro"]
+        )
+        #expect(script.contains("__kasetSponsorBlock"))
+        #expect(script.contains("enabled:true"))
+        #expect(script.contains("\"sponsor\""))
+        #expect(script.contains("\"intro\""))
+    }
+
+    @Test("Bootstrap carries SponsorBlock config when disabled")
+    func bootstrapCarriesSponsorBlockConfigDisabled() {
+        let script = YouTubeWatchWebView.pageBootstrapScript(
+            targetVolume: 1.0,
+            sponsorBlockEnabled: false,
+            sponsorBlockCategories: []
+        )
+        #expect(script.contains("enabled:false"))
+        #expect(script.contains("categories:[]"))
     }
 }

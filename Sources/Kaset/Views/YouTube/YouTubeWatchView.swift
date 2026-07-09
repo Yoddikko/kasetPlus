@@ -27,6 +27,21 @@ struct YouTubeWatchView: View {
     @State private var commentDraft = ""
     @State private var settings = SettingsManager.shared
 
+    private var resolvedTitle: String {
+        if self.youtubePlayer.showsDearrowOriginal,
+           let orig = self.youtubePlayer.dearrowOriginalTitle
+        {
+            return orig
+        }
+        return self.youtubePlayer.dearrowTitle
+            ?? self.viewModel.data.videoTitle
+            ?? self.video.title
+    }
+
+    private var hasDearrow: Bool {
+        self.youtubePlayer.dearrowTitle != nil
+    }
+
     /// The ambient backdrop style to render: the user's chosen style, or `.off`
     /// when they've disabled the feature in Settings → YouTube.
     private var ambientStyle: AmbientBackdropStyle {
@@ -234,18 +249,42 @@ struct YouTubeWatchView: View {
 
     private var metadataSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(self.viewModel.data.videoTitle ?? self.video.title)
-                .font(.title2.bold())
-                .lineLimit(3)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(self.resolvedTitle)
+                    .font(.title2.bold())
+                    .lineLimit(3)
 
+                if self.hasDearrow {
+                    Button {
+                        self.youtubePlayer.showsDearrowOriginal.toggle()
+                    } label: {
+                        Image(systemName: self.youtubePlayer.showsDearrowOriginal
+                            ? "arrow.uturn.backward.circle.fill" : "arrow.triangle.swap")
+                            .font(.system(size: 14))
+                            .foregroundStyle(self.youtubePlayer.showsDearrowOriginal ? .orange : SponsorSegment.brandColor)
+                    }
+                    .buttonStyle(.plain)
+                    .help(self.youtubePlayer.showsDearrowOriginal
+                        ? String(localized: "Show DeArrow title")
+                        : String(localized: "Show original title"))
+                }
+            }
+
+            // Views · published (left) + like/dislike (right) — same row
             let meta = [
                 self.viewModel.data.viewCountText ?? self.video.viewCountText,
                 self.viewModel.data.publishedText ?? self.video.publishedText,
             ].compactMap(\.self)
-            if !meta.isEmpty {
-                Text(meta.joined(separator: " · "))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                if !meta.isEmpty {
+                    Text(meta.joined(separator: " · "))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 12)
+                if self.hasPersonalAccount {
+                    self.likeDislikeButtons
+                }
             }
 
             if let channel = self.viewModel.data.channel {
@@ -287,6 +326,54 @@ struct YouTubeWatchView: View {
                     Spacer(minLength: 0)
                 }
             }
+        }
+    }
+
+    private var likeDislikeButtons: some View {
+        HStack(spacing: 8) {
+            Button {
+                Task { await self.youtubePlayer.toggleLike() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: self.youtubePlayer.currentRating == .like
+                        ? "hand.thumbsup.fill" : "hand.thumbsup")
+                    if let likes = self.youtubePlayer.rydLikes {
+                        Text(YouTubePlayerService.formatCount(likes))
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(
+                    Capsule()
+                        .fill(self.youtubePlayer.currentRating == .like
+                            ? Self.brandAccent.opacity(0.15) : Color.secondary.opacity(0.12))
+                )
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(self.youtubePlayer.currentRating == .like ? Self.brandAccent : .secondary)
+
+            Button {
+                Task { await self.youtubePlayer.toggleDislike() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: self.youtubePlayer.currentRating == .dislike
+                        ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                    if let dislikes = self.youtubePlayer.rydDislikes {
+                        Text(YouTubePlayerService.formatCount(dislikes))
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(
+                    Capsule()
+                        .fill(self.youtubePlayer.currentRating == .dislike
+                            ? Self.brandAccent.opacity(0.15) : Color.secondary.opacity(0.12))
+                )
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(self.youtubePlayer.currentRating == .dislike ? Self.brandAccent : .secondary)
         }
     }
 
