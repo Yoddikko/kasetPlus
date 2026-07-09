@@ -22,5 +22,9 @@ Download the latest release from the [Releases](https://github.com/Yoddikko/kase
 > xattr -cr /Applications/Kaset.app
 > ```
 
+## Upstream Sync
+
+[View commits behind upstream](https://github.com/sozercan/kaset/compare/main...Yoddikko:kasetPlus:main)
+
 ## Disclaimer
 KasetPlus is an unofficial fork and not affiliated with YouTube, Google Inc., or the original Kaset project.
