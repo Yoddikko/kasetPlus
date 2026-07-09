@@ -4,8 +4,12 @@ Fork of [Kaset](https://github.com/sozercan/kaset) — a native macOS client for
 
 > For everything else about the original project, see the [upstream README](https://github.com/sozercan/kaset).
 
-## KasetPlus Addons
+## KasetPlus Features
 
+### YouTube Video Lyrics Search
+While watching any YouTube video, toggle the lyrics section from the player bar (music.note.list icon) or the "Lyrics" button below the video title. Lyrics are fetched from **[LRCLib](https://lrclib.net)** — a free, open-source lyrics database — and displayed inline with editable search.
+
+### Addons
 Built-in addons configurable from **Settings → Addons**:
 
 - **Ad Blocker** — API-level ad prevention (json-prune), WKContentRuleList domain blocking, YouTube ad auto-skip

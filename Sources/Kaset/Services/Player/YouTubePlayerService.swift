@@ -168,6 +168,9 @@ final class YouTubePlayerService {
     /// Shared toggle state — synced between watch view and player bar.
     var showsDearrowOriginal = false
 
+    /// Toggles the inline lyrics section (watch view + player bar button).
+    var showsLyrics = false
+
     /// Computed: the DeArrow title for the current video (from shared cache).
     var dearrowTitle: String? {
         guard let videoId = self.currentVideo?.videoId else { return nil }

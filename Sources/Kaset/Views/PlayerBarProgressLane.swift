@@ -42,7 +42,9 @@ struct PlayerBarProgressLane: View {
         isLoading: Bool,
         onScrub: @escaping (Double) -> Void,
         onCommit: @escaping () -> Void,
-        onMarkerPreviewChange: @escaping (PlayerBarProgressMarker?) -> Void = { _ in }
+        onMarkerPreviewChange: @escaping (PlayerBarProgressMarker?) -> Void = { _ in },
+        segmentMarkers: [(fractionStart: Double, fractionEnd: Double)] = [],
+        segmentColor: Color = SponsorSegment.brandColor
     ) {
         self.fraction = fraction
         self.accent = accent
@@ -55,6 +57,8 @@ struct PlayerBarProgressLane: View {
         self.onScrub = onScrub
         self.onCommit = onCommit
         self.onMarkerPreviewChange = onMarkerPreviewChange
+        self.segmentMarkers = segmentMarkers
+        self.segmentColor = segmentColor
     }
 
     var body: some View {

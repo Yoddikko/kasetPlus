@@ -26,6 +26,7 @@ struct YouTubeWatchView: View {
 
     @State private var commentDraft = ""
     @State private var settings = SettingsManager.shared
+    @State private var lyricsSearchQuery = ""
 
     private var resolvedTitle: String {
         if self.youtubePlayer.showsDearrowOriginal,
@@ -78,6 +79,11 @@ struct YouTubeWatchView: View {
                 HStack(alignment: .top, spacing: 24) {
                     VStack(alignment: .leading, spacing: 16) {
                         self.metadataSection
+
+                        if self.youtubePlayer.showsLyrics {
+                            Divider()
+                            self.lyricsSection
+                        }
 
                         if !self.viewModel.data.chapters.isEmpty {
                             Divider()
@@ -295,6 +301,25 @@ struct YouTubeWatchView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 12)
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        self.youtubePlayer.showsLyrics.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: self.youtubePlayer.showsLyrics ? "music.quarternote.3" : "music.note.list")
+                            .font(.system(size: 13))
+                        Text("Lyrics", comment: "Toggle lyrics section in YouTube watch view")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Capsule().fill(self.youtubePlayer.showsLyrics ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(self.youtubePlayer.showsLyrics ? Color.accentColor : .secondary)
+
                 if self.hasPersonalAccount {
                     self.likeDislikeButtons
                 }
@@ -388,6 +413,189 @@ struct YouTubeWatchView: View {
             .buttonStyle(.plain)
             .foregroundStyle(self.youtubePlayer.currentRating == .dislike ? Self.brandAccent : .secondary)
         }
+    }
+
+    // MARK: - Lyrics Section
+
+    @State private var lyricsResults: [LRCLibModel] = []
+    @State private var lyricsLoading = false
+    @State private var lyricsExpandedID: Int?
+
+    private var lyricsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("Lyrics", systemImage: "music.quarternote.3")
+                    .font(.headline)
+                Spacer()
+                if self.lyricsLoading {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                        .frame(width: 16, height: 16)
+                }
+            }
+
+            // Editable search field
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11))
+                TextField(
+                    String(localized: "Search artist - title..."),
+                    text: self.$lyricsSearchQuery
+                )
+                .textFieldStyle(.plain)
+                .font(.system(size: 12))
+                .onSubmit {
+                    self.lyricsResults = []
+                    self.lyricsExpandedID = nil
+                    self.performLyricsSearch()
+                }
+                if !self.lyricsSearchQuery.isEmpty {
+                    Button {
+                        self.lyricsSearchQuery = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                Button {
+                    self.lyricsResults = []
+                    self.lyricsExpandedID = nil
+                    self.performLyricsSearch()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.secondary.opacity(0.08))
+            }
+
+            if self.lyricsResults.isEmpty, !self.lyricsLoading {
+                Text("No lyrics found for this song.", comment: "Empty lyrics state")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 4)
+            } else {
+                ForEach(self.lyricsResults.prefix(3), id: \.id) { track in
+                    self.lyricsTrackRow(track)
+                }
+            }
+        }
+        .padding(16)
+        .background {
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.secondary.opacity(0.06))
+        }
+        .onAppear {
+            if self.lyricsSearchQuery.isEmpty {
+                self.lyricsSearchQuery = self.viewModel.data.videoTitle ?? self.video.title
+            }
+            self.performLyricsSearch()
+        }
+        .onChange(of: self.video.videoId) { _, _ in
+            self.lyricsResults = []
+            self.lyricsExpandedID = nil
+            self.lyricsSearchQuery = self.viewModel.data.videoTitle ?? self.video.title
+            self.performLyricsSearch()
+        }
+    }
+
+    private func lyricsTrackRow(_ track: LRCLibModel) -> some View {
+        let isExpanded = self.lyricsExpandedID == track.id
+        return VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.lyricsExpandedID = isExpanded ? nil : track.id
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: isExpanded ? "text.justify" : "music.note")
+                        .font(.callout)
+                        .foregroundStyle(isExpanded ? Color.accentColor : .secondary)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(track.trackName ?? track.artistName ?? String(localized: "Unknown"))
+                            .font(.system(size: 12, weight: .semibold))
+                        if let artist = track.artistName {
+                            Text(artist)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.tertiary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                }
+                .padding(10)
+                .background {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isExpanded ? Color.accentColor.opacity(0.08) : Color.secondary.opacity(0.05))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded, let lyrics = track.syncedLyrics ?? track.plainLyrics {
+                ScrollView {
+                    Text(Self.stripTimestamps(lyrics))
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(.primary)
+                        .lineSpacing(5)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                }
+                .frame(maxHeight: 220)
+                .background {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.04))
+                }
+                .padding(.top, 6)
+            }
+        }
+    }
+
+    private func performLyricsSearch() {
+        let trimmed = self.lyricsSearchQuery.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, !self.lyricsLoading else { return }
+
+        self.lyricsLoading = true
+        var components = URLComponents(string: "https://lrclib.net/api/search")!
+        components.queryItems = [URLQueryItem(name: "q", value: trimmed)]
+        guard let url = components.url else { self.lyricsLoading = false; return }
+
+        var request = URLRequest(url: url)
+        request.setValue("KasetPlus/1.0", forHTTPHeaderField: "User-Agent")
+
+        Task {
+            defer { self.lyricsLoading = false }
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let httpResponse = response as? HTTPURLResponse,
+                      httpResponse.statusCode == 200
+                else { return }
+                let decoded = try JSONDecoder().decode([LRCLibModel].self, from: data)
+                self.lyricsResults = decoded.filter {
+                    ($0.syncedLyrics != nil || $0.plainLyrics != nil) &&
+                        ($0.instrumental == false || $0.instrumental == nil)
+                }
+            } catch {}
+        }
+    }
+
+    private static func stripTimestamps(_ text: String) -> String {
+        text.replacingOccurrences(
+            of: "\\[\\d{2}:\\d{2}\\.\\d{2}\\]",
+            with: "",
+            options: .regularExpression
+        )
     }
 
     private var subscribeButton: some View {

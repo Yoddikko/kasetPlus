@@ -283,11 +283,11 @@ struct YouTubePlayerBar: View {
                 onCommit: {
                     self.performSeek()
                 },
-                segmentMarkers: self.segmentFractionMarkers,
-                segmentColor: SponsorSegment.brandColor,
                 onMarkerPreviewChange: { marker in
                     self.chapterPreviewMarker = marker
-                }
+                },
+                segmentMarkers: self.segmentFractionMarkers,
+                segmentColor: SponsorSegment.brandColor
             )
             .padding(.top, 18)
 
@@ -355,6 +355,22 @@ struct YouTubePlayerBar: View {
                 }
             )
             .disabled(!self.canSeek)
+
+            PlayerBarIconButton(
+                action: {
+                    self.youtubePlayer.showsLyrics.toggle()
+                },
+                isSelected: self.youtubePlayer.showsLyrics,
+                accessibilityLabel: String(localized: "Lyrics"),
+                icon: {
+                    Image(systemName: self.youtubePlayer.showsLyrics ? "music.quarternote.3" : "music.note.list")
+                        .font(.system(size: 15, weight: .regular))
+                        .frame(width: 16, height: 16)
+                        .foregroundStyle(self.youtubePlayer.showsLyrics ? Self.brandAccent : .primary)
+                        .contentTransition(.symbolEffect(.replace))
+                }
+            )
+            .disabled(self.youtubePlayer.currentVideo == nil)
 
             PlayerBarIconButton(
                 action: self.toggleYouTubeVolumeOverlay,
