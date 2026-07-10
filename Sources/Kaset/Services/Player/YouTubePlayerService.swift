@@ -171,6 +171,9 @@ final class YouTubePlayerService {
     /// Toggles the inline lyrics section (watch view + player bar button).
     var showsLyrics = false
 
+    /// Opens the download sheet from the player bar button.
+    var showsDownloadSheet = false
+
     /// Computed: the DeArrow title for the current video (from shared cache).
     var dearrowTitle: String? {
         guard let videoId = self.currentVideo?.videoId else { return nil }

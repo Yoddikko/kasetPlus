@@ -94,49 +94,35 @@ struct WhatsNewView: View {
         }
     }
 
-    @State private var onboardingPage = 0
+    @State private var showsAddons = false
 
     @ViewBuilder
     private var contentContainer: some View {
-        if self.whatsNew.releaseNotes != nil {
-            ScrollView {
-                self.contentView
-                    .padding(24)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        if self.showsAddons {
+            self.addonsPage
+                .padding(24)
+                .frame(
+                    maxWidth: .infinity,
+                    minHeight: Self.Layout.contentMinHeight,
+                    maxHeight: .infinity,
+                    alignment: .topLeading
+                )
         } else {
-            VStack(spacing: 0) {
-                if self.onboardingPage == 0 {
+            if self.whatsNew.releaseNotes != nil {
+                ScrollView {
                     self.contentView
                         .padding(24)
-                        .frame(
-                            maxWidth: .infinity,
-                            minHeight: Self.Layout.contentMinHeight,
-                            maxHeight: .infinity,
-                            alignment: .topLeading
-                        )
-                } else {
-                    self.addonsPage
-                        .padding(24)
-                        .frame(
-                            maxWidth: .infinity,
-                            minHeight: Self.Layout.contentMinHeight,
-                            maxHeight: .infinity,
-                            alignment: .topLeading
-                        )
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
-
-                // Page indicator dots + navigation
-                HStack(spacing: 8) {
-                    Circle().fill(self.onboardingPage == 0 ? Color.accentColor : Color.secondary.opacity(0.3))
-                        .frame(width: 6, height: 6)
-                        .onTapGesture { self.onboardingPage = 0 }
-                    Circle().fill(self.onboardingPage == 1 ? Color.accentColor : Color.secondary.opacity(0.3))
-                        .frame(width: 6, height: 6)
-                        .onTapGesture { self.onboardingPage = 1 }
-                }
-                .padding(.bottom, 10)
+            } else {
+                self.contentView
+                    .padding(24)
+                    .frame(
+                        maxWidth: .infinity,
+                        minHeight: Self.Layout.contentMinHeight,
+                        maxHeight: .infinity,
+                        alignment: .topLeading
+                    )
             }
         }
     }
@@ -200,7 +186,7 @@ struct WhatsNewView: View {
 
     private var footerView: some View {
         HStack(spacing: 16) {
-            if let url = self.whatsNew.learnMoreURL {
+            if !self.showsAddons, let url = self.whatsNew.learnMoreURL {
                 Button {
                     NSWorkspace.shared.open(url)
                 } label: {
@@ -214,9 +200,15 @@ struct WhatsNewView: View {
             Spacer(minLength: 12)
 
             Button {
-                self.onDismiss()
+                if self.showsAddons {
+                    self.onDismiss()
+                } else {
+                    self.showsAddons = true
+                }
             } label: {
-                Text("Continue")
+                Text(self.showsAddons
+                    ? String(localized: "Done")
+                    : String(localized: "Continue"))
                     .font(.headline)
                     .frame(minWidth: 160)
             }

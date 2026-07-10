@@ -5,13 +5,13 @@ import Foundation
 /// Provides "What's New" entries from GitHub release notes, with a static fallback.
 enum WhatsNewProvider {
     /// GitHub repo for fetching release notes.
-    private static let owner = "sozercan"
-    private static let repo = "kaset"
+    private static let owner = "Yoddikko"
+    private static let repo = "kasetPlus"
 
     /// Static fallback entries used when the network is unavailable.
     static let fallbackCollection: [WhatsNew] = [
         WhatsNew(
-            version: "1.0.0",
+            version: "1.0",
             title: "What's New in Kaset",
             features: [
                 .init(
@@ -35,7 +35,7 @@ enum WhatsNewProvider {
                     subtitle: "Browse public music and videos without signing in"
                 ),
             ],
-            learnMoreURL: URL(string: "https://github.com/sozercan/kaset/releases")
+            learnMoreURL: URL(string: "https://github.com/Yoddikko/kasetPlus/releases")
         ),
     ]
 

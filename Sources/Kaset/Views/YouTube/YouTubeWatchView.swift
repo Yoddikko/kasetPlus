@@ -27,6 +27,7 @@ struct YouTubeWatchView: View {
     @State private var commentDraft = ""
     @State private var settings = SettingsManager.shared
     @State private var lyricsSearchQuery = ""
+    @State private var showsDownloadSheet = false
 
     private var resolvedTitle: String {
         if self.youtubePlayer.showsDearrowOriginal,
@@ -123,6 +124,18 @@ struct YouTubeWatchView: View {
                 self.ambientStylePicker
             }
         #endif
+            .onChange(of: self.youtubePlayer.showsDownloadSheet) { _, newValue in
+                if newValue {
+                    self.showsDownloadSheet = true
+                    self.youtubePlayer.showsDownloadSheet = false
+                }
+            }
+            .sheet(isPresented: self.$showsDownloadSheet) {
+                YouTubeDownloadSheet(
+                    videoId: self.video.videoId,
+                    videoTitle: self.viewModel.data.videoTitle ?? self.video.title
+                )
+            }
             .task {
                 self.startOrAdoptPlayback()
                 await self.viewModel.load()

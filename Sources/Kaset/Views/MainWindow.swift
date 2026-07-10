@@ -150,6 +150,15 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 DiagnosticsLogger.app.info("MainWindow: UI appeared")
             }
             .task {
+                // Auto-present onboarding after startup cleanup
+                for _ in 0..<30 {
+                    if self.didCompleteStartupPlaybackCleanup { break }
+                    try? await Task.sleep(for: .milliseconds(200))
+                }
+                guard self.didCompleteStartupPlaybackCleanup, self.whatsNewToPresent == nil else { return }
+                await self.presentCurrentWhatsNew(respectingPresentedVersions: false, allowsGenericFallback: true)
+            }
+            .task {
                 DiagnosticsLogger.app.info("MainWindow: Starting login check check...")
                 await self.authService.checkLoginStatus()
                 DiagnosticsLogger.app.info("MainWindow: Login check complete")

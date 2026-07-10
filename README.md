@@ -9,6 +9,9 @@ Fork of [Kaset](https://github.com/sozercan/kaset) — a native macOS client for
 ### YouTube Video Lyrics Search
 While watching any YouTube video, toggle the lyrics section from the player bar (music.note.list icon) or the "Lyrics" button below the video title. Lyrics are fetched from **[LRCLib](https://lrclib.net)** — a free, open-source lyrics database — and displayed inline with editable search.
 
+### YouTube Video Download
+Download any YouTube video (or extract audio as MP3) via the download button (↓) in the player bar. Quality picker with size estimates. Bundled **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** — no external install needed. Files saved to `~/Downloads/KasetPlus/`.
+
 ### Addons
 Built-in addons configurable from **Settings → Addons**:
 

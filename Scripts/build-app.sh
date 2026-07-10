@@ -253,6 +253,24 @@ GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 # Create PkgInfo
 echo -n "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
 
+# ── yt-dlp (bundled) ──────────────────────────────────────────────────────────
+
+YTDLP_BIN="$ROOT/.build/yt-dlp"
+YTDLP_URL="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos"
+if [[ ! -f "$YTDLP_BIN" ]]; then
+  echo "⬇️  Downloading yt-dlp..."
+  curl -sSL "$YTDLP_URL" -o "$YTDLP_BIN"
+  chmod +x "$YTDLP_BIN"
+fi
+echo "📦 Bundling yt-dlp..."
+cp "$YTDLP_BIN" "$APP_BUNDLE/Contents/Resources/yt-dlp"
+chmod +x "$APP_BUNDLE/Contents/Resources/yt-dlp"
+
+# Ad-hoc sign yt-dlp so Process() works inside the sandbox
+if [[ "$SIGNING_MODE" == "dev" ]]; then
+  codesign --force --sign - --entitlements "$ROOT/Kaset.entitlements" "$APP_BUNDLE/Contents/Resources/yt-dlp" 2>/dev/null || true
+fi
+
 # ── AppleScript definition ───────────────────────────────────────────────────
 
 SDEF_PATH="$ROOT/Sources/Kaset/Resources/Kaset.sdef"
@@ -463,7 +481,7 @@ ${APP_LOCALIZATIONS_PLIST}
 
     <!-- Sparkle Auto-Update Configuration -->
     <key>SUFeedURL</key>
-    <string>https://raw.githubusercontent.com/sozercan/kaset/main/appcast.xml</string>
+    <string>https://raw.githubusercontent.com/Yoddikko/kasetPlus/main/appcast.xml</string>
     <key>SUPublicEDKey</key>
     <string>qa2zoeXHqn+pluxQSGjn5HyIYA/iFtrEJz7S1BoslpI=</string>
     <key>SUEnableAutomaticChecks</key>
