@@ -82,7 +82,10 @@ struct PlayerServiceLibraryTests {
 
     @Test("likeCurrentTrack reverts on API failure")
     func likeCurrentTrackRevertsOnFailure() async {
-        self.playerService.currentTrack = TestFixtures.makeSong(id: "test-video-\(UUID().uuidString)")
+        let accountID = "like-failure-\(UUID().uuidString)"
+        SongLikeStatusManager.shared.setActiveAccountID(accountID)
+        defer { SongLikeStatusManager.shared.setActiveAccountID(nil) }
+        self.playerService.currentTrack = TestFixtures.makeSong(id: "like-failure-video-\(UUID().uuidString)")
         self.playerService.currentTrackLikeStatus = .indifferent
         self.mockClient.shouldThrowError = YTMusicError.networkError(underlying: URLError(.notConnectedToInternet))
 
@@ -92,6 +95,24 @@ struct PlayerServiceLibraryTests {
         #expect(self.playerService.currentTrackLikeStatus == .like)
 
         // Wait for SongLikeStatusManager to call API, fail, rollback, and PlayerService to sync back.
+        let reverted = await self.waitUntilLikeStatus(.indifferent)
+        #expect(reverted)
+    }
+
+    @Test("likeCurrentTrack rolls back to visible status when manager cache is stale")
+    func likeCurrentTrackRollsBackToVisibleStatusWhenManagerCacheIsStale() async {
+        let accountID = "stale-like-cache-\(UUID().uuidString)"
+        SongLikeStatusManager.shared.setActiveAccountID(accountID)
+        defer { SongLikeStatusManager.shared.setActiveAccountID(nil) }
+        let song = TestFixtures.makeSong(id: "stale-like-cache-video")
+        self.playerService.currentTrack = song
+        self.playerService.currentTrackLikeStatus = .indifferent
+        SongLikeStatusManager.shared.setStatus(.like, for: song.videoId)
+        self.mockClient.shouldThrowError = YTMusicError.networkError(underlying: URLError(.notConnectedToInternet))
+
+        self.playerService.likeCurrentTrack()
+        #expect(self.playerService.currentTrackLikeStatus == .like)
+
         let reverted = await self.waitUntilLikeStatus(.indifferent)
         #expect(reverted)
     }
@@ -131,6 +152,27 @@ struct PlayerServiceLibraryTests {
 
         #expect(self.mockClient.rateSongRatings.first == .indifferent)
         #expect(replacementClient.rateSongCalled == false)
+    }
+
+    @Test("likeCurrentTrack clears optimistic status when active account changes before completion")
+    func likeCurrentTrackClearsOptimisticStatusWhenActiveAccountChangesBeforeCompletion() async {
+        self.mockClient.rateSongDelay = .milliseconds(50)
+        let originalAccountID = "account-switch-original-\(UUID().uuidString)"
+        let switchedAccountID = "account-switch-new-\(UUID().uuidString)"
+        SongLikeStatusManager.shared.setActiveAccountID(originalAccountID)
+        defer { SongLikeStatusManager.shared.setActiveAccountID(nil) }
+        var song = TestFixtures.makeSong(id: "account-switch-video")
+        song.likeStatus = .like
+        self.playerService.currentTrack = song
+        self.playerService.currentTrackLikeStatus = .indifferent
+
+        self.playerService.likeCurrentTrack()
+        #expect(self.playerService.currentTrackLikeStatus == .like)
+
+        SongLikeStatusManager.shared.setActiveAccountID(switchedAccountID)
+
+        let reverted = await self.waitUntilLikeStatus(.indifferent)
+        #expect(reverted)
     }
 
     @Test("likeCurrentTrack is ignored while signed out")
@@ -207,7 +249,10 @@ struct PlayerServiceLibraryTests {
 
     @Test("dislikeCurrentTrack reverts on API failure")
     func dislikeCurrentTrackRevertsOnFailure() async {
-        self.playerService.currentTrack = TestFixtures.makeSong(id: "test-video-\(UUID().uuidString)")
+        let accountID = "dislike-failure-\(UUID().uuidString)"
+        SongLikeStatusManager.shared.setActiveAccountID(accountID)
+        defer { SongLikeStatusManager.shared.setActiveAccountID(nil) }
+        self.playerService.currentTrack = TestFixtures.makeSong(id: "dislike-failure-video-\(UUID().uuidString)")
         self.playerService.currentTrackLikeStatus = .indifferent
         self.mockClient.shouldThrowError = YTMusicError.networkError(underlying: URLError(.notConnectedToInternet))
 
