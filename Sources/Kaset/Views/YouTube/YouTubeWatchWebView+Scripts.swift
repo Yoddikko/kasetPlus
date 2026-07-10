@@ -654,6 +654,19 @@ extension YouTubeWatchWebView {
     }
 
     /// Resumes playback.
+    /// Sets the video playback speed.
+    func setSpeed(_ speed: Double) {
+        self.webView?.evaluateJavaScript(
+            """
+            (function() {
+                const video = document.querySelector('#movie_player video') || document.querySelector('video');
+                if (video) { video.playbackRate = \(speed); }
+            })();
+            """,
+            completionHandler: nil
+        )
+    }
+
     func play() {
         self.webView?.evaluateJavaScript(
             """

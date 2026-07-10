@@ -156,7 +156,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                     try? await Task.sleep(for: .milliseconds(200))
                 }
                 guard self.didCompleteStartupPlaybackCleanup, self.whatsNewToPresent == nil else { return }
-                await self.presentCurrentWhatsNew(respectingPresentedVersions: false, allowsGenericFallback: true)
+                await self.presentCurrentWhatsNew(respectingPresentedVersions: true, allowsGenericFallback: true)
             }
             .task {
                 DiagnosticsLogger.app.info("MainWindow: Starting login check check...")

@@ -11,28 +11,33 @@ enum WhatsNewProvider {
     /// Static fallback entries used when the network is unavailable.
     static let fallbackCollection: [WhatsNew] = [
         WhatsNew(
-            version: "1.0",
-            title: "What's New in Kaset",
+            version: "0.12.0",
+            title: "What's New in KasetPlus",
             features: [
                 .init(
-                    icon: "play.circle.fill",
-                    title: "Background Playback",
-                    subtitle: "Keep listening even when the window is closed"
+                    icon: "shield.lefthalf.filled",
+                    title: "Built-in Ad Blocker",
+                    subtitle: "API-level ad prevention + YouTube ad auto-skip"
                 ),
                 .init(
-                    icon: "rectangle.grid.2x2.fill",
-                    title: "Native Interface",
-                    subtitle: "Built with SwiftUI for a true macOS experience"
+                    icon: "forward.end.fill",
+                    title: "SponsorBlock",
+                    subtitle: "Auto-skip sponsored segments with localized toast"
                 ),
                 .init(
-                    icon: "keyboard.fill",
-                    title: "Media Keys",
-                    subtitle: "Control playback with your keyboard"
+                    icon: "hand.thumbsdown.fill",
+                    title: "Return YouTube Dislikes",
+                    subtitle: "Community dislike counts via RYD API"
                 ),
                 .init(
-                    icon: "person.crop.circle.badge.checkmark",
-                    title: "Guest Browsing",
-                    subtitle: "Browse public music and videos without signing in"
+                    icon: "arrow.triangle.swap",
+                    title: "DeArrow",
+                    subtitle: "Clickbait-free titles from the DeArrow community"
+                ),
+                .init(
+                    icon: "arrow.down.circle",
+                    title: "Video Download",
+                    subtitle: "Quality picker + MP3 via bundled yt-dlp"
                 ),
             ],
             learnMoreURL: URL(string: "https://github.com/Yoddikko/kasetPlus/releases")
