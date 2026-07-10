@@ -410,6 +410,56 @@ struct YouTubePlayerBar: View {
 
     private var youtubeOptionsSection: some View {
         HStack(spacing: 6) {
+            // Playback speed
+            PlayerBarIconMenu(
+                isSelected: self.youtubePlayer.playbackSpeed != 1.0,
+                accessibilityLabel: String(localized: "Playback speed")
+            ) {
+                ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { speed in
+                    Button {
+                        self.youtubePlayer.playbackSpeed = speed
+                    } label: {
+                        if abs(self.youtubePlayer.playbackSpeed - speed) < 0.01 {
+                            Label("\(speed, specifier: "%.2f")x", systemImage: "checkmark")
+                        } else {
+                            Text("\(speed, specifier: "%.2f")x")
+                        }
+                    }
+                }
+            } icon: {
+                Text("\(self.youtubePlayer.playbackSpeed, specifier: "%.1f")x")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(self.youtubePlayer.playbackSpeed != 1.0 ? Self.brandAccent : .primary)
+            }
+            .disabled(self.youtubePlayer.currentVideo == nil)
+
+            // Sleep timer
+            PlayerBarIconMenu(
+                isSelected: self.youtubePlayer.sleepTimerActive,
+                accessibilityLabel: String(localized: "Sleep timer")
+            ) {
+                if self.youtubePlayer.sleepTimerActive {
+                    Button(role: .destructive) {
+                        self.youtubePlayer.cancelSleepTimer()
+                    } label: {
+                        Label(String(localized: "Cancel timer"), systemImage: "xmark")
+                    }
+                } else {
+                    ForEach([15, 30, 45, 60, 90], id: \.self) { minutes in
+                        Button {
+                            self.youtubePlayer.startSleepTimer(minutes: minutes)
+                        } label: {
+                            Text("\(minutes) min")
+                        }
+                    }
+                }
+            } icon: {
+                Image(systemName: self.youtubePlayer.sleepTimerActive ? "moon.zzz.fill" : "moon.zzz")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(self.youtubePlayer.sleepTimerActive ? Self.brandAccent : .primary)
+            }
+            .disabled(self.youtubePlayer.currentVideo == nil)
+
             PlayerBarIconButton(
                 action: self.openYouTubeFullView,
                 accessibilityID: AccessibilityID.YouTubeContent.watchFullView,
@@ -598,7 +648,7 @@ struct YouTubePlayerBar: View {
     }
 
     private var youtubeOptionsWidth: CGFloat {
-        210
+        260
     }
 
     /// Fraction (0...1) to render: the live drag value while seeking, otherwise actual progress.

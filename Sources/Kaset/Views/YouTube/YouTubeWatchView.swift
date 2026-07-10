@@ -28,6 +28,7 @@ struct YouTubeWatchView: View {
     @State private var settings = SettingsManager.shared
     @State private var lyricsSearchQuery = ""
     @State private var showsDownloadSheet = false
+    @State private var commentSearchQuery = ""
 
     private var resolvedTitle: String {
         if self.youtubePlayer.showsDearrowOriginal,
@@ -756,13 +757,53 @@ struct YouTubeWatchView: View {
 
             self.commentComposer
 
-            if self.viewModel.comments.isEmpty, !self.viewModel.isLoadingComments {
+            // Comment search
+            let filteredComments = self.commentSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty
+                ? self.viewModel.comments
+                : self.viewModel.comments.filter { comment in
+                    comment.text.localizedCaseInsensitiveContains(self.commentSearchQuery)
+                }
+
+            if !self.viewModel.comments.isEmpty {
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                    TextField(
+                        String(localized: "Search comments…"),
+                        text: self.$commentSearchQuery
+                    )
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                    if !self.commentSearchQuery.isEmpty {
+                        Button {
+                            self.commentSearchQuery = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(8)
+                .background {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.08))
+                }
+            }
+
+            if filteredComments.isEmpty, !self.commentSearchQuery.isEmpty {
+                Text("No matching comments.", comment: "Empty comment search")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else if self.viewModel.comments.isEmpty, !self.viewModel.isLoadingComments {
                 Text("No comments yet.", comment: "Empty comments section")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
                 LazyVStack(alignment: .leading, spacing: 16) {
-                    ForEach(self.viewModel.comments) { comment in
+                    ForEach(filteredComments) { comment in
                         CommentThread(comment: comment, viewModel: self.viewModel, allowsActions: self.hasPersonalAccount)
                     }
                 }
