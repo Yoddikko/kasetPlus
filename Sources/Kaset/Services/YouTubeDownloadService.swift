@@ -164,6 +164,81 @@ final class YouTubeDownloadService {
         return results.sorted { a, _ in a.isAudioOnly }
     }
 
+    // MARK: - Transcript (for on-device AI)
+
+    /// Fetches the video's transcript as plain text (auto-captions included) via
+    /// yt-dlp, for on-device AI features like the video summary. Returns nil when
+    /// the video has no captions or yt-dlp is unavailable.
+    func fetchTranscript(videoId: String) async -> String? {
+        guard let ytdlpPath, let url = URL(string: "https://www.youtube.com/watch?v=\(videoId)") else { return nil }
+        let tmpDir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("kaset-transcript-\(videoId)", isDirectory: true)
+        try? FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+        let lang = Locale.current.language.languageCode?.identifier ?? "en"
+
+        return await withCheckedContinuation { continuation in
+            let proc = Process()
+            proc.executableURL = URL(fileURLWithPath: ytdlpPath)
+            proc.arguments = [
+                "--skip-download",
+                "--write-auto-subs", "--write-subs",
+                "--sub-langs", "\(lang),\(lang).*,en,en.*",
+                "--sub-format", "vtt",
+                "--socket-timeout", "20",
+                "-o", "\(tmpDir.path)/%(id)s.%(ext)s",
+                url.absoluteString,
+            ]
+            let pipe = Pipe()
+            proc.standardOutput = pipe
+            proc.standardError = pipe
+            proc.terminationHandler = { _ in
+                let text = Self.transcriptText(fromDir: tmpDir)
+                try? FileManager.default.removeItem(at: tmpDir)
+                continuation.resume(returning: text)
+            }
+            do {
+                try proc.run()
+            } catch {
+                try? FileManager.default.removeItem(at: tmpDir)
+                continuation.resume(returning: nil)
+            }
+        }
+    }
+
+    /// Parses the first `.vtt` file in `dir` into deduplicated plain text.
+    /// yt-dlp auto-captions roll and repeat lines, so consecutive duplicates and
+    /// inline timing tags are stripped.
+    private nonisolated static func transcriptText(fromDir dir: URL) -> String? {
+        guard let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil),
+              let vtt = files.first(where: { $0.pathExtension.lowercased() == "vtt" }),
+              let raw = try? String(contentsOf: vtt, encoding: .utf8)
+        else {
+            return nil
+        }
+
+        var lines: [String] = []
+        var last = ""
+        for rawLine in raw.components(separatedBy: "\n") {
+            let line = rawLine.trimmingCharacters(in: .whitespaces)
+            if line.isEmpty || line == "WEBVTT" || line.contains("-->")
+                || line.hasPrefix("Kind:") || line.hasPrefix("Language:") || line.hasPrefix("NOTE")
+            {
+                continue
+            }
+            let clean = line
+                .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespaces)
+            if clean.isEmpty || clean == last {
+                continue
+            }
+            lines.append(clean)
+            last = clean
+        }
+
+        let text = lines.joined(separator: " ")
+        return text.isEmpty ? nil : text
+    }
+
     // MARK: - Download
 
     enum DownloadState: Sendable {
@@ -178,6 +253,7 @@ final class YouTubeDownloadService {
     func download(
         videoId: String,
         format: DownloadFormat,
+        downloadSubtitles: Bool = false,
         onUpdate: @escaping @Sendable (DownloadState) -> Void
     ) {
         onUpdate(.preparing)
@@ -209,6 +285,21 @@ final class YouTubeDownloadService {
             ])
         } else {
             args.append(contentsOf: ["-f", format.id])
+        }
+
+        if downloadSubtitles {
+            // Real + auto-generated captions in the user's language and English,
+            // written as .srt next to the file; embedded into the container for
+            // video downloads (mp3 has no subtitle track).
+            let lang = Locale.current.language.languageCode?.identifier ?? "en"
+            args.append(contentsOf: [
+                "--write-subs", "--write-auto-subs",
+                "--sub-langs", "\(lang),\(lang).*,en,en.*",
+                "--convert-subs", "srt",
+            ])
+            if !format.isAudioOnly {
+                args.append("--embed-subs")
+            }
         }
 
         args.append(url.absoluteString)

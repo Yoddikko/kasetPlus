@@ -38,6 +38,17 @@ struct YouTubeSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            Section {
+                Toggle("Distraction-Free Watch Page", isOn: self.$settings.distractionFreeEnabled)
+                    .help("Hide the comments and the related-videos rail on the watch page")
+            } header: {
+                Text("Focus")
+            } footer: {
+                Text("Leaves just the video and its metadata — comments and the related rail are hidden.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
     }

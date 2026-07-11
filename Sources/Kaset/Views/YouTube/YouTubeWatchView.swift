@@ -30,6 +30,15 @@ struct YouTubeWatchView: View {
     @State private var showsDownloadSheet = false
     @State private var commentSearchQuery = ""
 
+    // AI video summary (on-device, macOS 26+). Stored as plain values so the
+    // view doesn't reference the macOS-26-only VideoSummary type outside a guard.
+    @State private var showsSummary = false
+    @State private var summaryTldr: String?
+    @State private var summaryPoints: [String] = []
+    @State private var summaryAudience: String?
+    @State private var summaryLoading = false
+    @State private var summaryError: String?
+
     private var resolvedTitle: String {
         if self.youtubePlayer.showsDearrowOriginal,
            let orig = self.youtubePlayer.dearrowOriginalTitle
@@ -56,6 +65,11 @@ struct YouTubeWatchView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         self.metadataSection
 
+                        if self.showsSummary {
+                            Divider()
+                            self.summarySection
+                        }
+
                         if self.youtubePlayer.showsLyrics {
                             Divider()
                             self.lyricsSection
@@ -71,14 +85,20 @@ struct YouTubeWatchView: View {
                             )
                         }
 
-                        Divider()
+                        // Distraction-free mode hides the comments and the
+                        // related rail, leaving just the video and its metadata.
+                        if !self.settings.distractionFreeEnabled {
+                            Divider()
 
-                        self.commentsSection
+                            self.commentsSection
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    self.relatedColumn
-                        .frame(width: 360)
+                    if !self.settings.distractionFreeEnabled {
+                        self.relatedColumn
+                            .frame(width: 360)
+                    }
                 }
             }
             .padding(.horizontal, 16)
@@ -286,6 +306,29 @@ struct YouTubeWatchView: View {
                 }
                 Spacer(minLength: 12)
 
+                if self.aiSummaryAvailable {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            self.showsSummary.toggle()
+                        }
+                        if self.showsSummary, self.summaryTldr == nil, !self.summaryLoading {
+                            self.generateSummary()
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 13))
+                            Text("Summary", comment: "Toggle AI video summary in YouTube watch view")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Capsule().fill(self.showsSummary ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(self.showsSummary ? Color.accentColor : .secondary)
+                }
+
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         self.youtubePlayer.showsLyrics.toggle()
@@ -396,6 +439,96 @@ struct YouTubeWatchView: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(self.youtubePlayer.currentRating == .dislike ? Self.brandAccent : .secondary)
+        }
+    }
+
+    // MARK: - AI Summary
+
+    /// Whether on-device summarization is usable right now (macOS 26 + a ready model).
+    private var aiSummaryAvailable: Bool {
+        guard #available(macOS 26.0, *) else { return false }
+        return FoundationModelsService.shared.isAvailable
+    }
+
+    private var summarySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("AI Summary", systemImage: "sparkles")
+                    .font(.headline)
+                Spacer()
+                if self.summaryLoading {
+                    ProgressView().scaleEffect(0.7).frame(width: 16, height: 16)
+                }
+            }
+
+            if self.summaryLoading {
+                Text("Reading the transcript and summarizing on-device…", comment: "AI summary loading")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else if let error = self.summaryError {
+                Text(error)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else if let tldr = self.summaryTldr {
+                Text(tldr)
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if !self.summaryPoints.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(Array(self.summaryPoints.enumerated()), id: \.offset) { _, point in
+                            HStack(alignment: .top, spacing: 8) {
+                                Circle().fill(.secondary).frame(width: 5, height: 5).padding(.top, 6)
+                                Text(point).font(.system(size: 13))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                    .padding(.top, 2)
+                }
+
+                if let audience = self.summaryAudience, !audience.isEmpty {
+                    Text(audience)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 2)
+                }
+            }
+
+            Text("Generated on-device from the video's captions. May be imperfect.", comment: "AI summary disclaimer")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background { RoundedRectangle(cornerRadius: 14).fill(Color.secondary.opacity(0.06)) }
+    }
+
+    private func generateSummary() {
+        self.summaryError = nil
+        self.summaryLoading = true
+        let videoId = self.video.videoId
+        let title = self.viewModel.data.videoTitle ?? self.video.title
+        Task {
+            defer { self.summaryLoading = false }
+            guard let transcript = await YouTubeDownloadService.shared.fetchTranscript(videoId: videoId),
+                  transcript.count > 40
+            else {
+                self.summaryError = String(localized: "No captions available to summarize this video.")
+                return
+            }
+            guard #available(macOS 26.0, *) else {
+                self.summaryError = String(localized: "AI summary needs macOS 26.")
+                return
+            }
+            do {
+                let summary = try await FoundationModelsService.shared.summarizeVideo(title: title, transcript: transcript)
+                self.summaryTldr = summary.tldr
+                self.summaryPoints = summary.keyPoints
+                self.summaryAudience = summary.audience
+            } catch {
+                self.summaryError = String(localized: "Couldn't summarize this video.")
+            }
         }
     }
 

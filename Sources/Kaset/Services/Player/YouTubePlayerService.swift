@@ -182,31 +182,6 @@ final class YouTubePlayerService {
         }
     }
 
-    /// Sleep timer: nil = off, non-nil = seconds remaining.
-    var sleepTimerEndsAt: Date? {
-        didSet { self.sleepTimerActive = self.sleepTimerEndsAt != nil }
-    }
-    private(set) var sleepTimerActive = false
-    private var sleepTimerTask: Task<Void, Never>?
-
-    func startSleepTimer(minutes: Int) {
-        self.sleepTimerEndsAt = Date().addingTimeInterval(TimeInterval(minutes * 60))
-        self.sleepTimerTask?.cancel()
-        self.sleepTimerTask = Task {
-            let duration = UInt64(minutes) * 60
-            try? await Task.sleep(for: .seconds(duration))
-            guard !Task.isCancelled else { return }
-            YouTubeWatchWebView.shared.pause()
-            self.sleepTimerEndsAt = nil
-        }
-    }
-
-    func cancelSleepTimer() {
-        self.sleepTimerTask?.cancel()
-        self.sleepTimerTask = nil
-        self.sleepTimerEndsAt = nil
-    }
-
     /// Computed: the DeArrow title for the current video (from shared cache).
     var dearrowTitle: String? {
         guard let videoId = self.currentVideo?.videoId else { return nil }

@@ -11,6 +11,7 @@ struct YouTubeDownloadSheet: View {
     @State private var downloadState: YouTubeDownloadService.DownloadState = .idle
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var downloadSubtitles = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -98,6 +99,14 @@ struct YouTubeDownloadSheet: View {
                 .font(.callout.weight(.medium))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 20)
+
+            Toggle(isOn: self.$downloadSubtitles) {
+                Text("Include subtitles", comment: "Download option: also fetch captions")
+                    .font(.system(size: 12))
+            }
+            .toggleStyle(.checkbox)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 4)
 
             ScrollView {
                 LazyVStack(spacing: 6) {
@@ -222,7 +231,8 @@ struct YouTubeDownloadSheet: View {
     private func startDownload(format: YouTubeDownloadService.DownloadFormat) {
         YouTubeDownloadService.shared.download(
             videoId: self.videoId,
-            format: format
+            format: format,
+            downloadSubtitles: self.downloadSubtitles
         ) { state in
             Task { @MainActor in
                 self.downloadState = state

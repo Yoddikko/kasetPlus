@@ -263,6 +263,40 @@ final class FoundationModelsService {
         )
     }
 
+    /// Summarizes a YouTube video from its transcript, fully on-device.
+    @available(macOS 26.0, *)
+    func summarizeVideo(title: String, transcript: String) async throws -> VideoSummary {
+        self.refreshAvailability()
+
+        guard self.isAvailable else {
+            throw AIError.notAvailable(reason: self.availabilityDescription)
+        }
+        guard self.supportsLocale(Locale.current) else {
+            throw AIError.notAvailable(reason: "Current language or locale is not supported")
+        }
+
+        // The on-device context window is small; cap the transcript so a long
+        // video summarizes its first portion rather than failing the budget.
+        let trimmed = String(transcript.prefix(9000))
+        let instructions = """
+        You summarize YouTube videos from their transcript. Be accurate and \
+        concise, use only what's in the transcript (never invent facts), and \
+        write in the user's language.
+        """
+        let prompt = """
+        Title: \(title)
+
+        Transcript:
+        \(trimmed)
+        """
+
+        guard let session = self.createAnalysisSession(instructions: instructions) else {
+            throw AIError.modelNotReady
+        }
+        let response = try await session.respond(to: prompt, generating: VideoSummary.self)
+        return response.content
+    }
+
     /// Creates a session optimized for creative content analysis.
     ///
     /// Uses higher temperature for more insightful, varied responses.

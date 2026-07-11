@@ -14,6 +14,12 @@ Built-in addons configurable from **Settings → Addons**:
 
 ## KasetPlus Features
 
+### AI Video Summary
+Open a video and hit the **Summary** (✨) button next to *Lyrics* to get a TL;DR, key points, and who the video is for — generated **entirely on-device** by Apple Intelligence (Foundation Models). Nothing leaves your Mac, no API key, works offline. Requires macOS 26 with Apple Intelligence; the button hides itself otherwise. Built from the video's captions.
+
+### Distraction-Free Watch Page
+Toggle **Settings → YouTube → Distraction-Free Watch Page** to hide the comments and the related-videos rail, leaving just the video and its metadata.
+
 ### Performance improvements
 Improved app performance overall
 
@@ -21,7 +27,7 @@ Improved app performance overall
 While watching any YouTube video, toggle the lyrics section from the player bar (music.note.list icon) or the "Lyrics" button below the video title. Lyrics are fetched from **[LRCLib](https://lrclib.net)** — a free, open-source lyrics database — and displayed inline with editable search.
 
 ### YouTube Video Download
-Download any YouTube video (or extract audio as MP3) via the download button (↓) in the player bar. Quality picker with size estimates. Bundled **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** — no external install needed. Files saved to `~/Downloads/KasetPlus/`.
+Download any YouTube video (or extract audio as MP3) via the download button (↓) in the player bar. Quality picker with size estimates, and an **Include subtitles** option (writes `.srt` and embeds captions into videos). Bundled **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** — no external install needed. Files saved to `~/Downloads/KasetPlus/`.
 
 ### Playback Speed & Comment Search
 Change playback speed (0.5x–2x) from the gear (⚙) menu in the player bar. Search through video comments with inline filtering below the video.

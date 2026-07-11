@@ -38,6 +38,7 @@ final class SettingsManager {
         static let returnYouTubeDislikesEnabled = "settings.ryd.enabled"
         static let dearrowEnabled = "settings.dearrow.enabled"
         static let hasCompletedInitialOnboarding = "settings.onboarding.completed"
+        static let distractionFreeEnabled = "settings.distractionFree.enabled"
         #if DEBUG
             static let useLegacyMacOS15UI = "settings.debug.useLegacyMacOS15UI"
         #endif
@@ -428,6 +429,14 @@ final class SettingsManager {
         }
     }
 
+    /// Distraction-free mode: hides the comments and the related-videos rail on
+    /// the YouTube watch page so only the video and its metadata remain.
+    var distractionFreeEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.distractionFreeEnabled, forKey: Keys.distractionFreeEnabled)
+        }
+    }
+
     /// Whether the one-time first-launch onboarding (the addons walkthrough)
     /// has been completed. The full onboarding — changelog → Continue → Addons →
     /// Done — is shown only once, on first launch. Later versions surface just the
@@ -521,6 +530,7 @@ final class SettingsManager {
         self.returnYouTubeDislikesEnabled = UserDefaults.standard.object(forKey: Keys.returnYouTubeDislikesEnabled) as? Bool ?? false
         self.dearrowEnabled = UserDefaults.standard.object(forKey: Keys.dearrowEnabled) as? Bool ?? false
         self.hasCompletedInitialOnboarding = UserDefaults.standard.object(forKey: Keys.hasCompletedInitialOnboarding) as? Bool ?? false
+        self.distractionFreeEnabled = UserDefaults.standard.object(forKey: Keys.distractionFreeEnabled) as? Bool ?? false
         #if DEBUG
             self.useLegacyMacOS15UI = UserDefaults.standard.object(forKey: Keys.useLegacyMacOS15UI) as? Bool ?? false
         #endif
