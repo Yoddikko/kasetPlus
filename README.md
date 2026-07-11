@@ -4,7 +4,18 @@ Fork of [Kaset](https://github.com/sozercan/kaset) — a native macOS client for
 
 > For everything else about the original project, see the [upstream README](https://github.com/sozercan/kaset).
 
+### Addons
+Built-in addons configurable from **Settings → Addons**:
+
+- **Ad Blocker** — API-level ad prevention (json-prune), WKContentRuleList domain blocking, YouTube ad auto-skip
+- **SponsorBlock** — Auto-skip sponsored segments, localized toast (7 languages), green segment markers on the progress bar
+- **Return YouTube Dislikes** — RYD API integration, dislike count displayed with like/dislike buttons under video metadata
+- **DeArrow** — Clickbait titles replaced live across Home/Search/Watch; toggle icon (↔) to see the original
+
 ## KasetPlus Features
+
+### Performance improvements
+Improved app performance overall
 
 ### YouTube Video Lyrics Search
 While watching any YouTube video, toggle the lyrics section from the player bar (music.note.list icon) or the "Lyrics" button below the video title. Lyrics are fetched from **[LRCLib](https://lrclib.net)** — a free, open-source lyrics database — and displayed inline with editable search.
@@ -14,14 +25,6 @@ Download any YouTube video (or extract audio as MP3) via the download button (�
 
 ### Playback Speed & Comment Search
 Change playback speed (0.5x–2x) from the gear (⚙) menu in the player bar. Search through video comments with inline filtering below the video.
-
-### Addons
-Built-in addons configurable from **Settings → Addons**:
-
-- **Ad Blocker** — API-level ad prevention (json-prune), WKContentRuleList domain blocking, YouTube ad auto-skip
-- **SponsorBlock** — Auto-skip sponsored segments, localized toast (7 languages), green segment markers on the progress bar
-- **Return YouTube Dislikes** — RYD API integration, dislike count displayed with like/dislike buttons under video metadata
-- **DeArrow** — Clickbait titles replaced live across Home/Search/Watch; toggle icon (↔) to see the original
 
 ## Installation
 
