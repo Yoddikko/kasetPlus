@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel>
-        <title>Kaset Updates</title>
-        <link>https://github.com/sozercan/kaset/releases</link>
-        <description>Most recent updates for Kaset, a native macOS YouTube Music client.</description>
+        <title>KasetPlus Updates</title>
+        <link>https://github.com/Yoddikko/kasetPlus/releases</link>
+        <description>Most recent updates for KasetPlus, a native macOS YouTube Music / YouTube client.</description>
         <language>en</language>
 
         <item>
-            <title>Version 0.12.0</title>
-            <sparkle:releaseNotesLink>https://github.com/sozercan/kaset/releases/tag/v0.12.0</sparkle:releaseNotesLink>
-            <pubDate>Wed, 24 Jun 2026 04:55:17 +0000</pubDate>
+            <title>Version 0.12.0-kp.5</title>
+            <sparkle:releaseNotesLink>https://github.com/Yoddikko/kasetPlus/releases/tag/v0.12.0-kp.5</sparkle:releaseNotesLink>
+            <pubDate>Sat, 11 Jul 2026 16:13:51 +0000</pubDate>
             <enclosure
-                url="https://github.com/sozercan/kaset/releases/download/v0.12.0/kaset-v0.12.0.dmg"
-                sparkle:version="21"
+                url="https://github.com/Yoddikko/kasetPlus/releases/download/v0.12.0-kp.5/KasetPlus.zip"
+                sparkle:version="22"
                 sparkle:shortVersionString="0.12.0"
-                length="13147978"
+                length="46523797"
                 type="application/octet-stream"
-                sparkle:edSignature="kw+M7HiXclVlmPaxpMEMOnK3/HMubDaLKyvUl1kuZHQVXeoHSdfCfjG6tFF4UGvu77xG5vjhozF6lmE8SccgCw=="/>
+                sparkle:edSignature="+NmyfbgmoC1j9obEYkeD9DY1SLt2bXjh1htQgcyN4bf5DDaeunNi1VR7LnKUfAnZMuc625gsre8jKWmgxMFeBg=="/>
             <sparkle:minimumSystemVersion>15.4</sparkle:minimumSystemVersion>
         </item>
 

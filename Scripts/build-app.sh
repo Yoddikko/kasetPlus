@@ -483,7 +483,7 @@ ${APP_LOCALIZATIONS_PLIST}
     <key>SUFeedURL</key>
     <string>https://raw.githubusercontent.com/Yoddikko/kasetPlus/main/appcast.xml</string>
     <key>SUPublicEDKey</key>
-    <string>qa2zoeXHqn+pluxQSGjn5HyIYA/iFtrEJz7S1BoslpI=</string>
+    <string>ev8BOn34ZbVJn2FonYjxi2tAtNDJmgCET3NcklUJl9o=</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
     <key>SUScheduledCheckInterval</key>
