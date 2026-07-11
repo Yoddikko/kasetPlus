@@ -2,6 +2,21 @@ import os
 import SwiftUI
 import WebKit
 
+// MARK: - ScrollPassthroughWebView
+
+/// WKWebView that forwards scroll-wheel events to the enclosing SwiftUI
+/// ScrollView. The extracted watch page is `overflow: hidden`, so the page
+/// never scrolls; without this, a hovered WebView swallows wheel events and
+/// dead-zones the surrounding scroll wherever the video sits. Forwarding to the
+/// next responder lets the watch page keep scrolling with the cursor over the
+/// video. In the floating window there is no scrollable ancestor, so it's a
+/// harmless no-op.
+final class ScrollPassthroughWebView: WKWebView {
+    override func scrollWheel(with event: NSEvent) {
+        self.nextResponder?.scrollWheel(with: event)
+    }
+}
+
 // MARK: - YouTubeWatchWebView
 
 /// Manages the single WebView used for regular YouTube video playback.
@@ -69,7 +84,7 @@ final class YouTubeWatchWebView {
             targetVolume: playerService.volume
         )
 
-        let newWebView = WKWebView(frame: .zero, configuration: configuration)
+        let newWebView = ScrollPassthroughWebView(frame: .zero, configuration: configuration)
         newWebView.navigationDelegate = self.coordinator
         newWebView.customUserAgent = WebKitManager.userAgent
         self.webKitManager = webKitManager

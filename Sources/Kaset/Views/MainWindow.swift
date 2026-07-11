@@ -9,6 +9,9 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     private struct PresentedWhatsNew: Identifiable {
         let whatsNew: WhatsNew
         let requestedVersion: WhatsNew.Version
+        /// True only for the one-time first-launch onboarding (includes the
+        /// addons walkthrough). Version-update "What's New" sets this false.
+        var showsAddonsStep = false
 
         var id: String {
             "\(self.requestedVersion.description)::\(self.whatsNew.version.description)"
@@ -156,7 +159,23 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                     try? await Task.sleep(for: .milliseconds(200))
                 }
                 guard self.didCompleteStartupPlaybackCleanup, self.whatsNewToPresent == nil else { return }
-                await self.presentCurrentWhatsNew(respectingPresentedVersions: true, allowsGenericFallback: true)
+                if !self.settings.hasCompletedInitialOnboarding {
+                    // First launch ever: force the full onboarding once — changelog
+                    // (static highlights only if offline) → Continue → Addons → Done.
+                    await self.presentCurrentWhatsNew(
+                        respectingPresentedVersions: false,
+                        allowsGenericFallback: true,
+                        showsAddonsStep: true
+                    )
+                } else {
+                    // Later launches: surface the changelog only on a genuinely new
+                    // version (version store gated), and never the addons step. No
+                    // generic fallback, so an already-seen version shows nothing.
+                    await self.presentCurrentWhatsNew(
+                        respectingPresentedVersions: true,
+                        allowsGenericFallback: false
+                    )
+                }
             }
             .task {
                 DiagnosticsLogger.app.info("MainWindow: Starting login check check...")
@@ -181,7 +200,10 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             LoginSheet()
         }
         .sheet(item: self.$whatsNewToPresent) { presentedWhatsNew in
-            WhatsNewView(whatsNew: presentedWhatsNew.whatsNew) {
+            WhatsNewView(
+                whatsNew: presentedWhatsNew.whatsNew,
+                showsAddonsStep: presentedWhatsNew.showsAddonsStep
+            ) {
                 self.dismissWhatsNew(presentedWhatsNew)
             }
         }
@@ -830,13 +852,19 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     @MainActor
     private func dismissWhatsNew(_ whatsNew: PresentedWhatsNew) {
         WhatsNewVersionStore().markPresented(whatsNew.requestedVersion)
+        // Completing the first-launch onboarding retires the addons step for good;
+        // later versions surface just the changelog.
+        if whatsNew.showsAddonsStep {
+            self.settings.hasCompletedInitialOnboarding = true
+        }
         self.whatsNewToPresent = nil
     }
 
     @MainActor
     private func presentCurrentWhatsNew(
         respectingPresentedVersions: Bool = true,
-        allowsGenericFallback: Bool = false
+        allowsGenericFallback: Bool = false,
+        showsAddonsStep: Bool = false
     ) async {
         let currentVersion = WhatsNew.Version.current()
         let whatsNew = await WhatsNewProvider.fetchWhatsNew(
@@ -848,7 +876,8 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
 
         self.whatsNewToPresent = PresentedWhatsNew(
             whatsNew: whatsNew,
-            requestedVersion: currentVersion
+            requestedVersion: currentVersion,
+            showsAddonsStep: showsAddonsStep
         )
     }
 

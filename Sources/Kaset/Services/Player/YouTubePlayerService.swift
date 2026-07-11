@@ -114,8 +114,9 @@ final class YouTubePlayerService {
     /// Last observed playback position from genuine CONTENT (not an ad). Used as
     /// the resume target for an identity-switch reload so a switch during a
     /// preroll/midroll ad doesn't resume the content near 0 (the ad element's
-    /// time).
-    var lastNonAdContentProgress: Double = 0
+    /// time). Service-internal, written on every 1 Hz update — not observable
+    /// so those writes don't invalidate views.
+    @ObservationIgnored var lastNonAdContentProgress: Double = 0
 
     /// Video length in seconds.
     private(set) var duration: Double = 0
@@ -879,8 +880,16 @@ final class YouTubePlayerService {
     }
 
     /// Applies a `STATE_UPDATE` from the watch page observer script.
+    ///
+    /// Observable properties are only assigned when the value actually changed:
+    /// `@Observable` notifies observers on every write regardless of equality,
+    /// so unconditional assignment here would invalidate every view reading
+    /// `isPlaying`/`duration`/`isShowingAd` on each 1 Hz bridge update even
+    /// though only `progress` moved.
     func updatePlaybackState(_ update: PlaybackUpdate) {
-        self.hasObservedPlaybackState = true
+        if !self.hasObservedPlaybackState {
+            self.hasObservedPlaybackState = true
+        }
         if let pendingId = self.pendingPausedIdentityReloadVideoId,
            pendingId == (update.videoId ?? self.currentVideo?.videoId),
            update.isPlaying
@@ -908,11 +917,21 @@ final class YouTubePlayerService {
             self.playbackWillStart?()
         }
 
-        self.isPlaying = update.isPlaying
-        self.progress = update.progress
-        self.duration = update.duration
-        self.isShowingAd = update.isAd
-        self.isPlaybackLoading = false
+        if self.isPlaying != update.isPlaying {
+            self.isPlaying = update.isPlaying
+        }
+        if self.progress != update.progress {
+            self.progress = update.progress
+        }
+        if self.duration != update.duration {
+            self.duration = update.duration
+        }
+        if self.isShowingAd != update.isAd {
+            self.isShowingAd = update.isAd
+        }
+        if self.isPlaybackLoading {
+            self.isPlaybackLoading = false
+        }
 
         // Remember the last real content position (ignoring ad playback) so an
         // identity-switch reload during an ad resumes the content, not the ad.

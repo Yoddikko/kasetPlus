@@ -135,38 +135,55 @@ struct AmbientVideoBackdrop: View {
         }
     }
 
-    /// The hero: one drifting aurora, or two crossfading by playback position in
-    /// `.live` mode. Both sub-layers keep orbiting so motion never stops.
-    @ViewBuilder
+    /// The hero: one drifting aurora. In `.live` mode its blob COLORS blend
+    /// between the two storyboard cells around the playback position — a
+    /// single layer instead of the former two-layer opacity crossfade, which
+    /// doubled the per-tick GPU cost and re-triggered a 0.7 s animation on
+    /// every 1 Hz progress update. The blobs sit at identical positions in
+    /// both cells, so blending colors is optically equivalent to crossfading
+    /// layers; the 8 Hz timeline redraw absorbs the gradual color motion.
     private func auroraLayer(size: CGSize, time: TimeInterval?) -> some View {
-        let frames = self.renderFrames
         // `.soft` is the calm style: same colors, dimmer than the drifting glow.
-        let intensity: Double = self.effectiveStyle == .soft ? 0.7 : 1.0
-        // Under Reduce Motion, collapse `.live` to a single static frame: the
-        // blobs already stop drifting (time: nil) and the colors must not
-        // cross-fade as playback advances either.
-        if frames.count <= 1 || self.reduceMotion {
-            Self.aurora(
-                colors: frames.first ?? self.fallbackColors,
-                size: size,
-                time: time,
-                colorScheme: self.colorScheme,
-                intensity: intensity
-            )
-        } else {
-            let position = (self.liveFraction ?? 0) * Double(frames.count - 1)
-            let lower = min(max(Int(position.rounded(.down)), 0), frames.count - 1)
-            let upper = min(lower + 1, frames.count - 1)
-            let blend = position - Double(lower)
-            let lowerColors = frames[lower].isEmpty ? self.fallbackColors : frames[lower]
-            let upperColors = frames[upper].isEmpty ? self.fallbackColors : frames[upper]
-            ZStack {
-                Self.aurora(colors: lowerColors, size: size, time: time, colorScheme: self.colorScheme, intensity: intensity)
-                    .opacity(1 - blend)
-                Self.aurora(colors: upperColors, size: size, time: time, colorScheme: self.colorScheme, intensity: intensity)
-                    .opacity(blend)
+        Self.aurora(
+            colors: self.currentFrameColors,
+            size: size,
+            time: time,
+            colorScheme: self.colorScheme,
+            intensity: self.effectiveStyle == .soft ? 0.7 : 1.0
+        )
+    }
+
+    /// The swatch set to render right now: the single frame, or — in `.live` —
+    /// the two storyboard cells around the playback position blended pairwise.
+    /// Under Reduce Motion the colors must not follow playback either, so the
+    /// first frame is used as-is.
+    private var currentFrameColors: [Color] {
+        let frames = self.renderFrames
+        guard frames.count > 1, !self.reduceMotion else {
+            return frames.first ?? self.fallbackColors
+        }
+        let position = (self.liveFraction ?? 0) * Double(frames.count - 1)
+        let lower = min(max(Int(position.rounded(.down)), 0), frames.count - 1)
+        let upper = min(lower + 1, frames.count - 1)
+        let blend = position - Double(lower)
+        let lowerColors = frames[lower].isEmpty ? self.fallbackColors : frames[lower]
+        let upperColors = frames[upper].isEmpty ? self.fallbackColors : frames[upper]
+        return Self.blendSwatches(lowerColors, upperColors, fraction: blend)
+    }
+
+    /// Pairwise RGB blend of two swatch sets (the result keeps `from`'s count;
+    /// a shorter `to` repeats its last swatch).
+    private static func blendSwatches(_ from: [Color], _ to: [Color], fraction: Double) -> [Color] {
+        guard !to.isEmpty, fraction > 0.001 else { return from }
+        return from.enumerated().map { index, color in
+            let target = to[min(index, to.count - 1)]
+            guard let base = NSColor(color).usingColorSpace(.deviceRGB),
+                  let overlay = NSColor(target).usingColorSpace(.deviceRGB),
+                  let blended = base.blended(withFraction: fraction, of: overlay)
+            else {
+                return color
             }
-            .animation(.easeInOut(duration: 0.7), value: self.liveFraction)
+            return Color(nsColor: blended)
         }
     }
 
@@ -206,6 +223,11 @@ struct AmbientVideoBackdrop: View {
     /// A single drifting field of additively-blended color blobs. Static when
     /// `time` is nil (Reduce Motion or the `.soft` style). `intensity` scales
     /// the overall brightness so `.soft` reads dimmer than the drifting glow.
+    ///
+    /// Softness comes from the gradients' own multi-stop falloff rather than a
+    /// `blur(radius:)` pass: a full-window gaussian re-rendered on every 8 Hz
+    /// timeline tick was the dominant GPU cost of the watch page, while extra
+    /// gradient stops are effectively free.
     private static func aurora(
         colors: [Color],
         size: CGSize,
@@ -230,10 +252,15 @@ struct AmbientVideoBackdrop: View {
                 let diameter = size.width
 
                 RadialGradient(
-                    colors: [color.opacity(coreOpacity), .clear],
+                    stops: [
+                        .init(color: color.opacity(coreOpacity), location: 0),
+                        .init(color: color.opacity(coreOpacity * 0.55), location: 0.35),
+                        .init(color: color.opacity(coreOpacity * 0.18), location: 0.68),
+                        .init(color: .clear, location: 1),
+                    ],
                     center: .center,
                     startRadius: 0,
-                    endRadius: diameter * 0.5
+                    endRadius: diameter * 0.55
                 )
                 .frame(width: diameter, height: diameter)
                 .position(
@@ -244,7 +271,6 @@ struct AmbientVideoBackdrop: View {
             }
         }
         .compositingGroup()
-        .blur(radius: 46)
         .frame(width: size.width, height: size.height)
         .clipped()
     }

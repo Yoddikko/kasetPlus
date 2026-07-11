@@ -15,6 +15,9 @@ struct WhatsNewView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     let whatsNew: WhatsNew
+    /// Whether the addons walkthrough is part of this presentation. True only for
+    /// the one-time first-launch onboarding; version-update "What's New" omits it.
+    var showsAddonsStep = true
     let onDismiss: () -> Void
 
     var body: some View {
@@ -200,15 +203,16 @@ struct WhatsNewView: View {
             Spacer(minLength: 12)
 
             Button {
-                if self.showsAddons {
+                // With no addons step (version-update What's New), the primary
+                // button dismisses directly. With the addons step (first-launch
+                // onboarding), Continue advances to it, then Done dismisses.
+                if !self.showsAddonsStep || self.showsAddons {
                     self.onDismiss()
                 } else {
                     self.showsAddons = true
                 }
             } label: {
-                Text(self.showsAddons
-                    ? String(localized: "Done")
-                    : String(localized: "Continue"))
+                Text(self.primaryButtonTitle)
                     .font(.headline)
                     .frame(minWidth: 160)
             }
@@ -217,6 +221,15 @@ struct WhatsNewView: View {
             .keyboardShortcut(.defaultAction)
         }
         .padding(.horizontal, 4)
+    }
+
+    /// Title for the primary button: "Continue" only when an addons step still
+    /// follows; "Done" once on the addons page or when there is no addons step.
+    private var primaryButtonTitle: String {
+        if self.showsAddonsStep, !self.showsAddons {
+            return String(localized: "Continue")
+        }
+        return String(localized: "Done")
     }
 
     private var contentSectionTitle: String {

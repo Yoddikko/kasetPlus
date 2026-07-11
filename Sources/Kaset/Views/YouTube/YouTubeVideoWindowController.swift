@@ -68,10 +68,16 @@ final class YouTubeVideoWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
-        window.level = .normal
-        // fullScreenPrimary so the green traffic light enters fullscreen
-        // (not just zoom).
-        window.collectionBehavior = [.fullScreenPrimary]
+        // True PiP semantics: float above other windows, follow the user
+        // across Spaces, and overlay fullscreen/tiled Spaces. With the old
+        // `.fullScreenPrimary` + `.normal` level, popping out while the main
+        // window sat in a fullscreen or tiled Space exiled the video window
+        // to the desktop Space — macOS switched Spaces and the app appeared
+        // "split" into two separate windows. Real fullscreen for the Full
+        // View flow still works: `toggleFullscreen()` swaps to
+        // `.fullScreenPrimary` for the transition and
+        // `windowDidExitFullScreen` restores the PiP behavior.
+        Self.applyPiPBehavior(to: window)
         // Aspect + floor are enforced by the resize-guard delegate below, NOT
         // by contentAspectRatio. With both contentAspectRatio and
         // contentMinSize set, AppKit honors the aspect lock on the dragged axis
@@ -136,10 +142,21 @@ final class YouTubeVideoWindowController {
 
     @objc private func windowDidExitFullScreen(_: Notification) {
         self.youtubePlayerService?.isWindowFullscreen = false
+        // Back from the fullscreen excursion — restore PiP behavior.
+        if let window = self.window {
+            Self.applyPiPBehavior(to: window)
+        }
         if self.returnInlineOnExitFullscreen {
             self.returnInlineOnExitFullscreen = false
             self.youtubePlayerService?.requestPopIn()
         }
+    }
+
+    /// PiP posture: floats above normal windows and can overlay any Space,
+    /// including fullscreen/tiled ones.
+    private static func applyPiPBehavior(to window: NSWindow) {
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.level = .floating
     }
 
     /// Toggles fullscreen on the floating window.
@@ -147,10 +164,19 @@ final class YouTubeVideoWindowController {
     ///   the inline watch view), exiting fullscreen docks the video back
     ///   into the app instead of leaving the pop-out window around.
     func toggleFullscreen(returnInlineOnExit: Bool = false) {
-        if returnInlineOnExit, self.window?.styleMask.contains(.fullScreen) != true {
+        guard let window = self.window else { return }
+        if window.styleMask.contains(.fullScreen) {
+            window.toggleFullScreen(nil)
+            return
+        }
+        if returnInlineOnExit {
             self.returnInlineOnExitFullscreen = true
         }
-        self.window?.toggleFullScreen(nil)
+        // Entering real fullscreen needs primary behavior at normal level;
+        // windowDidExitFullScreen restores the PiP posture.
+        window.collectionBehavior = [.fullScreenPrimary]
+        window.level = .normal
+        window.toggleFullScreen(nil)
     }
 
     /// Shows/hides the traffic lights with the hover overlay so the video
@@ -169,7 +195,11 @@ final class YouTubeVideoWindowController {
 
         self.isClosing = true
         NotificationCenter.default.removeObserver(self, name: NSWindow.willCloseNotification, object: window)
-        window.saveFrame(usingName: self.frameAutosaveKey)
+        // Never persist a fullscreen frame — it would restore the next
+        // pop-out at screen size instead of the user's PiP size.
+        if !window.styleMask.contains(.fullScreen) {
+            window.saveFrame(usingName: self.frameAutosaveKey)
+        }
         self.performCleanup()
         window.close()
     }
@@ -179,7 +209,9 @@ final class YouTubeVideoWindowController {
         guard !self.isClosing else { return }
         self.isClosing = true
 
-        if let window = notification.object as? NSWindow {
+        if let window = notification.object as? NSWindow,
+           !window.styleMask.contains(.fullScreen)
+        {
             window.saveFrame(usingName: self.frameAutosaveKey)
         }
 
@@ -287,6 +319,25 @@ final class YouTubeVideoWindowResizeGuard: NSObject, NSWindowDelegate {
             height = minContentSize.height
         }
         return NSSize(width: width, height: height)
+    }
+
+    /// Zoom target (green button / titlebar double-click). Without
+    /// `.fullScreenPrimary` the green light zooms instead of entering
+    /// fullscreen; an unclamped zoom would blow the PiP up to screen size
+    /// (and autosave that frame). Cap it to a large-but-windowed 16:9 rect.
+    func windowWillUseStandardFrame(_ window: NSWindow, defaultFrame: NSRect) -> NSRect {
+        let visible = window.screen?.visibleFrame ?? defaultFrame
+        let contentWidth = (visible.width * 0.65).rounded()
+        let content = Self.normalizedContentSize(
+            for: NSSize(width: contentWidth, height: contentWidth * 9 / 16),
+            minContentSize: self.minContentSize
+        )
+        var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: content))
+        frame.origin = NSPoint(
+            x: visible.midX - frame.width / 2,
+            y: visible.midY - frame.height / 2
+        )
+        return frame
     }
 
     func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {

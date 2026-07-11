@@ -37,6 +37,7 @@ final class SettingsManager {
         static let adBlockEnabled = "settings.adBlock.enabled"
         static let returnYouTubeDislikesEnabled = "settings.ryd.enabled"
         static let dearrowEnabled = "settings.dearrow.enabled"
+        static let hasCompletedInitialOnboarding = "settings.onboarding.completed"
         #if DEBUG
             static let useLegacyMacOS15UI = "settings.debug.useLegacyMacOS15UI"
         #endif
@@ -427,6 +428,16 @@ final class SettingsManager {
         }
     }
 
+    /// Whether the one-time first-launch onboarding (the addons walkthrough)
+    /// has been completed. The full onboarding — changelog → Continue → Addons →
+    /// Done — is shown only once, on first launch. Later versions surface just the
+    /// changelog (What's New), without the addons step.
+    var hasCompletedInitialOnboarding: Bool {
+        didSet {
+            UserDefaults.standard.set(self.hasCompletedInitialOnboarding, forKey: Keys.hasCompletedInitialOnboarding)
+        }
+    }
+
     /// Available SponsorBlock segment categories.
     static let sponsorBlockCategoryOptions: [(id: String, label: String)] = [
         ("sponsor", String(localized: "Sponsor")),
@@ -509,6 +520,7 @@ final class SettingsManager {
         self.adBlockEnabled = UserDefaults.standard.object(forKey: Keys.adBlockEnabled) as? Bool ?? false
         self.returnYouTubeDislikesEnabled = UserDefaults.standard.object(forKey: Keys.returnYouTubeDislikesEnabled) as? Bool ?? false
         self.dearrowEnabled = UserDefaults.standard.object(forKey: Keys.dearrowEnabled) as? Bool ?? false
+        self.hasCompletedInitialOnboarding = UserDefaults.standard.object(forKey: Keys.hasCompletedInitialOnboarding) as? Bool ?? false
         #if DEBUG
             self.useLegacyMacOS15UI = UserDefaults.standard.object(forKey: Keys.useLegacyMacOS15UI) as? Bool ?? false
         #endif

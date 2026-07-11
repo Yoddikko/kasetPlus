@@ -45,32 +45,6 @@ struct YouTubeWatchView: View {
         self.youtubePlayer.dearrowTitle != nil
     }
 
-    /// The ambient backdrop style to render: the user's chosen style, or `.off`
-    /// when they've disabled the feature in Settings → YouTube.
-    private var ambientStyle: AmbientBackdropStyle {
-        self.settings.resolvedAmbientStyle
-    }
-
-    /// 0…1 playback position, only while THIS view's video is the one playing,
-    /// for the `.live` storyboard crossfade. `nil` otherwise (guards NaN when
-    /// duration is still 0 at cold load).
-    private var ambientLiveFraction: Double? {
-        guard self.youtubePlayer.currentVideo?.videoId == self.video.videoId,
-              self.youtubePlayer.duration > 0
-        else { return nil }
-        return min(max(self.youtubePlayer.progress / self.youtubePlayer.duration, 0), 1)
-    }
-
-    /// Storyboard spec for the fine-grained `.live` color, but only while THIS
-    /// view's video is the one playing — so a previous video's sheets never
-    /// tint a newly-opened watch page.
-    private var ambientStoryboardSpec: String? {
-        guard self.youtubePlayer.currentVideo?.videoId == self.video.videoId else {
-            return nil
-        }
-        return self.youtubePlayer.storyboardSpec
-    }
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -90,7 +64,11 @@ struct YouTubeWatchView: View {
                         if !self.viewModel.data.chapters.isEmpty {
                             Divider()
 
-                            self.chaptersSection
+                            WatchChaptersSection(
+                                chapters: self.viewModel.data.chapters,
+                                videoId: self.video.videoId,
+                                onSeek: self.seekToChapter
+                            )
                         }
 
                         Divider()
@@ -107,24 +85,20 @@ struct YouTubeWatchView: View {
             .padding(.vertical, 20)
         }
         // PROTOTYPE: full-bleed ambient color behind the page. `.ignoresSafeArea`
-        // (inside the modifier) lets it bleed under the bottom player-bar inset,
-        // so the bar's Liquid Glass capsule refracts the live color.
-        .ambientVideoBackdrop(
-            videoId: self.video.videoId,
-            thumbnailURL: self.video.thumbnailURL,
-            style: self.ambientStyle,
-            liveFraction: self.ambientLiveFraction,
-            storyboardSpec: self.ambientStoryboardSpec
-        )
+        // (inside the host) lets it bleed under the bottom player-bar inset,
+        // so the bar's Liquid Glass capsule refracts the live color. Hosted in
+        // a child view so ITS body — not this whole page — is what re-renders
+        // on the 1 Hz playback-progress updates the live style follows.
+        .background {
+            WatchAmbientBackground(video: self.video)
+        }
         // The in-page metadata shows the title; keep the bar clean.
         .navigationTitle("")
         // Let the ambient reach under the nav bar, like the other accent pages.
         .toolbarBackgroundVisibility(.hidden, for: .automatic)
-        #if DEBUG
             .toolbar {
                 self.ambientStylePicker
             }
-        #endif
             .onChange(of: self.youtubePlayer.showsDownloadSheet) { _, newValue in
                 if newValue {
                     self.showsDownloadSheet = true
@@ -152,31 +126,27 @@ struct YouTubeWatchView: View {
             }
     }
 
-    // MARK: - Ambient Style Picker (PROTOTYPE)
+    // MARK: - Ambient Style Picker
 
-    #if DEBUG
-        /// DEBUG-only toolbar control to switch ambient styles live on-device.
-        /// Binds to the same `SettingsManager` value as the Settings → YouTube
-        /// tab, so there is a single source of truth. The whole property is
-        /// compiled out of release builds (an empty `@ToolbarContentBuilder`
-        /// body would otherwise be invalid).
-        @ToolbarContentBuilder
-        private var ambientStylePicker: some ToolbarContent {
-            ToolbarItem(placement: .automatic) {
-                Menu {
-                    Picker("Ambient", selection: self.$settings.ambientBackdropStyle) {
-                        ForEach(AmbientBackdropStyle.allCases) { style in
-                            Text(style.debugLabel).tag(style)
-                        }
+    /// Toolbar control to switch ambient styles live on the watch page.
+    /// Binds to the same `SettingsManager` value as the Settings → YouTube
+    /// tab, so there is a single source of truth.
+    @ToolbarContentBuilder
+    private var ambientStylePicker: some ToolbarContent {
+        ToolbarItem(placement: .automatic) {
+            Menu {
+                Picker("Ambient", selection: self.$settings.ambientBackdropStyle) {
+                    ForEach(AmbientBackdropStyle.allCases) { style in
+                        Text(style.displayName).tag(style)
                     }
-                    .pickerStyle(.inline)
-                } label: {
-                    Image(systemName: "paintpalette")
                 }
-                .help("Ambient backdrop style (developer)")
+                .pickerStyle(.inline)
+            } label: {
+                Image(systemName: "paintpalette")
             }
+            .help(String(localized: "Ambient backdrop style"))
         }
-    #endif
+    }
 
     // MARK: - Video Surface
 
@@ -641,72 +611,14 @@ struct YouTubeWatchView: View {
 
     // MARK: - Chapters
 
-    private var chaptersSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Chapters", comment: "Video chapters section header")
-                .font(.title3.bold())
-
-            CarouselShelf(
-                accessibilityLabel: String(localized: "Video chapters"),
-                pageFraction: 0.82,
-                showsControls: true,
-                controlVerticalAlignment: .center,
-                contentInset: 0
-            ) {
-                LazyHStack(alignment: .top, spacing: 10) {
-                    ForEach(self.viewModel.data.chapters) { chapter in
-                        Button {
-                            self.seekToChapter(chapter)
-                        } label: {
-                            ChapterCard(chapter: chapter, isActive: self.isActiveChapter(chapter))
-                        }
-                        .buttonStyle(.interactiveRow)
-                        .accessibilityLabel(
-                            String(localized: "Jump to chapter: \(chapter.title)")
-                        )
-                        .disabled(!self.canSeekToChapter(chapter))
-                    }
-                }
-                .padding(.vertical, 2)
-            }
-        }
-        .accessibilityIdentifier(AccessibilityID.YouTubeContent.chaptersSection)
-    }
-
+    /// Seek target chosen in `WatchChaptersSection` (which gates tappability
+    /// on the player state, so no re-guard is needed here).
     private func seekToChapter(_ chapter: YouTubeChapter) {
-        guard self.canSeekToChapter(chapter) else { return }
         if self.youtubePlayer.currentVideo?.videoId != self.video.videoId {
             self.startOrAdoptPlayback(startAt: chapter.startTime)
             return
         }
         self.youtubePlayer.seek(to: chapter.startTime)
-    }
-
-    private func canSeekToChapter(_ chapter: YouTubeChapter) -> Bool {
-        if let chapterVideoId = chapter.videoId, chapterVideoId != self.video.videoId {
-            return false
-        }
-        guard self.youtubePlayer.currentVideo?.videoId == self.video.videoId else {
-            return true
-        }
-        return self.youtubePlayer.duration > 0
-            && !self.youtubePlayer.isPlaybackLoading
-            && !self.youtubePlayer.isShowingAd
-    }
-
-    private func isActiveChapter(_ chapter: YouTubeChapter) -> Bool {
-        guard self.youtubePlayer.currentVideo?.videoId == self.video.videoId else { return false }
-        let currentTime = self.youtubePlayer.progress
-        guard currentTime >= chapter.startTime else { return false }
-        if let endTime = chapter.endTime {
-            return currentTime < endTime
-        }
-        guard let index = self.viewModel.data.chapters.firstIndex(where: { $0.id == chapter.id }) else {
-            return false
-        }
-        let nextIndex = self.viewModel.data.chapters.index(after: index)
-        guard nextIndex < self.viewModel.data.chapters.endIndex else { return true }
-        return currentTime < self.viewModel.data.chapters[nextIndex].startTime
     }
 
     // MARK: - Related Column
@@ -900,6 +812,125 @@ struct YouTubeWatchView: View {
                 self.commentDraft = ""
             }
         }
+    }
+}
+
+// MARK: - WatchAmbientBackground
+
+/// Hosts the ambient backdrop and owns every playback-progress read it needs.
+///
+/// Deliberately a separate child view: with `@Observable` tracking, the view
+/// whose BODY reads `progress`/`duration` is the one invalidated by the 1 Hz
+/// bridge updates. Keeping those reads out of `YouTubeWatchView.body` means
+/// the watch page (metadata, comments, related) no longer re-evaluates every
+/// second during playback — only this tiny host does.
+private struct WatchAmbientBackground: View {
+    let video: YouTubeVideo
+
+    @Environment(YouTubePlayerService.self) private var youtubePlayer
+    @State private var settings = SettingsManager.shared
+
+    var body: some View {
+        AmbientVideoBackdrop(
+            videoId: self.video.videoId,
+            thumbnailURL: self.video.thumbnailURL,
+            style: self.settings.resolvedAmbientStyle,
+            liveFraction: self.liveFraction,
+            storyboardSpec: self.storyboardSpec
+        )
+        .ignoresSafeArea()
+    }
+
+    private var isCurrentVideo: Bool {
+        self.youtubePlayer.currentVideo?.videoId == self.video.videoId
+    }
+
+    /// 0…1 playback position, only while THIS view's video is the one playing,
+    /// for the `.live` storyboard color. `nil` otherwise (guards NaN when
+    /// duration is still 0 at cold load).
+    private var liveFraction: Double? {
+        guard self.isCurrentVideo, self.youtubePlayer.duration > 0 else { return nil }
+        return min(max(self.youtubePlayer.progress / self.youtubePlayer.duration, 0), 1)
+    }
+
+    /// Storyboard spec for the fine-grained `.live` color, but only while THIS
+    /// view's video is the one playing — so a previous video's sheets never
+    /// tint a newly-opened watch page.
+    private var storyboardSpec: String? {
+        guard self.isCurrentVideo else { return nil }
+        return self.youtubePlayer.storyboardSpec
+    }
+}
+
+// MARK: - WatchChaptersSection
+
+/// The chapters rail, extracted so the active-chapter highlight's 1 Hz
+/// `progress` reads invalidate only this section — not the whole watch page
+/// (see `WatchAmbientBackground` for the observation-scoping rationale).
+private struct WatchChaptersSection: View {
+    let chapters: [YouTubeChapter]
+    let videoId: String
+    let onSeek: (YouTubeChapter) -> Void
+
+    @Environment(YouTubePlayerService.self) private var youtubePlayer
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Chapters", comment: "Video chapters section header")
+                .font(.title3.bold())
+
+            CarouselShelf(
+                accessibilityLabel: String(localized: "Video chapters"),
+                pageFraction: 0.82,
+                showsControls: true,
+                controlVerticalAlignment: .center,
+                contentInset: 0
+            ) {
+                LazyHStack(alignment: .top, spacing: 10) {
+                    ForEach(self.chapters) { chapter in
+                        Button {
+                            self.onSeek(chapter)
+                        } label: {
+                            ChapterCard(chapter: chapter, isActive: self.isActiveChapter(chapter))
+                        }
+                        .buttonStyle(.interactiveRow)
+                        .accessibilityLabel(
+                            String(localized: "Jump to chapter: \(chapter.title)")
+                        )
+                        .disabled(!self.canSeekToChapter(chapter))
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+        }
+        .accessibilityIdentifier(AccessibilityID.YouTubeContent.chaptersSection)
+    }
+
+    private func canSeekToChapter(_ chapter: YouTubeChapter) -> Bool {
+        if let chapterVideoId = chapter.videoId, chapterVideoId != self.videoId {
+            return false
+        }
+        guard self.youtubePlayer.currentVideo?.videoId == self.videoId else {
+            return true
+        }
+        return self.youtubePlayer.duration > 0
+            && !self.youtubePlayer.isPlaybackLoading
+            && !self.youtubePlayer.isShowingAd
+    }
+
+    private func isActiveChapter(_ chapter: YouTubeChapter) -> Bool {
+        guard self.youtubePlayer.currentVideo?.videoId == self.videoId else { return false }
+        let currentTime = self.youtubePlayer.progress
+        guard currentTime >= chapter.startTime else { return false }
+        if let endTime = chapter.endTime {
+            return currentTime < endTime
+        }
+        guard let index = self.chapters.firstIndex(where: { $0.id == chapter.id }) else {
+            return false
+        }
+        let nextIndex = self.chapters.index(after: index)
+        guard nextIndex < self.chapters.endIndex else { return true }
+        return currentTime < self.chapters[nextIndex].startTime
     }
 }
 
