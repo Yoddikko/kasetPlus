@@ -30,6 +30,8 @@
 </p>
 
 <p align="center">
+  <a href="https://yoddikko.github.io/kasetPlus/"><strong>Website</strong></a>
+  &nbsp;•&nbsp;
   <a href="https://github.com/Yoddikko/kasetPlus/releases/latest"><strong>Download KasetPlus</strong></a>
   &nbsp;•&nbsp;
   <a href="https://github.com/sozercan/kaset">Original Kaset</a>
