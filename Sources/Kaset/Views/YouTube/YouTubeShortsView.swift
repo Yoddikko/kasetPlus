@@ -23,6 +23,10 @@ struct YouTubeShortsView: View {
     /// janky scroll). Only the short you settle on loads.
     @State private var playDebounce: Task<Void, Never>?
 
+    /// Local mirror of the player service's download-sheet request, so the
+    /// player bar's download button works from the Shorts surface too.
+    @State private var showsDownloadSheet = false
+
     var body: some View {
         Group {
             switch self.viewModel.loadingState {
@@ -73,6 +77,19 @@ struct YouTubeShortsView: View {
             self.playDebounce?.cancel()
             self.stopIfPlayingShort()
         }
+        // The player bar's download button just flips this flag; the watch view
+        // presents the sheet, but Shorts aren't shown there — present it here too.
+        .onChange(of: self.youtubePlayer.showsDownloadSheet) { _, newValue in
+            if newValue {
+                self.showsDownloadSheet = true
+                self.youtubePlayer.showsDownloadSheet = false
+            }
+        }
+        .sheet(isPresented: self.$showsDownloadSheet) {
+            if let video = self.youtubePlayer.currentVideo {
+                YouTubeDownloadSheet(videoId: video.videoId, videoTitle: video.title)
+            }
+        }
     }
 
     // MARK: - Pager
@@ -109,7 +126,61 @@ struct YouTubeShortsView: View {
                 self.schedulePlay(shortId)
             }
             .accessibilityIdentifier(AccessibilityID.YouTubeContent.shortsPager)
+            .overlay(alignment: .bottomTrailing) {
+                self.shortActions
+            }
         }
+    }
+
+    // MARK: - Short Actions (like / dislike)
+
+    /// TikTok-style like/dislike rail for the current short. Reuses the player
+    /// service's rating + Return-YouTube-Dislike counts (populated on play), so
+    /// no extra fetch is needed.
+    @ViewBuilder
+    private var shortActions: some View {
+        if self.youtubePlayer.currentVideo?.isShort == true {
+            VStack(spacing: 20) {
+                self.actionButton(
+                    icon: self.youtubePlayer.currentRating == .like ? "hand.thumbsup.fill" : "hand.thumbsup",
+                    count: self.youtubePlayer.rydLikes,
+                    isActive: self.youtubePlayer.currentRating == .like
+                ) {
+                    Task { await self.youtubePlayer.toggleLike() }
+                }
+                self.actionButton(
+                    icon: self.youtubePlayer.currentRating == .dislike ? "hand.thumbsdown.fill" : "hand.thumbsdown",
+                    count: self.youtubePlayer.rydDislikes,
+                    isActive: self.youtubePlayer.currentRating == .dislike
+                ) {
+                    Task { await self.youtubePlayer.toggleDislike() }
+                }
+            }
+            .padding(.trailing, 24)
+            .padding(.bottom, 96)
+        }
+    }
+
+    private func actionButton(
+        icon: String,
+        count: Int?,
+        isActive: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 26))
+                    .foregroundStyle(isActive ? Color.accentColor : .white)
+                if let count {
+                    Text(YouTubePlayerService.formatCount(count))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+            }
+            .shadow(radius: 4)
+        }
+        .buttonStyle(.plain)
     }
 
     /// Whether the live surface belongs to this short.

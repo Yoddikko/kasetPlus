@@ -356,21 +356,8 @@ struct YouTubePlayerBar: View {
             )
             .disabled(!self.canSeek)
 
-            PlayerBarIconButton(
-                action: {
-                    self.youtubePlayer.showsLyrics.toggle()
-                },
-                isSelected: self.youtubePlayer.showsLyrics,
-                accessibilityLabel: String(localized: "Lyrics"),
-                icon: {
-                    Image(systemName: self.youtubePlayer.showsLyrics ? "music.quarternote.3" : "music.note.list")
-                        .font(.system(size: 15, weight: .regular))
-                        .frame(width: 16, height: 16)
-                        .foregroundStyle(self.youtubePlayer.showsLyrics ? Self.brandAccent : .primary)
-                        .contentTransition(.symbolEffect(.replace))
-                }
-            )
-            .disabled(self.youtubePlayer.currentVideo == nil)
+            // Lyrics live only next to the Summary button on the watch page now,
+            // not in the transport bar.
 
             PlayerBarIconButton(
                 action: {
@@ -539,7 +526,8 @@ struct YouTubePlayerBar: View {
                     Button {
                         self.youtubePlayer.selectQuality(level)
                     } label: {
-                        if self.youtubePlayer.currentQuality == level {
+                        // Checkmark follows the user's pin; Auto by default.
+                        if (self.youtubePlayer.userPinnedQuality ?? "auto") == level {
                             Label(YouTubeQuality.displayName(for: level), systemImage: "checkmark")
                         } else {
                             Text(YouTubeQuality.displayName(for: level))

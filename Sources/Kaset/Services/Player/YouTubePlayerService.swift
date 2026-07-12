@@ -278,8 +278,14 @@ final class YouTubePlayerService {
     /// Quality levels available on the current watch page.
     private(set) var qualityLevels: [String] = []
 
-    /// The player's current quality level.
+    /// The player's current quality level (the level YouTube actually resolved).
     private(set) var currentQuality: String?
+
+    /// The quality the user explicitly pinned from the gear menu, or `nil` while
+    /// left on **Auto** (the default). The menu checkmark follows this so Auto
+    /// shows as selected until a fixed level is chosen, instead of following the
+    /// auto-resolved `currentQuality` (which made e.g. 1080p look hand-picked).
+    private(set) var userPinnedQuality: String?
 
     /// YouTube storyboard spec for the current video (drives the ambient
     /// backdrop's fine-grained live color). `nil` until fetched / unavailable.
@@ -763,6 +769,8 @@ final class YouTubePlayerService {
     /// Selects a playback quality level.
     func selectQuality(_ level: String) {
         self.currentQuality = level
+        // "auto" clears the pin (back to Auto); any real level pins it.
+        self.userPinnedQuality = (level == "auto") ? nil : level
         self.playbackController.setQualityLevel(level)
         HapticService.toggle()
     }

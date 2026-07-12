@@ -552,9 +552,10 @@ final class SettingsManager {
         }
 
         if let rawValue = UserDefaults.standard.string(forKey: Keys.ambientBackdropStyle),
-           let style = AmbientBackdropStyle(rawValue: rawValue),
-           style != .off
+           let style = AmbientBackdropStyle(rawValue: rawValue)
         {
+            // Persist every choice, including `.off` — previously `.off` was
+            // dropped on load and silently reverted to `.live` each launch.
             self.ambientBackdropStyle = style
         } else {
             self.ambientBackdropStyle = .live
