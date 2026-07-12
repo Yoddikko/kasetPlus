@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f2f3" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#121011" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="KasetPlus is a native YouTube and YouTube Music client for macOS with built-in addons, video downloads, synced lyrics, and on-device AI.">
+    <meta property="og:title" content="KasetPlus, a native YouTube client for macOS">
+    <meta property="og:description" content="Watch, listen, download, and clean up YouTube in one native Mac app.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yoddikko.github.io/kasetPlus/">
+    <meta property="og:image" content="https://yoddikko.github.io/kasetPlus/assets/kaset-youtube.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://yoddikko.github.io/kasetPlus/assets/kaset-youtube.png">
+    <title>KasetPlus for macOS</title>
+    <link rel="icon" href="assets/app-icon.png" type="image/png">
+    <link rel="preload" href="assets/kaset-youtube-900.webp" as="image" type="image/webp" media="(max-width: 580px)">
+    <link rel="preload" href="assets/kaset-youtube.webp" as="image" type="image/webp" media="(min-width: 581px)">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        (() => {
+            const savedTheme = localStorage.getItem("kaset-theme");
+            if (savedTheme === "light" || savedTheme === "dark") {
+                document.documentElement.dataset.theme = savedTheme;
+            }
+        })();
+    </script>
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+        <a class="brand" href="#top" aria-label="KasetPlus home">
+            <span class="brand-icon" aria-hidden="true">
+                <img src="assets/app-icon.png" alt="">
+            </span>
+            <span>Kaset<span class="brand-accent">Plus</span></span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="Main navigation">
+            <a href="#addons">Addons</a>
+            <a href="#features">Features</a>
+            <a href="#experience">Experience</a>
+            <a href="#fork">The fork</a>
+            <a href="#install">Download</a>
+        </nav>
+
+        <div class="header-actions">
+            <button class="theme-toggle" type="button" aria-label="Switch color theme" title="Switch color theme">
+                <span class="theme-icon" aria-hidden="true"></span>
+            </button>
+            <a class="icon-button" href="https://github.com/Yoddikko/kasetPlus" aria-label="Open KasetPlus on GitHub">
+                <img src="assets/github.svg" alt="">
+            </a>
+        </div>
+    </header>
+
+    <main id="main">
+        <section class="hero" id="top">
+            <div class="hero-copy reveal">
+                <p class="eyebrow">A native YouTube client for macOS</p>
+                <h1>A better YouTube client. <span>Built for Mac.</span></h1>
+                <p class="hero-lede">Browse, watch, listen, download, and clean up YouTube in one native SwiftUI app.</p>
+
+                <div class="hero-actions">
+                    <a class="button button-primary download-link" href="https://github.com/Yoddikko/kasetPlus/releases/download/v0.12.0-kp.6/KasetPlus.zip">
+                        <span class="download-symbol" aria-hidden="true">&#8595;</span>
+                        <span>Download KasetPlus <span class="release-version">v0.12.0-kp.6</span></span>
+                    </a>
+                    <a class="button button-secondary" href="https://github.com/Yoddikko/kasetPlus">
+                        <img src="assets/github.svg" alt="">
+                        View on GitHub
+                    </a>
+                </div>
+
+                <div class="release-meta" aria-label="Download requirements">
+                    <span>macOS 15.4+</span>
+                    <span>YouTube + YouTube Music</span>
+                    <span>Universal app</span>
+                    <span class="release-size">46.6 MB ZIP</span>
+                </div>
+
+                <div class="hero-addon-proof" aria-label="Included addons">
+                    <strong>Built-in addons</strong>
+                    <span>Ad Blocker</span>
+                    <span>SponsorBlock</span>
+                    <span>RYD</span>
+                    <span>DeArrow</span>
+                </div>
+            </div>
+
+            <div class="hero-visual reveal" aria-label="KasetPlus browsing YouTube">
+                <div class="app-icon-large" aria-hidden="true">
+                    <div class="app-icon-surface">
+                        <img src="assets/app-icon.png" alt="">
+                    </div>
+                </div>
+                <figure class="app-window hero-window">
+                    <div class="window-bar" aria-hidden="true">
+                        <span class="traffic traffic-red"></span>
+                        <span class="traffic traffic-yellow"></span>
+                        <span class="traffic traffic-green"></span>
+                        <span class="window-title">KasetPlus</span>
+                    </div>
+                    <picture>
+                        <source
+                            type="image/webp"
+                            srcset="assets/kaset-youtube-900.webp 900w, assets/kaset-youtube.webp 1800w"
+                            sizes="(max-width: 580px) calc(100vw - 54px), (max-width: 820px) 84vw, 56vw"
+                        >
+                        <img src="assets/kaset-youtube.png" alt="KasetPlus YouTube home screen in dark mode" width="1800" height="1287">
+                    </picture>
+                </figure>
+            </div>
+        </section>
+
+        <section class="highlight-band" id="addons" aria-label="Built-in YouTube addons">
+            <p><strong>Built-in YouTube addons.</strong> No browser extension setup.</p>
+            <div class="highlight-list">
+                <span>Ad Blocker</span>
+                <span>SponsorBlock</span>
+                <span>Return YouTube Dislikes</span>
+                <span>DeArrow</span>
+            </div>
+        </section>
+
+        <section class="section features-section" id="features">
+            <div class="section-heading reveal">
+                <p class="eyebrow">The YouTube client with more built in</p>
+                <h2>YouTube, with the tools it should have.</h2>
+                <p>KasetPlus combines a native client with practical addons, downloads, lyrics, and private intelligence.</p>
+            </div>
+
+            <div class="feature-grid">
+                <article class="feature feature-addons reveal">
+                    <p class="feature-kicker">The highlight</p>
+                    <h3>A cleaner YouTube experience from the first launch.</h3>
+                    <p>Block ads, skip sponsored segments, restore dislikes, and replace clickbait titles without installing browser extensions.</p>
+                    <div class="addon-list" aria-label="Included addons">
+                        <span>Ad Blocker</span>
+                        <span>SponsorBlock</span>
+                        <span>Return YouTube Dislikes</span>
+                        <span>DeArrow</span>
+                    </div>
+                </article>
+
+                <article class="feature feature-download reveal">
+                    <div class="feature-icon" aria-hidden="true">&#8595;</div>
+                    <h3>Download video or audio</h3>
+                    <p>Choose quality, estimate size, extract MP3, and include subtitles with bundled yt-dlp.</p>
+                </article>
+
+                <article class="feature feature-ai reveal">
+                    <div class="feature-icon feature-sparkle" aria-hidden="true">&#10022;</div>
+                    <div>
+                        <p class="feature-kicker">Apple Intelligence</p>
+                        <h3>Understand a video without sending it away.</h3>
+                        <p>Generate summaries, key points, and audience notes entirely on-device from video captions. No API key required.</p>
+                        <span class="requirement">Requires macOS 26 and Apple Intelligence</span>
+                    </div>
+                </article>
+
+                <article class="feature feature-lyrics reveal">
+                    <div class="lyric-lines" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <h3>Lyrics that stay in time</h3>
+                    <p>Follow synced lyrics, search LRCLib, and romanize supported non-Latin scripts.</p>
+                </article>
+
+                <article class="feature feature-focus reveal">
+                    <div class="focus-mark" aria-hidden="true"><span></span></div>
+                    <h3>Watch without distraction</h3>
+                    <p>Hide comments and related videos when you want the video to be the only thing on screen.</p>
+                </article>
+
+            </div>
+        </section>
+
+        <section class="section experience-section" id="experience">
+            <div class="experience-copy reveal">
+                <p class="eyebrow">Two sources. One window.</p>
+                <h2>Switch context, not apps.</h2>
+                <p>Move from albums and synced lyrics to subscriptions, Shorts, comments, and full native video controls.</p>
+            </div>
+
+            <div class="window-stack reveal">
+                <figure class="app-window music-window">
+                    <div class="window-bar" aria-hidden="true">
+                        <span class="traffic traffic-red"></span>
+                        <span class="traffic traffic-yellow"></span>
+                        <span class="traffic traffic-green"></span>
+                        <span class="window-title">Music</span>
+                    </div>
+                    <picture>
+                        <source
+                            type="image/webp"
+                            srcset="assets/kaset-music-900.webp 900w, assets/kaset-music.webp 1800w"
+                            sizes="(max-width: 820px) calc(100vw - 48px), 58vw"
+                        >
+                        <img src="assets/kaset-music.png" alt="YouTube Music charts displayed in KasetPlus" width="1800" height="1287" loading="lazy">
+                    </picture>
+                </figure>
+                <figure class="app-window youtube-window">
+                    <div class="window-bar" aria-hidden="true">
+                        <span class="traffic traffic-red"></span>
+                        <span class="traffic traffic-yellow"></span>
+                        <span class="traffic traffic-green"></span>
+                        <span class="window-title">YouTube</span>
+                    </div>
+                    <picture>
+                        <source
+                            type="image/webp"
+                            srcset="assets/kaset-youtube-900.webp 900w, assets/kaset-youtube.webp 1800w"
+                            sizes="(max-width: 820px) calc(100vw - 48px), 58vw"
+                        >
+                        <img src="assets/kaset-youtube.png" alt="YouTube home displayed natively in KasetPlus" width="1800" height="1287" loading="lazy">
+                    </picture>
+                </figure>
+            </div>
+        </section>
+
+        <section class="section native-section">
+            <div class="native-statement reveal">
+                <p class="eyebrow">Made for macOS</p>
+                <h2>It behaves like a Mac app because it is one.</h2>
+            </div>
+            <div class="native-details reveal">
+                <p>Swift and SwiftUI throughout, with WebView reserved for DRM playback and authentication.</p>
+                <div class="native-list">
+                    <span>Media keys and Control Center</span>
+                    <span>Liquid Glass on macOS 26</span>
+                    <span>Background playback</span>
+                    <span>Picture in Picture</span>
+                    <span>System share sheet</span>
+                    <span>Automatic updates</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section fork-section" id="fork">
+            <div class="fork-card reveal">
+                <div class="fork-mark" aria-hidden="true"></div>
+                <div class="fork-copy">
+                    <p class="eyebrow">Built on open source</p>
+                    <h2>KasetPlus is a fork of Kaset.</h2>
+                    <p>KasetPlus builds on the original open-source Kaset project by <a href="https://github.com/sozercan">@sozercan</a>.</p>
+                </div>
+                <a class="button button-secondary fork-link" href="https://github.com/sozercan/kaset">
+                    <img src="assets/github.svg" alt="">
+                    Visit original Kaset
+                </a>
+            </div>
+        </section>
+
+        <section class="section install-section" id="install">
+            <div class="install-copy reveal">
+                <p class="eyebrow">Install in a minute</p>
+                <h2>Download, unzip, move to Applications.</h2>
+                <p>KasetPlus is currently unsigned. macOS will block the first launch so you can review and approve it in Privacy &amp; Security.</p>
+                <a class="button button-primary download-link" href="https://github.com/Yoddikko/kasetPlus/releases/download/v0.12.0-kp.6/KasetPlus.zip">
+                    Download <span class="release-version">v0.12.0-kp.6</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="section support-section" id="support">
+            <div class="support-card reveal">
+                <div>
+                    <p class="eyebrow">Support the project</p>
+                    <h2>Help keep KasetPlus moving.</h2>
+                    <p>If the app earns a place in your Dock, you can support its continued development on Ko-fi.</p>
+                </div>
+                <a class="button button-kofi" href="https://ko-fi.com/yodddd">
+                    <img src="assets/kofi.svg" alt="">
+                    Support on Ko-fi
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-brand">
+            <span class="brand-icon" aria-hidden="true">
+                <img src="assets/app-icon.png" alt="">
+            </span>
+            <div>
+                <strong>KasetPlus</strong>
+                <span>A native macOS client for YouTube Music and YouTube.</span>
+            </div>
+        </div>
+        <div class="footer-links">
+            <a href="https://github.com/Yoddikko/kasetPlus">GitHub</a>
+            <a href="https://github.com/Yoddikko/kasetPlus/releases">Releases</a>
+            <a href="https://ko-fi.com/yodddd">Ko-fi</a>
+            <a href="https://github.com/sozercan/kaset">Original Kaset</a>
+        </div>
+        <p class="disclaimer">Unofficial project. Not affiliated with YouTube, Google, or the original Kaset project.</p>
+    </footer>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
