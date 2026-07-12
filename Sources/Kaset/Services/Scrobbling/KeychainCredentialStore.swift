@@ -43,6 +43,32 @@ final class KeychainCredentialStore {
         self.delete(key: "lastFMUsername")
     }
 
+    /// Saves the ListenBrainz user token to Keychain.
+    func saveListenBrainzToken(_ token: String) throws {
+        try self.save(key: "listenBrainzToken", value: token)
+    }
+
+    /// Retrieves the stored ListenBrainz user token, if any.
+    func getListenBrainzToken() -> String? {
+        self.get(key: "listenBrainzToken")
+    }
+
+    /// Saves the ListenBrainz username to Keychain.
+    func saveListenBrainzUsername(_ username: String) throws {
+        try self.save(key: "listenBrainzUsername", value: username)
+    }
+
+    /// Retrieves the stored ListenBrainz username, if any.
+    func getListenBrainzUsername() -> String? {
+        self.get(key: "listenBrainzUsername")
+    }
+
+    /// Removes all ListenBrainz credentials from Keychain.
+    func removeListenBrainzCredentials() {
+        self.delete(key: "listenBrainzToken")
+        self.delete(key: "listenBrainzUsername")
+    }
+
     // MARK: - Private Helpers
 
     private func save(key: String, value: String) throws {

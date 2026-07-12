@@ -137,9 +137,10 @@ struct KasetApp: App {
 
         // Create scrobbling coordinator
         let lastFMService = LastFMService(credentialStore: KeychainCredentialStore())
+        let listenBrainzService = ListenBrainzService(credentialStore: KeychainCredentialStore())
         let scrobblingCoordinator = ScrobblingCoordinator(
             playerService: player,
-            services: [lastFMService]
+            services: [lastFMService, listenBrainzService]
         )
         scrobblingCoordinator.restoreAuthState()
         scrobblingCoordinator.startMonitoring()
@@ -698,6 +699,7 @@ struct SettingsView: View {
                 }
 
             MusicSettingsView()
+                .environment(self.scrobblingCoordinator)
                 .tabItem {
                     Label("Music", systemImage: "music.note")
                 }
@@ -712,11 +714,7 @@ struct SettingsView: View {
                     Label("Equalizer", systemImage: "slider.vertical.3")
                 }
 
-            ScrobblingSettingsView()
-                .environment(self.scrobblingCoordinator)
-                .tabItem {
-                    Label("Scrobbling", systemImage: "music.note.list")
-                }
+            // Scrobbling settings now live inside the Music tab.
 
             // Conditionally rendered (Apple Intelligence is macOS 26+ and
             // hidden in legacy UI mode). Placed near the end so that when it is

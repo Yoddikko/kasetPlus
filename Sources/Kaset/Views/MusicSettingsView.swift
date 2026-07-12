@@ -5,6 +5,7 @@ import SwiftUI
 /// preferences that only apply when `appSource` is `.music`.
 struct MusicSettingsView: View {
     @State private var settings = SettingsManager.shared
+    @Environment(ScrobblingCoordinator.self) private var scrobblingCoordinator
 
     var body: some View {
         Form {
@@ -85,6 +86,17 @@ struct MusicSettingsView: View {
                     .help("Show romanized text (romaji, pinyin, etc.) below non-Latin lyrics")
             } header: {
                 Text("Lyrics")
+            }
+
+            // MARK: - Scrobbling Section
+
+            // Scrobble what you listen to on YouTube Music to Last.fm / ListenBrainz.
+            ForEach(self.scrobblingCoordinator.services, id: \.serviceName) { service in
+                if let listenBrainz = service as? ListenBrainzService {
+                    ListenBrainzServiceRow(service: listenBrainz)
+                } else {
+                    ScrobbleServiceRow(service: service)
+                }
             }
         }
         .formStyle(.grouped)

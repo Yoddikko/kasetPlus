@@ -19,7 +19,13 @@ struct ScrobblingSettingsView: View {
                 }
             } else {
                 ForEach(self.coordinator.services, id: \.serviceName) { service in
-                    ScrobbleServiceRow(service: service)
+                    // ListenBrainz authenticates with a pasted user token, not a
+                    // browser flow, so it gets a dedicated row.
+                    if let listenBrainz = service as? ListenBrainzService {
+                        ListenBrainzServiceRow(service: listenBrainz)
+                    } else {
+                        ScrobbleServiceRow(service: service)
+                    }
                 }
             }
         }
@@ -132,6 +138,88 @@ struct ScrobbleServiceRow: View {
                 Task {
                     await self.service.disconnect()
                 }
+            }
+        }
+    }
+}
+
+// MARK: - ListenBrainzServiceRow
+
+/// Settings row for ListenBrainz: a pasted user token instead of a browser flow.
+struct ListenBrainzServiceRow: View {
+    let service: ListenBrainzService
+    @State private var settings = SettingsManager.shared
+    @State private var token = ""
+    @State private var isConnecting = false
+
+    var body: some View {
+        Section {
+            Toggle(isOn: self.enabledBinding) {
+                Text("Enable ListenBrainz Scrobbling")
+            }
+
+            switch self.service.authState {
+            case let .connected(username):
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Account")
+                            .font(.headline)
+                        Text("Connected as \(username)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Disconnect") {
+                        Task { await self.service.disconnect() }
+                    }
+                }
+                .padding(.vertical, 4)
+
+            default:
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        SecureField("User token", text: self.$token)
+                            .textFieldStyle(.roundedBorder)
+                        if self.isConnecting {
+                            ProgressView().controlSize(.small)
+                        }
+                        Button("Connect") { self.connect() }
+                            .disabled(self.token.trimmingCharacters(in: .whitespaces).isEmpty || self.isConnecting)
+                    }
+                    if case let .error(message) = self.service.authState {
+                        Text(message)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    Link(
+                        "Get your token from listenbrainz.org",
+                        destination: URL(string: "https://listenbrainz.org/settings/")!
+                    )
+                    .font(.caption)
+                }
+                .padding(.vertical, 4)
+            }
+        } header: {
+            Text("ListenBrainz")
+        }
+    }
+
+    private var enabledBinding: Binding<Bool> {
+        Binding(
+            get: { self.settings.isServiceEnabled(self.service.serviceName) },
+            set: { self.settings.setServiceEnabled(self.service.serviceName, $0) }
+        )
+    }
+
+    private func connect() {
+        Task {
+            self.isConnecting = true
+            defer { self.isConnecting = false }
+            do {
+                try await self.service.connect(token: self.token)
+                self.token = ""
+            } catch {
+                DiagnosticsLogger.scrobbling.error("ListenBrainz connect failed: \(error.localizedDescription)")
             }
         }
     }
