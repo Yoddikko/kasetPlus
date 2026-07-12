@@ -285,6 +285,38 @@ final class YouTubeClient: YouTubeClientProtocol {
         return detail
     }
 
+    func getChannelTab(channelId: String, tab: YouTubeChannelTab) async throws -> YouTubeChannelTabContent {
+        self.logger.info("Fetching YouTube channel tab: \(tab.rawValue)")
+
+        var body: [String: Any] = ["browseId": channelId]
+        if let params = tab.browseParams {
+            body["params"] = params
+        }
+        let data = try await self.request("browse", body: body, ttl: APICache.TTL.artist)
+
+        if tab.showsPlaylists {
+            // collectPlaylists doesn't surface a continuation; channels rarely
+            // have enough playlists to need one.
+            return .playlists(YouTubeFeedParser.collectPlaylists(data), continuation: nil)
+        }
+
+        // Collect BOTH videos and shorts (the Shorts tab uses shortsLockup items)
+        // so the Shorts tab isn't dropped, and capture the continuation token.
+        var videos: [YouTubeVideo] = []
+        var shorts: [YouTubeVideo] = []
+        var continuation: String?
+        if let contents = data["contents"] {
+            YouTubeFeedParser.collect(in: contents, videos: &videos, shorts: &shorts, continuation: &continuation)
+        }
+        return .videos(YouTubeFeedParser.deduplicate(videos + shorts), continuation: continuation)
+    }
+
+    func getChannelTabContinuation(token: String) async throws -> ([YouTubeVideo], continuation: String?) {
+        let data = try await self.request("browse", body: ["continuation": token])
+        let feed = YouTubeFeedParser.parseContinuation(data)
+        return (YouTubeFeedParser.deduplicate(feed.videos + feed.shorts), feed.continuation)
+    }
+
     func getPlaylist(playlistId: String) async throws -> YouTubePlaylistDetail {
         self.logger.info("Fetching YouTube playlist page")
 
@@ -322,17 +354,29 @@ final class YouTubeClient: YouTubeClientProtocol {
     func getShorts() async throws -> [YouTubeVideo] {
         self.logger.info("Fetching YouTube Shorts")
 
+        // Aggregate every source instead of short-circuiting on Home's handful
+        // of shorts — the surface needs a deep feed to scroll, not 5 items.
+        var results: [YouTubeVideo] = []
+        var seen = Set<String>()
+        func add(_ shorts: [YouTubeVideo]) {
+            for short in shorts where seen.insert(short.videoId).inserted {
+                results.append(short)
+            }
+        }
+
         let bundle = try await self.homeBundle()
-        if !bundle.feed.shorts.isEmpty {
-            return bundle.feed.shorts
+        add(bundle.feed.shorts)
+
+        // `#shorts` search is the deepest single source (~30) and is fast.
+        add((try? await self.searchShortsFallback()) ?? [])
+
+        // Only reach for the destination feeds (several requests) if still thin.
+        if results.count < 40 {
+            add(await self.publicDestinationShorts())
         }
 
-        let destinationShorts = await self.publicDestinationShorts()
-        if !destinationShorts.isEmpty {
-            return destinationShorts
-        }
-
-        return try await self.searchShortsFallback()
+        self.logger.info("YouTube Shorts aggregated: \(results.count)")
+        return results
     }
 
     private func publicDestinationShorts() async -> [YouTubeVideo] {

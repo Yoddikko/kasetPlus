@@ -40,4 +40,6 @@ struct YouTubeChannel: Identifiable, Hashable {
 struct YouTubeChannelDetail: Hashable {
     let channel: YouTubeChannel
     let videos: [YouTubeVideo]
+    /// Continuation token for the landing (Home) tab's next page, if any.
+    var continuation: String?
 }

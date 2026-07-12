@@ -7,6 +7,9 @@ enum YouTubeRoute: Hashable {
     case watch(YouTubeVideo)
     case channel(channelId: String)
     case playlist(playlistId: String)
+    /// Vertical Shorts viewer seeded with a specific list (e.g. a channel's
+    /// Shorts tab), opened at `startVideoId` and scrolling through that list.
+    case creatorShorts(shorts: [YouTubeVideo], startVideoId: String)
 }
 
 // MARK: - Navigation Destinations
@@ -26,6 +29,11 @@ extension View {
                     YouTubeChannelView(channelId: channelId, client: client)
                 case let .playlist(playlistId):
                     YouTubePlaylistDetailView(playlistId: playlistId, client: client)
+                case let .creatorShorts(shorts, startVideoId):
+                    YouTubeShortsView(
+                        viewModel: YouTubeShortsViewModel(client: client, seededShorts: shorts),
+                        initialShortId: startVideoId
+                    )
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -8,11 +8,20 @@ import SwiftUI
 struct YouTubeShortsView: View {
     let viewModel: YouTubeShortsViewModel
 
+    /// When set (e.g. opened from a channel's Shorts tab), the pager starts on
+    /// this short instead of the feed's first one.
+    var initialShortId: String?
+
     @Environment(AuthService.self) private var authService
     @Environment(YouTubePlayerService.self) private var youtubePlayer
 
     /// The short currently snapped into view (drives autoplay).
     @State private var currentShortId: String?
+
+    /// Debounces playback so a fast scroll doesn't fire a full page load for
+    /// every short it flies past (each load cancels the last → nothing loads,
+    /// janky scroll). Only the short you settle on loads.
+    @State private var playDebounce: Task<Void, Never>?
 
     var body: some View {
         Group {
@@ -52,13 +61,16 @@ struct YouTubeShortsView: View {
             // not in the new pager.
             self.currentShortId = nil
             await self.viewModel.load()
-            // Autoplay the first short on entry.
-            if self.currentShortId == nil, let first = self.viewModel.shorts.first {
-                self.currentShortId = first.videoId
-                self.play(shortId: first.videoId)
+            // Select the entry short (the requested one from a channel, else the
+            // feed's first). Setting currentShortId fires onChange → schedulePlay,
+            // which is the single path that starts playback.
+            if self.currentShortId == nil {
+                self.currentShortId = (self.viewModel.shorts.first { $0.videoId == self.initialShortId }
+                    ?? self.viewModel.shorts.first)?.videoId
             }
         }
         .onDisappear {
+            self.playDebounce?.cancel()
             self.stopIfPlayingShort()
         }
     }
@@ -66,34 +78,56 @@ struct YouTubeShortsView: View {
     // MARK: - Pager
 
     private var pager: some View {
-        ScrollView(.vertical) {
-            LazyVStack(spacing: 0) {
-                ForEach(self.viewModel.shorts) { short in
-                    ShortPage(
-                        short: short,
-                        isActive: self.isPresenting(short)
-                    )
-                    .containerRelativeFrame(.vertical)
-                    .id(short.videoId)
+        GeometryReader { geo in
+            // The ScrollView extends under the nav bar and player bar, so its
+            // paging viewport is the full height (visible area + both safe-area
+            // insets). Each page must equal that viewport or paging drifts and
+            // shorts slide under the bars. The short itself is sized to the
+            // *visible* area and centred within the page, so it lands in the
+            // clear region between the bars.
+            let pageHeight = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
+            ScrollView(.vertical) {
+                LazyVStack(spacing: 0) {
+                    ForEach(self.viewModel.shorts) { short in
+                        ShortPage(
+                            short: short,
+                            isActive: self.isPresenting(short)
+                        )
+                        .frame(height: geo.size.height)
+                        .frame(height: pageHeight)
+                        .id(short.videoId)
+                    }
                 }
+                .scrollTargetLayout()
             }
-            .scrollTargetLayout()
+            .scrollTargetBehavior(.paging)
+            .scrollPosition(id: self.$currentShortId)
+            .scrollIndicators(.hidden)
+            .background(.black)
+            .ignoresSafeArea(edges: .vertical)
+            .onChange(of: self.currentShortId) { _, shortId in
+                self.schedulePlay(shortId)
+            }
+            .accessibilityIdentifier(AccessibilityID.YouTubeContent.shortsPager)
         }
-        .scrollTargetBehavior(.paging)
-        .scrollPosition(id: self.$currentShortId)
-        .scrollIndicators(.hidden)
-        .background(.black)
-        .onChange(of: self.currentShortId) { _, shortId in
-            guard let shortId else { return }
-            self.play(shortId: shortId)
-        }
-        .accessibilityIdentifier(AccessibilityID.YouTubeContent.shortsPager)
     }
 
     /// Whether the live surface belongs to this short.
     private func isPresenting(_ short: YouTubeVideo) -> Bool {
         self.youtubePlayer.currentVideo?.videoId == short.videoId
             && self.youtubePlayer.surfaceLocation == .inline
+    }
+
+    /// Loads the short after the scroll settles on it (~350ms), cancelling any
+    /// pending load for a short we only flew past. Prevents load thrashing.
+    private func schedulePlay(_ shortId: String?) {
+        self.playDebounce?.cancel()
+        guard let shortId else { return }
+        self.playDebounce = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            self.play(shortId: shortId)
+        }
     }
 
     private func play(shortId: String) {
@@ -149,29 +183,29 @@ private struct ShortPage: View {
     let short: YouTubeVideo
     let isActive: Bool
 
+    @Environment(YouTubePlayerService.self) private var youtubePlayer
+
+    /// The short's (instant) thumbnail covers the video surface while it's still
+    /// loading, so you see the short immediately instead of a ~2-3s black wait;
+    /// it fades out the moment playback actually starts. Shown always for
+    /// inactive pages.
+    private var coverVisible: Bool {
+        guard self.isActive else { return true }
+        return self.youtubePlayer.currentVideo?.videoId == self.short.videoId
+            && self.youtubePlayer.isPlaybackLoading
+    }
+
     var body: some View {
-        Group {
+        ZStack {
             if self.isActive {
                 YouTubeWatchSurfaceView()
-            } else {
-                CachedAsyncImage(
-                    url: self.short.thumbnailURL,
-                    targetSize: CGSize(width: 540, height: 960)
-                ) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Rectangle()
-                        .fill(.black)
-                        .overlay {
-                            ProgressView()
-                                .controlSize(.small)
-                        }
-                }
             }
+            self.thumbnail
+                .opacity(self.coverVisible ? 1 : 0)
+                .allowsHitTesting(false)
         }
         .aspectRatio(9 / 16, contentMode: .fit)
+        .animation(.easeOut(duration: 0.3), value: self.coverVisible)
         .overlay {
             // The video WebView consumes trackpad scrolls; forward them so
             // the pager keeps paging while the cursor is over the short.
@@ -185,6 +219,24 @@ private struct ShortPage: View {
         .padding(.vertical, 8)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(self.short.title)
+    }
+
+    private var thumbnail: some View {
+        CachedAsyncImage(
+            url: self.short.thumbnailURL,
+            targetSize: CGSize(width: 540, height: 960)
+        ) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } placeholder: {
+            Rectangle()
+                .fill(.black)
+                .overlay {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+        }
     }
 
     /// Title / channel overlay at the bottom of the short, Shorts-style.

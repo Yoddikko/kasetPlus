@@ -35,7 +35,8 @@ enum ChannelPageParser {
 
         return YouTubeChannelDetail(
             channel: channel,
-            videos: YouTubeFeedParser.deduplicate(videos)
+            videos: YouTubeFeedParser.deduplicate(videos),
+            continuation: continuation
         )
     }
 

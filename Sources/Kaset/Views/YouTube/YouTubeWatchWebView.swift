@@ -159,11 +159,14 @@ final class YouTubeWatchWebView {
         self.loadGeneration += 1
         let myLoadGeneration = self.loadGeneration
 
+        let isShort = self.coordinator?.playerService.currentVideo?.videoId == videoId
+            && self.coordinator?.playerService.currentVideo?.isShort == true
         let targetVolume = self.coordinator?.playerService.volume ?? 1.0
         self.installUserScripts(
             on: webView.configuration.userContentController,
             targetVolume: targetVolume,
-            pendingSeek: self.pendingSeek
+            pendingSeek: self.pendingSeek,
+            isShort: isShort
         )
 
         guard let url = URL(string: "https://www.youtube.com/watch?v=\(videoId)") else { return }
@@ -204,7 +207,8 @@ final class YouTubeWatchWebView {
     private func installUserScripts(
         on contentController: WKUserContentController,
         targetVolume: Double,
-        pendingSeek: Double? = nil
+        pendingSeek: Double? = nil,
+        isShort: Bool = false
     ) {
         contentController.removeAllUserScripts()
 
@@ -252,7 +256,9 @@ final class YouTubeWatchWebView {
 
         // Ad-block: json-prune + skip. MUST run at document-start so
         // JSON.parse is overridden before YouTube's JS loads ad data.
-        if SettingsManager.shared.adBlockEnabled {
+        // Skipped for Shorts: they carry no ads, and the JSON.parse override
+        // adds needless overhead to the (already slow) watch-page load.
+        if !isShort, SettingsManager.shared.adBlockEnabled {
             let adBlock = WKUserScript(
                 source: AdBlockService.adBlockScript,
                 injectionTime: .atDocumentStart,

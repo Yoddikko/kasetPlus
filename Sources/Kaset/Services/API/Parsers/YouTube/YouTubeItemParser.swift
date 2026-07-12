@@ -100,9 +100,18 @@ enum YouTubeItemParser {
             videoId: videoId,
             title: title,
             viewCountText: self.text(from: overlay?["secondaryText"]),
-            thumbnailURL: sources.flatMap { self.bestSourceURL(from: $0) },
+            thumbnailURL: sources.flatMap { self.bestSourceURL(from: $0) }
+                ?? self.thumbnailURL(forVideoId: videoId),
             isShort: true
         )
+    }
+
+    /// Deterministic thumbnail for a video/short from its ID. Used as a fallback
+    /// when a renderer omits inline thumbnail sources (common on channel Shorts
+    /// and Playlists tabs), so grids never show blank posters.
+    static func thumbnailURL(forVideoId videoId: String?) -> URL? {
+        guard let videoId, !videoId.isEmpty else { return nil }
+        return URL(string: "https://i.ytimg.com/vi/\(videoId)/hqdefault.jpg")
     }
 
     /// Whether a navigation container points at the Shorts player
@@ -233,14 +242,16 @@ enum YouTubeItemParser {
         let watchEndpoint = self.onTapCommand(of: lockup)?["watchEndpoint"] as? [String: Any]
         let badgeText = self.thumbnailBadgeText(of: lockup)
 
+        let firstVideoId = watchEndpoint?["videoId"] as? String
         return YouTubePlaylist(
             playlistId: playlistId,
             title: title,
             channelName: metadataRowTexts.first?.first,
             videoCountText: badgeText
                 ?? metadataRowTexts.joined().first { $0.localizedCaseInsensitiveContains("video") },
-            thumbnailURL: self.thumbnailURL(fromLockup: lockup),
-            firstVideoId: watchEndpoint?["videoId"] as? String
+            thumbnailURL: self.thumbnailURL(fromLockup: lockup)
+                ?? self.thumbnailURL(forVideoId: firstVideoId),
+            firstVideoId: firstVideoId
         )
     }
 

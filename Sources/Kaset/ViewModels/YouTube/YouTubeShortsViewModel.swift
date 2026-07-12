@@ -26,8 +26,22 @@ final class YouTubeShortsViewModel {
     let client: any YouTubeClientProtocol
     private let logger = DiagnosticsLogger.api
 
+    /// When seeded from an external list (e.g. a channel's Shorts tab), the
+    /// viewer shows exactly that list; `load`/`refresh` don't fetch a new feed.
+    private let isSeeded: Bool
+
     init(client: any YouTubeClientProtocol) {
         self.client = client
+        self.isSeeded = false
+    }
+
+    /// Seeds the viewer with a fixed list of shorts (already loaded elsewhere)
+    /// instead of fetching the global Shorts feed.
+    init(client: any YouTubeClientProtocol, seededShorts: [YouTubeVideo]) {
+        self.client = client
+        self.isSeeded = true
+        self.shorts = seededShorts
+        self.loadingState = .loaded
     }
 
     func load() async {
@@ -72,6 +86,8 @@ final class YouTubeShortsViewModel {
     }
 
     func refresh() async {
+        // A seeded viewer has no feed to refresh; keep the injected list.
+        guard !self.isSeeded else { return }
         self.cancelLoad()
         self.loadingState = .idle
         self.shorts = []

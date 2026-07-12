@@ -71,6 +71,12 @@ protocol YouTubeClientProtocol: Sendable {
     /// Fetches a channel page by `UC…` channel ID.
     func getChannel(channelId: String) async throws -> YouTubeChannelDetail
 
+    /// Fetches a specific channel tab (Videos, Shorts, Live, Playlists).
+    func getChannelTab(channelId: String, tab: YouTubeChannelTab) async throws -> YouTubeChannelTabContent
+
+    /// Loads the next page of a channel tab's videos from a continuation token.
+    func getChannelTabContinuation(token: String) async throws -> ([YouTubeVideo], continuation: String?)
+
     /// Fetches a playlist page by playlist ID (without the `VL` prefix).
     func getPlaylist(playlistId: String) async throws -> YouTubePlaylistDetail
 
@@ -124,5 +130,15 @@ extension YouTubeClientProtocol {
     /// Fetches watch history using the cache (the default for normal loads).
     func getHistory() async throws -> YouTubeFeed {
         try await self.getHistory(forceRefresh: false)
+    }
+
+    /// Default so conformers that predate channel tabs (mocks/UI-test client)
+    /// still compile; the real `YouTubeClient` overrides this.
+    func getChannelTab(channelId _: String, tab _: YouTubeChannelTab) async throws -> YouTubeChannelTabContent {
+        .videos([], continuation: nil)
+    }
+
+    func getChannelTabContinuation(token _: String) async throws -> ([YouTubeVideo], continuation: String?) {
+        ([], nil)
     }
 }

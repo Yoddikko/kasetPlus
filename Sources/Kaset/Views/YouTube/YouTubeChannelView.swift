@@ -45,27 +45,125 @@ struct YouTubeChannelView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 self.header(for: detail.channel)
-
-                if detail.videos.isEmpty {
-                    ContentUnavailableView {
-                        Label(String(localized: "No videos"), systemImage: "play.rectangle")
-                    }
-                } else {
-                    LazyVGrid(columns: Self.columns, spacing: 20) {
-                        ForEach(detail.videos) { video in
-                            NavigationLink(value: YouTubeRoute.watch(video)) {
-                                VideoCard(video: video)
-                            }
-                            .buttonStyle(.interactiveCard)
-                        }
-                    }
-                }
+                self.tabBar
+                self.tabContent(for: detail)
             }
             .padding(.vertical, 20)
         }
         // Edge-to-edge with a resting inset so content extends under the
         // floating glass sidebar.
         .contentMargins(.horizontal, DetailContentLayout.horizontalInset, for: .scrollContent)
+    }
+
+    // MARK: - Tabs
+
+    private var tabBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 22) {
+                ForEach(YouTubeChannelTab.allCases) { tab in
+                    let selected = self.viewModel.selectedTab == tab
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            self.viewModel.selectTab(tab)
+                        }
+                    } label: {
+                        VStack(spacing: 5) {
+                            Text(tab.title)
+                                .font(.system(size: 15, weight: selected ? .semibold : .regular))
+                                .foregroundStyle(selected ? Color.primary : Color.secondary)
+                            Capsule()
+                                .fill(selected ? Color.primary : Color.clear)
+                                .frame(height: 2)
+                        }
+                        .fixedSize()
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.bottom, 1)
+        }
+        .overlay(alignment: .bottom) { Divider() }
+    }
+
+    @ViewBuilder
+    private func tabContent(for detail: YouTubeChannelDetail) -> some View {
+        let tab = self.viewModel.selectedTab
+        if self.viewModel.loadingTabs.contains(tab) {
+            ProgressView()
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+        } else if self.viewModel.failedTabs.contains(tab) {
+            VStack(spacing: 10) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+                Text("Couldn't load this tab", comment: "Channel tab load error")
+                    .foregroundStyle(.secondary)
+                Button(String(localized: "Retry")) {
+                    Task { await self.viewModel.loadTab(tab) }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 40)
+        } else if tab.showsPlaylists {
+            self.playlistsGrid(self.viewModel.tabPlaylists[tab] ?? [])
+        } else {
+            self.videosGrid(self.viewModel.tabVideos[tab] ?? detail.videos, tab: tab)
+        }
+    }
+
+    @ViewBuilder
+    private func videosGrid(_ videos: [YouTubeVideo], tab: YouTubeChannelTab) -> some View {
+        if videos.isEmpty {
+            ContentUnavailableView {
+                Label(String(localized: "Nothing here yet"), systemImage: "play.rectangle")
+            }
+            .padding(.vertical, 40)
+        } else {
+            LazyVGrid(columns: Self.columns, spacing: 20) {
+                ForEach(videos) { video in
+                    // Shorts open in the vertical viewer seeded with this
+                    // channel's shorts, starting on the tapped one; regular
+                    // videos open the watch page.
+                    NavigationLink(value: tab == .shorts
+                        ? YouTubeRoute.creatorShorts(shorts: videos, startVideoId: video.videoId)
+                        : YouTubeRoute.watch(video)
+                    ) {
+                        VideoCard(video: video)
+                    }
+                    .buttonStyle(.interactiveCard)
+                }
+
+                // Bottom sentinel: LazyVGrid only renders it once scrolled into
+                // view, which fetches the next page (infinite scroll).
+                if self.viewModel.hasMore(tab) {
+                    ProgressView()
+                        .controlSize(.small)
+                        .task(id: self.viewModel.paginationTrigger) {
+                            await self.viewModel.loadMore(tab)
+                        }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func playlistsGrid(_ playlists: [YouTubePlaylist]) -> some View {
+        if playlists.isEmpty {
+            ContentUnavailableView {
+                Label(String(localized: "No playlists"), systemImage: "list.and.film")
+            }
+            .padding(.vertical, 40)
+        } else {
+            LazyVGrid(columns: Self.columns, spacing: 20) {
+                ForEach(playlists) { playlist in
+                    NavigationLink(value: YouTubeRoute.playlist(playlistId: playlist.playlistId)) {
+                        YouTubePlaylistCard(playlist: playlist)
+                    }
+                    .buttonStyle(.interactiveCard)
+                }
+            }
+        }
     }
 
     private func header(for channel: YouTubeChannel) -> some View {
