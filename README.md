@@ -36,11 +36,6 @@ Change playback speed (0.5x–2x) from the gear (⚙) menu in the player bar. Se
 
 Download the latest release from the [Releases](https://github.com/Yoddikko/kasetPlus/releases) page.
 
-> **Note:** The app is not signed. Clear extended attributes with:
-> ```bash
-> xattr -cr /Applications/Kaset.app
-> ```
-
 ## Upstream Sync
 
 [View commits behind upstream](https://github.com/sozercan/kaset/compare/main...Yoddikko:kasetPlus:main)
