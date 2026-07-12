@@ -266,10 +266,8 @@ echo "📦 Bundling yt-dlp..."
 cp "$YTDLP_BIN" "$APP_BUNDLE/Contents/Resources/yt-dlp"
 chmod +x "$APP_BUNDLE/Contents/Resources/yt-dlp"
 
-# Ad-hoc sign yt-dlp so Process() works inside the sandbox
-if [[ "$SIGNING_MODE" == "dev" ]]; then
-  codesign --force --sign - --entitlements "$ROOT/Kaset.entitlements" "$APP_BUNDLE/Contents/Resources/yt-dlp" 2>/dev/null || true
-fi
+# yt-dlp is signed in the main signing block below (with the active identity +
+# JIT entitlements) so it passes notarization and runs under the hardened runtime.
 
 # ── AppleScript definition ───────────────────────────────────────────────────
 
@@ -597,10 +595,37 @@ if [[ -d "$SPARKLE" ]]; then
   resign "$SPARKLE"
 fi
 
+# yt-dlp (helper Mach-O) — sign with the active identity + its own JIT
+# entitlements so notarization accepts it and it still runs hardened.
+YTDLP_BUNDLED="$APP_BUNDLE/Contents/Resources/yt-dlp"
+if [[ -f "$YTDLP_BUNDLED" ]]; then
+  echo "  → Signing yt-dlp..."
+  codesign "${CODESIGN_ARGS[@]}" --entitlements "$ROOT/ytdlp.entitlements" "$YTDLP_BUNDLED"
+fi
+
 if [[ -f "$ROOT/Kaset.entitlements" ]]; then
   codesign "${CODESIGN_ARGS[@]}" --entitlements "$ROOT/Kaset.entitlements" "$APP_BUNDLE"
 else
   codesign "${CODESIGN_ARGS[@]}" "$APP_BUNDLE"
+fi
+
+# ── Notarization (opt-in) ─────────────────────────────────────────────────────
+# Runs only for a Developer ID build when KASET_NOTARY_PROFILE names a stored
+# `notarytool` keychain profile (create once with `notarytool store-credentials`).
+# Submits the signed app to Apple, waits, then staples the ticket so the app
+# passes Gatekeeper offline for downloaded users.
+if [[ "$SIGNING_MODE" =~ ^(developer-id|distribution|release)$ && -n "${KASET_NOTARY_PROFILE:-}" ]]; then
+  echo "🔏 Notarizing (profile: ${KASET_NOTARY_PROFILE})..."
+  NOTARY_ZIP="${APP_BUNDLE%.app}-notarize.zip"
+  ditto -c -k --keepParent "$APP_BUNDLE" "$NOTARY_ZIP"
+  if xcrun notarytool submit "$NOTARY_ZIP" --keychain-profile "$KASET_NOTARY_PROFILE" --wait; then
+    xcrun stapler staple "$APP_BUNDLE"
+    echo "   ✅ Notarized & stapled."
+    spctl -a -vv "$APP_BUNDLE" 2>&1 | head -3 || true
+  else
+    echo "   ⚠️  Notarization failed — app is signed but NOT notarized." >&2
+  fi
+  rm -f "$NOTARY_ZIP"
 fi
 
 echo ""
