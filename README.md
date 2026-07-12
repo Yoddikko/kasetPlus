@@ -1,3 +1,5 @@
+<img width="2172" height="724" alt="Banner KasetPlus 12 Lug 2026" src="https://github.com/user-attachments/assets/ff1f0466-9452-42e0-97a1-9f1667b5641c" />
+
 <h1 align="center"><img src="https://github.com/user-attachments/assets/c964b327-f5e2-4929-97df-0834926c944f" width="58" height="58" alt="KasetPlus icon">&nbsp;&nbsp;KasetPlus</h1>
 
 <p align="center">
