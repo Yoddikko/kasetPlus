@@ -37,6 +37,28 @@
 
 ---
 
+<p>
+  ⭐️ Enjoying <strong>KasetPlus</strong>? If you find it useful, please consider
+  giving the project a star! ❤️
+</p>
+
+<p>
+  KasetPlus wouldn’t exist without the incredible work behind
+  <a href="https://github.com/sozercan/kaset"><strong>Kaset</strong></a>.
+  If you’re considering supporting development, please consider supporting
+  the original project first.
+</p>
+
+<p>
+  ☕ <a href="https://ko-fi.com/sozercan"><strong>Buy him a coffee</strong></a>
+  and help support the project that made KasetPlus possible. 🙏
+</p>
+
+<p>
+  You can also support the development of KasetPlus by
+  <a href="https://ko-fi.com/yodddd">buying me a coffee</a>.
+</p>
+
 ## Overview
 
 **KasetPlus** is a feature-focused fork of [Kaset](https://github.com/sozercan/kaset), a native macOS client for YouTube Music and YouTube built with Swift and SwiftUI.
