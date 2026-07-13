@@ -52,8 +52,14 @@ cd /path/to/kasetPlus
 #    e.g. 22 -> 23:
 sed -i '' 's/^BUILD_NUMBER=.*/BUILD_NUMBER=23/' version.env
 
-# 2. Build the release app (release config, ad-hoc signed).
-Scripts/build-app.sh
+# 2. Build + Developer-ID sign + notarize + staple the release app.
+#    Requires the "Developer ID Application" cert in the keychain and a stored
+#    notarytool profile named "kaset-notary" (one-time setup:
+#      xcrun notarytool store-credentials kaset-notary \
+#        --apple-id <apple-id> --team-id AH7YQ86734 --password <app-specific-password>)
+#    Omit KASET_NOTARY_PROFILE to sign without notarizing; omit KASET_SIGNING
+#    for a local dev (Apple Development) build.
+KASET_SIGNING=developer-id KASET_NOTARY_PROFILE=kaset-notary Scripts/build-app.sh
 
 # 3. Zip it with ditto (preserves the code signature Sparkle needs).
 rm -f /tmp/KasetPlus.zip
@@ -128,5 +134,7 @@ set. To switch to it:
 3. Release by pushing a tag: `git push origin v0.12.0-kp.N` — CI does the rest.
    (`gh release create` alone does NOT trigger it; the tag must be pushed via git.)
 
-The CI path also **notarizes** the app, which the local build does not — so
-CI releases won't trip macOS Gatekeeper for downloaders.
+Both paths **notarize and staple** the app — the local build via
+`KASET_NOTARY_PROFILE` (step 2) and CI via its secrets — so downloaded releases
+don't trip macOS Gatekeeper. `build-app.sh` also signs the bundled `yt-dlp`
+(with `ytdlp.entitlements`) so it passes notarization.
