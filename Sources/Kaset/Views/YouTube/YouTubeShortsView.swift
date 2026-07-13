@@ -378,8 +378,7 @@ private struct ShortPage: View {
 
 /// A side panel of comments for the current short. Fetches the video's comment
 /// continuation (via watch-next) then the first page, reloading when the short
-/// changes. Read-only for now — matches the Shorts overlay, not the full watch
-/// comments UI.
+/// changes. Supports liking/disliking, replies, and posting a new comment.
 private struct ShortsCommentsPanel: View {
     let videoId: String
     let client: any YouTubeClientProtocol
@@ -388,6 +387,9 @@ private struct ShortsCommentsPanel: View {
     @State private var comments: [YouTubeComment] = []
     @State private var isLoading = false
     @State private var loadedVideoId: String?
+    @State private var createCommentParams: String?
+    @State private var commentDraft = ""
+    @State private var isPosting = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -430,10 +432,71 @@ private struct ShortsCommentsPanel: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if self.createCommentParams != nil {
+                Divider()
+                self.composer
+            }
         }
         .background(.regularMaterial)
         .task(id: self.videoId) {
             await self.load()
+        }
+    }
+
+    private var composer: some View {
+        HStack(spacing: 10) {
+            TextField(
+                String(localized: "Add a comment…"),
+                text: self.$commentDraft
+            )
+            .textFieldStyle(.plain)
+            .padding(.horizontal, 12)
+            .frame(height: 30)
+            .background(.quaternary.opacity(0.5), in: Capsule())
+            .onSubmit { self.postComment() }
+
+            Button(action: self.postComment) {
+                Group {
+                    if self.isPosting {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                }
+                .frame(width: 30, height: 30)
+                .foregroundStyle(self.hasDraft ? Color.white : Color.secondary)
+                .background(self.hasDraft ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.quaternary), in: Circle())
+                .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .disabled(self.isPosting || !self.hasDraft)
+            .accessibilityLabel(String(localized: "Post comment"))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    private var hasDraft: Bool {
+        !self.commentDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private func postComment() {
+        let text = self.commentDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, !self.isPosting, let params = self.createCommentParams else { return }
+        self.isPosting = true
+        Task {
+            defer { self.isPosting = false }
+            do {
+                try await self.client.postComment(text: text, createCommentParams: params)
+                self.commentDraft = ""
+                // Reload so the freshly posted comment shows up.
+                self.loadedVideoId = nil
+                await self.load()
+            } catch {
+                // Keep the draft so the user can retry.
+            }
         }
     }
 
@@ -450,6 +513,7 @@ private struct ShortsCommentsPanel: View {
             let page = try await self.client.getComments(continuation: token)
             guard self.loadedVideoId == self.videoId else { return }
             self.comments = page.comments
+            self.createCommentParams = page.createCommentParams
         } catch {
             // Leave the panel empty on failure; it's non-critical.
         }
