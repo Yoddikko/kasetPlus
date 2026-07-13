@@ -32,6 +32,10 @@ struct YouTubeWatchView: View {
     /// Whether the on-video controls overlay is currently visible (shown while
     /// the cursor is over the video, when "controls on video" is enabled).
     @State private var overlayControlsVisible = false
+
+    /// Idle countdown that hides the on-video overlay after the pointer stops
+    /// moving for a few seconds (restarted on every movement).
+    @State private var overlayHideTask: Task<Void, Never>?
     @State private var commentSearchQuery = ""
 
     // AI video summary (on-device, macOS 26+). Stored as plain values so the
@@ -151,7 +155,22 @@ struct YouTubeWatchView: View {
             .onDisappear {
                 self.youtubePlayer.inlineSurfaceWillDisappear(videoId: self.video.videoId)
                 self.youtubePlayer.usesInlineVideoControls = false
+                self.overlayHideTask?.cancel()
             }
+    }
+
+    /// Shows the on-video controls and (re)starts the idle countdown that hides
+    /// them ~5s after the pointer last moved.
+    private func revealOverlayControls() {
+        if !self.overlayControlsVisible {
+            withAnimation(.easeInOut(duration: 0.2)) { self.overlayControlsVisible = true }
+        }
+        self.overlayHideTask?.cancel()
+        self.overlayHideTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.2)) { self.overlayControlsVisible = false }
+        }
     }
 
     /// Keeps the docked bar hidden while the watch page shows the controls on
@@ -212,10 +231,18 @@ struct YouTubeWatchView: View {
                     }
                 }
                 .clipShape(.rect(cornerRadius: 12))
-                .onHover { hovering in
+                .onContinuousHover { phase in
                     guard self.settings.controlsOnVideoEnabled else { return }
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        self.overlayControlsVisible = hovering
+                    switch phase {
+                    case .active:
+                        // Any pointer movement reveals the controls and restarts
+                        // the idle countdown.
+                        self.revealOverlayControls()
+                    case .ended:
+                        self.overlayHideTask?.cancel()
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            self.overlayControlsVisible = false
+                        }
                     }
                 }
                 .accessibilityIdentifier(AccessibilityID.YouTubeContent.watchSurface)
