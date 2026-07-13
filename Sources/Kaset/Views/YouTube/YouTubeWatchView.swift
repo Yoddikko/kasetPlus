@@ -149,12 +149,8 @@ struct YouTubeWatchView: View {
                     self.youtubePlayer.setChapters(self.viewModel.data.chapters)
                 }
             }
-            .onAppear { self.syncInlineControls() }
-            .onChange(of: self.presentsLiveSurface) { _, _ in self.syncInlineControls() }
-            .onChange(of: self.settings.controlsOnVideoEnabled) { _, _ in self.syncInlineControls() }
             .onDisappear {
                 self.youtubePlayer.inlineSurfaceWillDisappear(videoId: self.video.videoId)
-                self.youtubePlayer.usesInlineVideoControls = false
                 self.overlayHideTask?.cancel()
             }
     }
@@ -171,13 +167,6 @@ struct YouTubeWatchView: View {
             guard !Task.isCancelled else { return }
             withAnimation(.easeInOut(duration: 0.2)) { self.overlayControlsVisible = false }
         }
-    }
-
-    /// Keeps the docked bar hidden while the watch page shows the controls on
-    /// the video (only when the live surface is inline and the setting is on).
-    private func syncInlineControls() {
-        self.youtubePlayer.usesInlineVideoControls =
-            self.presentsLiveSurface && self.settings.controlsOnVideoEnabled
     }
 
     // MARK: - Ambient Style Picker

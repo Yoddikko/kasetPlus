@@ -47,6 +47,7 @@ struct YouTubePlayerBar: View {
     @State private var isAdjustingVolume = false
     @State private var showsVolumeOverlay = false
     @State private var chapterPreviewMarker: PlayerBarProgressMarker?
+    @State private var settings = SettingsManager.shared
 
     var body: some View {
         self.content
@@ -83,7 +84,7 @@ struct YouTubePlayerBar: View {
     private var content: some View {
         switch self.mode {
         case .docked:
-            if self.youtubePlayer.usesInlineVideoControls {
+            if self.hidesForInlineOverlay {
                 // The watch page renders these controls on the video instead;
                 // collapse the docked bar so no inset space is reserved.
                 Color.clear.frame(height: 0)
@@ -93,6 +94,17 @@ struct YouTubePlayerBar: View {
         case .videoOverlay:
             self.videoOverlayControls
         }
+    }
+
+    /// The docked bar hides itself whenever the watch page is showing the same
+    /// controls on the video (setting on + a video playing inline). Computed
+    /// directly here instead of via a set-from-elsewhere flag, so it can't get
+    /// out of sync and leave two bars on screen.
+    private var hidesForInlineOverlay: Bool {
+        // Only consulted from the `.docked` branch, so no need to re-check mode.
+        self.settings.controlsOnVideoEnabled
+            && self.youtubePlayer.currentVideo != nil
+            && self.youtubePlayer.surfaceLocation == .inline
     }
 
     /// The historical docked transport bar (thumbnail/title + progress + options
@@ -658,7 +670,8 @@ struct YouTubePlayerBar: View {
     }
 
     private var youtubeOptionsWidth: CGFloat {
-        210
+        // Widened to fit the Download button that now lives in this group.
+        246
     }
 
     /// Fraction (0...1) to render: the live drag value while seeking, otherwise actual progress.
