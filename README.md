@@ -272,6 +272,3 @@ Downloaded files are saved to:
 ~/Downloads/KasetPlus/
 ```
 
-### 🎧 Scrobbling
-
-Optionally scrobble YouTube Music playback to **Last.fm** or **ListenBrainz** from **`Settings` → `Music`** (connect Last.fm via the browser, or paste a ListenBrainz token).
