@@ -29,6 +29,13 @@ struct YouTubeSettingsView: View {
             }
 
             Section {
+                Toggle("Show Controls on the Video", isOn: self.$settings.controlsOnVideoEnabled)
+                    .help("Show playback controls overlaid on the video (on hover) instead of in the docked bar at the bottom.")
+            } header: {
+                Text("Playback Controls")
+            }
+
+            Section {
                 Toggle("Pop Out Video When Navigating Away", isOn: self.$settings.popOutVideoOnNavigateAway)
                     .help("Keep a playing video in a floating window when you leave the page. When off, the video stops instead.")
             } header: {

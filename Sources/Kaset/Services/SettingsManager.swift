@@ -31,6 +31,7 @@ final class SettingsManager {
         static let smartShuffleSuggestionsAhead = "settings.smartShuffleSuggestionsAhead"
         static let ambientBackdropEnabled = "settings.ambientBackdropEnabled"
         static let ambientBackdropStyle = "settings.ambientBackdropStyle"
+        static let controlsOnVideo = "settings.controlsOnVideo"
         static let popOutVideoOnNavigateAway = "settings.popOutVideoOnNavigateAway"
         static let sponsorBlockEnabled = "settings.sponsorBlock.enabled"
         static let sponsorBlockCategories = "settings.sponsorBlock.categories"
@@ -374,6 +375,14 @@ final class SettingsManager {
         }
     }
 
+    /// Whether playback controls are shown on the video itself (YouTube-style)
+    /// instead of the docked bar, on the YouTube watch page.
+    var controlsOnVideoEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.controlsOnVideoEnabled, forKey: Keys.controlsOnVideo)
+        }
+    }
+
     /// The chosen ambient backdrop style when the feature is enabled.
     var ambientBackdropStyle: AmbientBackdropStyle {
         didSet {
@@ -523,6 +532,7 @@ final class SettingsManager {
             to: Self.smartShuffleSuggestionsAheadRange
         )
         self.ambientBackdropEnabled = UserDefaults.standard.object(forKey: Keys.ambientBackdropEnabled) as? Bool ?? true
+        self.controlsOnVideoEnabled = UserDefaults.standard.object(forKey: Keys.controlsOnVideo) as? Bool ?? false
         self.popOutVideoOnNavigateAway = UserDefaults.standard.object(forKey: Keys.popOutVideoOnNavigateAway) as? Bool ?? true
         self.sponsorBlockEnabled = UserDefaults.standard.object(forKey: Keys.sponsorBlockEnabled) as? Bool ?? false
         self.sponsorBlockCategories = UserDefaults.standard.object(forKey: Keys.sponsorBlockCategories) as? [String] ?? ["sponsor", "selfpromo", "interaction"]

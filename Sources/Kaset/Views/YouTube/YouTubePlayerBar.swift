@@ -15,6 +15,18 @@ import SwiftUI
 /// - The minimize button drives the video pop-out (picture in picture);
 ///   the TV button toggles fullscreen on the popped-out window.
 struct YouTubePlayerBar: View {
+    /// Where these controls are shown.
+    enum Mode {
+        /// The docked transport bar at the bottom of the window (default).
+        case docked
+        /// Overlaid on the video itself (details/thumbnail dropped, scrim behind).
+        case videoOverlay
+    }
+
+    /// Rendering mode. `docked` keeps the historical behavior; the watch page
+    /// passes `videoOverlay` to reuse the exact same controls on the video.
+    var mode: Mode = .docked
+
     private static let brandAccent = PackageResourceLookup.brandAccent
     private static let fullVideoDetailsWidth: CGFloat = 294
     private static let compactVideoDetailsWidth: CGFloat = 141
@@ -37,6 +49,55 @@ struct YouTubePlayerBar: View {
     @State private var chapterPreviewMarker: PlayerBarProgressMarker?
 
     var body: some View {
+        self.content
+        .onChange(of: self.youtubePlayer.progress) { _, newValue in
+            self.seekHold.reconcile(observedProgress: newValue)
+            if !self.isSeeking, !self.seekHold.isActive, self.youtubePlayer.duration > 0 {
+                self.seekValue = self.displayedPlaybackProgress / self.youtubePlayer.duration
+            }
+        }
+        .onChange(of: self.youtubePlayer.duration) { _, newValue in
+            self.seekHold.reconcile(observedProgress: self.youtubePlayer.progress)
+            if !self.isSeeking, !self.seekHold.isActive, newValue > 0 {
+                self.seekValue = self.displayedPlaybackProgress / newValue
+            }
+        }
+        .onChange(of: self.currentSeekIdentity) { _, _ in
+            self.clearSeekHold()
+            self.chapterPreviewMarker = nil
+        }
+        .onChange(of: self.youtubePlayer.volume) { _, newValue in
+            if !self.isAdjustingVolume {
+                self.volumeValue = newValue
+            }
+        }
+        .onAppear {
+            self.volumeValue = self.youtubePlayer.volume
+            if self.youtubePlayer.duration > 0 {
+                self.seekValue = self.youtubePlayer.progress / self.youtubePlayer.duration
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch self.mode {
+        case .docked:
+            if self.youtubePlayer.usesInlineVideoControls {
+                // The watch page renders these controls on the video instead;
+                // collapse the docked bar so no inset space is reserved.
+                Color.clear.frame(height: 0)
+            } else {
+                self.dockedBar
+            }
+        case .videoOverlay:
+            self.videoOverlayControls
+        }
+    }
+
+    /// The historical docked transport bar (thumbnail/title + progress + options
+    /// in a glass capsule at the bottom of the window).
+    private var dockedBar: some View {
         CompatGlassContainer(spacing: 0) {
             GeometryReader { proxy in
                 let usesCompactDetails = proxy.size.width <= PlayerBarLayout.compactDetailsBreakpoint
@@ -66,32 +127,30 @@ struct YouTubePlayerBar: View {
         .background(alignment: .bottom) {
             self.playerAreaFade
         }
-        .onChange(of: self.youtubePlayer.progress) { _, newValue in
-            self.seekHold.reconcile(observedProgress: newValue)
-            if !self.isSeeking, !self.seekHold.isActive, self.youtubePlayer.duration > 0 {
-                self.seekValue = self.displayedPlaybackProgress / self.youtubePlayer.duration
-            }
+    }
+
+    /// The same progress + options controls (no thumbnail/title — the video is
+    /// right there), laid over a bottom scrim. Reuses `youtubeOptionsSection`,
+    /// which already collapses quality/captions into menus on narrow widths.
+    private var videoOverlayControls: some View {
+        HStack(spacing: 10) {
+            self.youtubeProgressSection
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+
+            self.youtubeOptionsSection
+                .frame(width: self.youtubeOptionsWidth, height: 52)
         }
-        .onChange(of: self.youtubePlayer.duration) { _, newValue in
-            self.seekHold.reconcile(observedProgress: self.youtubePlayer.progress)
-            if !self.isSeeking, !self.seekHold.isActive, newValue > 0 {
-                self.seekValue = self.displayedPlaybackProgress / newValue
-            }
-        }
-        .onChange(of: self.currentSeekIdentity) { _, _ in
-            self.clearSeekHold()
-            self.chapterPreviewMarker = nil
-        }
-        .onChange(of: self.youtubePlayer.volume) { _, newValue in
-            if !self.isAdjustingVolume {
-                self.volumeValue = newValue
-            }
-        }
-        .onAppear {
-            self.volumeValue = self.youtubePlayer.volume
-            if self.youtubePlayer.duration > 0 {
-                self.seekValue = self.youtubePlayer.progress / self.youtubePlayer.duration
-            }
+        .padding(.horizontal, 16)
+        .padding(.top, 40)
+        .padding(.bottom, 10)
+        .background(alignment: .bottom) {
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.6)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .allowsHitTesting(false)
         }
     }
 

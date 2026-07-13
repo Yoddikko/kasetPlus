@@ -175,6 +175,11 @@ final class YouTubePlayerService {
     /// Opens the download sheet from the player bar button.
     var showsDownloadSheet = false
 
+    /// When true, the watch page is rendering the transport controls directly on
+    /// the video, so the docked player bar hides itself to avoid duplicate
+    /// controls. Set by the watch view while its inline overlay is active.
+    var usesInlineVideoControls = false
+
     /// Current playback speed (0.5, 0.75, 1.0, 1.25, 1.5, 2.0).
     var playbackSpeed: Double = 1.0 {
         didSet {

@@ -28,6 +28,10 @@ struct YouTubeWatchView: View {
     @State private var settings = SettingsManager.shared
     @State private var lyricsSearchQuery = ""
     @State private var showsDownloadSheet = false
+
+    /// Whether the on-video controls overlay is currently visible (shown while
+    /// the cursor is over the video, when "controls on video" is enabled).
+    @State private var overlayControlsVisible = false
     @State private var commentSearchQuery = ""
 
     // AI video summary (on-device, macOS 26+). Stored as plain values so the
@@ -141,9 +145,20 @@ struct YouTubeWatchView: View {
                     self.youtubePlayer.setChapters(self.viewModel.data.chapters)
                 }
             }
+            .onAppear { self.syncInlineControls() }
+            .onChange(of: self.presentsLiveSurface) { _, _ in self.syncInlineControls() }
+            .onChange(of: self.settings.controlsOnVideoEnabled) { _, _ in self.syncInlineControls() }
             .onDisappear {
                 self.youtubePlayer.inlineSurfaceWillDisappear(videoId: self.video.videoId)
+                self.youtubePlayer.usesInlineVideoControls = false
             }
+    }
+
+    /// Keeps the docked bar hidden while the watch page shows the controls on
+    /// the video (only when the live surface is inline and the setting is on).
+    private func syncInlineControls() {
+        self.youtubePlayer.usesInlineVideoControls =
+            self.presentsLiveSurface && self.settings.controlsOnVideoEnabled
     }
 
     // MARK: - Ambient Style Picker
@@ -185,11 +200,24 @@ struct YouTubeWatchView: View {
     @ViewBuilder
     private var videoSurface: some View {
         if self.presentsLiveSurface {
-            // Clean video surface — playback is controlled from the
-            // Liquid Glass player bar at the bottom of the window.
+            // Clean video surface. Controls live either in the docked bar or,
+            // when "controls on video" is enabled, overlaid on the video here
+            // (reusing the exact same YouTubePlayerBar in `.videoOverlay` mode).
             YouTubeWatchSurfaceView()
                 .aspectRatio(16 / 9, contentMode: .fit)
+                .overlay(alignment: .bottom) {
+                    if self.settings.controlsOnVideoEnabled, self.overlayControlsVisible {
+                        YouTubePlayerBar(mode: .videoOverlay)
+                            .transition(.opacity)
+                    }
+                }
                 .clipShape(.rect(cornerRadius: 12))
+                .onHover { hovering in
+                    guard self.settings.controlsOnVideoEnabled else { return }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        self.overlayControlsVisible = hovering
+                    }
+                }
                 .accessibilityIdentifier(AccessibilityID.YouTubeContent.watchSurface)
         } else if self.playsInFloatingWindow {
             // Native PiP-style placeholder while the video plays in the
