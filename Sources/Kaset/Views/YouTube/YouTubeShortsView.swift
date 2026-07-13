@@ -104,10 +104,12 @@ struct YouTubeShortsView: View {
         self.pager
             .overlay(alignment: .trailing) {
                 if self.showsComments, let videoId = self.youtubePlayer.currentVideo?.videoId {
-                    ShortsCommentsPanel(videoId: videoId, client: self.viewModel.client)
-                        .frame(width: 360)
-                        .frame(maxHeight: .infinity)
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                    ShortsCommentsPanel(videoId: videoId, client: self.viewModel.client) {
+                        withAnimation(.easeInOut(duration: 0.25)) { self.showsComments = false }
+                    }
+                    .frame(width: 360)
+                    .frame(maxHeight: .infinity)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
             }
     }
@@ -180,7 +182,7 @@ struct YouTubeShortsView: View {
                     count: nil,
                     isActive: self.showsComments
                 ) {
-                    self.showsComments.toggle()
+                    withAnimation(.easeInOut(duration: 0.25)) { self.showsComments.toggle() }
                 }
             }
             .padding(.trailing, 18)
@@ -381,6 +383,7 @@ private struct ShortPage: View {
 private struct ShortsCommentsPanel: View {
     let videoId: String
     let client: any YouTubeClientProtocol
+    let onClose: () -> Void
 
     @State private var comments: [YouTubeComment] = []
     @State private var isLoading = false
@@ -392,6 +395,13 @@ private struct ShortsCommentsPanel: View {
                 Text("Comments", comment: "Shorts comments panel title")
                     .font(.headline)
                 Spacer()
+                Button(action: self.onClose) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(String(localized: "Close comments"))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -412,7 +422,7 @@ private struct ShortsCommentsPanel: View {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 18) {
                             ForEach(self.comments) { comment in
-                                ShortsCommentRow(comment: comment)
+                                ShortsCommentRow(comment: comment, client: self.client)
                             }
                         }
                         .padding(16)
@@ -450,6 +460,13 @@ private struct ShortsCommentsPanel: View {
 
 private struct ShortsCommentRow: View {
     let comment: YouTubeComment
+    let client: any YouTubeClientProtocol
+
+    @State private var isLiked = false
+    @State private var isDisliked = false
+    @State private var showsReplies = false
+    @State private var replies: [YouTubeComment] = []
+    @State private var loadingReplies = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -464,7 +481,7 @@ private struct ShortsCommentRow: View {
             .frame(width: 32, height: 32)
             .clipShape(.circle)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     Text(self.comment.author)
                         .font(.caption.weight(.semibold))
@@ -478,16 +495,87 @@ private struct ShortsCommentRow: View {
                 Text(self.comment.text)
                     .font(.caption)
                     .textSelection(.enabled)
-                if let likes = self.comment.likeCountText, !likes.isEmpty {
-                    HStack(spacing: 4) {
-                        Image(systemName: "hand.thumbsup")
-                        Text(likes)
+
+                HStack(spacing: 14) {
+                    Button(action: self.toggleLike) {
+                        HStack(spacing: 4) {
+                            Image(systemName: self.isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
+                            if let likes = self.comment.likeCountText, !likes.isEmpty {
+                                Text(likes)
+                            }
+                        }
                     }
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(self.isLiked ? Color.accentColor : .secondary)
+
+                    Button(action: self.toggleDislike) {
+                        Image(systemName: self.isDisliked ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(self.isDisliked ? Color.accentColor : .secondary)
+                }
+                .font(.caption2)
+                .padding(.top, 1)
+
+                if self.comment.repliesContinuation != nil {
+                    Button(action: self.toggleReplies) {
+                        Label(
+                            self.showsReplies ? String(localized: "Hide replies") : String(localized: "View replies"),
+                            systemImage: self.showsReplies ? "chevron.up" : "chevron.down"
+                        )
+                        .font(.caption2.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Color.accentColor)
+                    .padding(.top, 2)
+                }
+
+                if self.showsReplies {
+                    if self.loadingReplies, self.replies.isEmpty {
+                        ProgressView()
+                            .controlSize(.small)
+                            .padding(.top, 4)
+                    } else {
+                        VStack(alignment: .leading, spacing: 14) {
+                            ForEach(self.replies) { reply in
+                                ShortsCommentRow(comment: reply, client: self.client)
+                            }
+                        }
+                        .padding(.top, 6)
+                    }
                 }
             }
             Spacer(minLength: 0)
+        }
+    }
+
+    private func toggleLike() {
+        let wasLiked = self.isLiked
+        self.isLiked = !wasLiked
+        if self.isLiked { self.isDisliked = false }
+        guard let token = wasLiked ? self.comment.unlikeAction : self.comment.likeAction else { return }
+        Task { try? await self.client.performCommentAction(token) }
+    }
+
+    private func toggleDislike() {
+        let wasDisliked = self.isDisliked
+        self.isDisliked = !wasDisliked
+        if self.isDisliked { self.isLiked = false }
+        guard let token = wasDisliked ? self.comment.undislikeAction : self.comment.dislikeAction else { return }
+        Task { try? await self.client.performCommentAction(token) }
+    }
+
+    private func toggleReplies() {
+        self.showsReplies.toggle()
+        guard self.showsReplies, self.replies.isEmpty, !self.loadingReplies,
+              let token = self.comment.repliesContinuation
+        else { return }
+        self.loadingReplies = true
+        Task {
+            defer { self.loadingReplies = false }
+            if let page = try? await self.client.getComments(continuation: token) {
+                self.replies = page.comments
+            }
         }
     }
 }
