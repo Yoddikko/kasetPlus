@@ -699,7 +699,6 @@ struct SettingsView: View {
                 }
 
             MusicSettingsView()
-                .environment(self.scrobblingCoordinator)
                 .tabItem {
                     Label("Music", systemImage: "music.note")
                 }
@@ -714,7 +713,11 @@ struct SettingsView: View {
                     Label("Equalizer", systemImage: "slider.vertical.3")
                 }
 
-            // Scrobbling settings now live inside the Music tab.
+            ScrobblingSettingsView()
+                .environment(self.scrobblingCoordinator)
+                .tabItem {
+                    Label("Scrobbling", systemImage: "music.note.list")
+                }
 
             // Conditionally rendered (Apple Intelligence is macOS 26+ and
             // hidden in legacy UI mode). Placed near the end so that when it is

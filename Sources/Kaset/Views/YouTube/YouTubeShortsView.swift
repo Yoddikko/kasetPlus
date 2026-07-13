@@ -27,6 +27,9 @@ struct YouTubeShortsView: View {
     /// player bar's download button works from the Shorts surface too.
     @State private var showsDownloadSheet = false
 
+    /// Whether the comments panel is shown to the right of the short.
+    @State private var showsComments = false
+
     var body: some View {
         Group {
             switch self.viewModel.loadingState {
@@ -50,7 +53,7 @@ struct YouTubeShortsView: View {
                         Text("Shorts from your feed appear here.", comment: "Empty Shorts surface description")
                     }
                 } else {
-                    self.pager
+                    self.pagerWithComments
                 }
             }
         }
@@ -94,6 +97,21 @@ struct YouTubeShortsView: View {
 
     // MARK: - Pager
 
+    /// The pager, with the comments panel slid in on the right when toggled.
+    /// The panel is an **overlay** (not an HStack) so the pager — and the video
+    /// surface it hosts — keeps its exact geometry; resizing it broke playback.
+    private var pagerWithComments: some View {
+        self.pager
+            .overlay(alignment: .trailing) {
+                if self.showsComments, let videoId = self.youtubePlayer.currentVideo?.videoId {
+                    ShortsCommentsPanel(videoId: videoId, client: self.viewModel.client)
+                        .frame(width: 360)
+                        .frame(maxHeight: .infinity)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
+            }
+    }
+
     private var pager: some View {
         GeometryReader { geo in
             // The ScrollView extends under the nav bar and player bar, so its
@@ -132,53 +150,65 @@ struct YouTubeShortsView: View {
         }
     }
 
-    // MARK: - Short Actions (like / dislike)
+    // MARK: - Short Actions (like / dislike / comments)
 
-    /// TikTok-style like/dislike rail for the current short. Reuses the player
-    /// service's rating + Return-YouTube-Dislike counts (populated on play), so
-    /// no extra fetch is needed.
+    /// Like / dislike / comments rail for the current short, styled like the
+    /// watch page's pills (not an oversized TikTok overlay). Reuses the player
+    /// service's rating + Return-YouTube-Dislike counts (populated on play).
+    /// Gated on `currentShortId` (stable while scrolling) so it doesn't flicker
+    /// as `currentVideo` briefly changes between shorts.
     @ViewBuilder
     private var shortActions: some View {
-        if self.youtubePlayer.currentVideo?.isShort == true {
-            VStack(spacing: 20) {
-                self.actionButton(
+        if self.currentShortId != nil {
+            VStack(spacing: 10) {
+                self.ratingPill(
                     icon: self.youtubePlayer.currentRating == .like ? "hand.thumbsup.fill" : "hand.thumbsup",
                     count: self.youtubePlayer.rydLikes,
                     isActive: self.youtubePlayer.currentRating == .like
                 ) {
                     Task { await self.youtubePlayer.toggleLike() }
                 }
-                self.actionButton(
+                self.ratingPill(
                     icon: self.youtubePlayer.currentRating == .dislike ? "hand.thumbsdown.fill" : "hand.thumbsdown",
                     count: self.youtubePlayer.rydDislikes,
                     isActive: self.youtubePlayer.currentRating == .dislike
                 ) {
                     Task { await self.youtubePlayer.toggleDislike() }
                 }
+                self.ratingPill(
+                    icon: "text.bubble",
+                    count: nil,
+                    isActive: self.showsComments
+                ) {
+                    self.showsComments.toggle()
+                }
             }
-            .padding(.trailing, 24)
-            .padding(.bottom, 96)
+            .padding(.trailing, 18)
+            .padding(.bottom, 84)
         }
     }
 
-    private func actionButton(
+    /// A compact capsule button matching the watch page's like/dislike style,
+    /// with a translucent backing so it stays legible over the video.
+    private func ratingPill(
         icon: String,
         count: Int?,
         isActive: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 26))
-                    .foregroundStyle(isActive ? Color.accentColor : .white)
+                    .font(.system(size: 13, weight: .semibold))
                 if let count {
                     Text(YouTubePlayerService.formatCount(count))
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white)
                 }
             }
-            .shadow(radius: 4)
+            .foregroundStyle(isActive ? Color.accentColor : .white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Capsule().fill(.black.opacity(0.4)))
         }
         .buttonStyle(.plain)
     }
@@ -339,6 +369,126 @@ private struct ShortPage: View {
             )
         }
         .allowsHitTesting(false)
+    }
+}
+
+// MARK: - ShortsCommentsPanel
+
+/// A side panel of comments for the current short. Fetches the video's comment
+/// continuation (via watch-next) then the first page, reloading when the short
+/// changes. Read-only for now — matches the Shorts overlay, not the full watch
+/// comments UI.
+private struct ShortsCommentsPanel: View {
+    let videoId: String
+    let client: any YouTubeClientProtocol
+
+    @State private var comments: [YouTubeComment] = []
+    @State private var isLoading = false
+    @State private var loadedVideoId: String?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Comments", comment: "Shorts comments panel title")
+                    .font(.headline)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+
+            Divider()
+
+            Group {
+                if self.isLoading, self.comments.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if self.comments.isEmpty {
+                    ContentUnavailableView(
+                        "No comments",
+                        systemImage: "bubble",
+                        description: Text("This short has no comments yet.", comment: "Empty shorts comments")
+                    )
+                } else {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 18) {
+                            ForEach(self.comments) { comment in
+                                ShortsCommentRow(comment: comment)
+                            }
+                        }
+                        .padding(16)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(.regularMaterial)
+        .task(id: self.videoId) {
+            await self.load()
+        }
+    }
+
+    private func load() async {
+        guard self.loadedVideoId != self.videoId else { return }
+        self.loadedVideoId = self.videoId
+        self.comments = []
+        self.isLoading = true
+        defer { self.isLoading = false }
+        do {
+            let watchNext = try await self.client.getWatchNext(videoId: self.videoId)
+            guard let token = watchNext.commentsContinuation else { return }
+            guard !Task.isCancelled else { return }
+            let page = try await self.client.getComments(continuation: token)
+            guard self.loadedVideoId == self.videoId else { return }
+            self.comments = page.comments
+        } catch {
+            // Leave the panel empty on failure; it's non-critical.
+        }
+    }
+}
+
+// MARK: - ShortsCommentRow
+
+private struct ShortsCommentRow: View {
+    let comment: YouTubeComment
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            CachedAsyncImage(
+                url: self.comment.authorAvatarURL,
+                targetSize: CGSize(width: 32, height: 32)
+            ) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle().fill(.quaternary)
+            }
+            .frame(width: 32, height: 32)
+            .clipShape(.circle)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(self.comment.author)
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                    if let published = self.comment.publishedText {
+                        Text(published)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Text(self.comment.text)
+                    .font(.caption)
+                    .textSelection(.enabled)
+                if let likes = self.comment.likeCountText, !likes.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "hand.thumbsup")
+                        Text(likes)
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                }
+            }
+            Spacer(minLength: 0)
+        }
     }
 }
 
