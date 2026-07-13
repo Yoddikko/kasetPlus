@@ -135,12 +135,14 @@ struct KasetApp: App {
         _notificationService = State(initialValue: NotificationService(playerService: player))
         _accountService = State(initialValue: account)
 
-        // Create scrobbling coordinator
+        // Create scrobbling coordinator with mix tracklist parser
         let lastFMService = LastFMService(credentialStore: KeychainCredentialStore())
         let listenBrainzService = ListenBrainzService(credentialStore: KeychainCredentialStore())
+        let mixTracklistParser = MixTracklistParser(youTubeClient: youtubeClient)
         let scrobblingCoordinator = ScrobblingCoordinator(
             playerService: player,
-            services: [lastFMService, listenBrainzService]
+            services: [lastFMService, listenBrainzService],
+            mixTracklistParser: mixTracklistParser
         )
         scrobblingCoordinator.restoreAuthState()
         scrobblingCoordinator.startMonitoring()
@@ -149,6 +151,7 @@ struct KasetApp: App {
         // Wire up PlayerService to AppDelegate immediately (not in onAppear)
         // This ensures playerService is available for lifecycle events like queue restoration
         self.appDelegate.playerService = player
+        self.appDelegate.scrobblingCoordinator = scrobblingCoordinator
 
         if UITestConfig.isUITestMode {
             DiagnosticsLogger.ui.info("App launched in UI Test mode")
