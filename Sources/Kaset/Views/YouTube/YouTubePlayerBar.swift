@@ -415,23 +415,6 @@ struct YouTubePlayerBar: View {
             )
             .disabled(!self.canSeek)
 
-            // Lyrics live only next to the Summary button on the watch page now,
-            // not in the transport bar.
-
-            PlayerBarIconButton(
-                action: {
-                    self.youtubePlayer.showsDownloadSheet = true
-                },
-                accessibilityLabel: String(localized: "Download"),
-                icon: {
-                    Image(systemName: "arrow.down.circle")
-                        .font(.system(size: 16, weight: .regular))
-                        .frame(width: 16, height: 16)
-                        .foregroundStyle(.primary)
-                }
-            )
-            .disabled(self.youtubePlayer.currentVideo == nil)
-
             PlayerBarIconButton(
                 action: self.toggleYouTubeVolumeOverlay,
                 accessibilityLabel: String(localized: "Volume"),
@@ -501,6 +484,20 @@ struct YouTubePlayerBar: View {
                     Image(systemName: "airplayvideo")
                         .font(.system(size: 16, weight: .regular))
                         .frame(width: 10, height: 16)
+                        .foregroundStyle(.primary)
+                }
+            )
+            .disabled(self.youtubePlayer.currentVideo == nil)
+
+            PlayerBarIconButton(
+                action: {
+                    self.youtubePlayer.showsDownloadSheet = true
+                },
+                accessibilityLabel: String(localized: "Download"),
+                icon: {
+                    Image(systemName: "arrow.down.circle")
+                        .font(.system(size: 16, weight: .regular))
+                        .frame(width: 16, height: 16)
                         .foregroundStyle(.primary)
                 }
             )
