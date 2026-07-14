@@ -152,6 +152,7 @@ struct YouTubeWatchView: View {
             .onDisappear {
                 self.youtubePlayer.inlineSurfaceWillDisappear(videoId: self.video.videoId)
                 self.overlayHideTask?.cancel()
+                self.youtubePlayer.inlineVideoOnScreen = false
             }
     }
 
@@ -233,6 +234,12 @@ struct YouTubeWatchView: View {
                             self.overlayControlsVisible = false
                         }
                     }
+                }
+                // When the video scrolls out of the watch page, bring the docked
+                // bar back so playback stays controllable.
+                .onAppear { self.youtubePlayer.inlineVideoOnScreen = true }
+                .onScrollVisibilityChange(threshold: 0.35) { visible in
+                    self.youtubePlayer.inlineVideoOnScreen = visible
                 }
                 .accessibilityIdentifier(AccessibilityID.YouTubeContent.watchSurface)
         } else if self.playsInFloatingWindow {

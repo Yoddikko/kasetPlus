@@ -102,9 +102,12 @@ struct YouTubePlayerBar: View {
     /// out of sync and leave two bars on screen.
     private var hidesForInlineOverlay: Bool {
         // Only consulted from the `.docked` branch, so no need to re-check mode.
+        // Requires the video to be on screen — once it's scrolled out of view,
+        // the docked bar comes back so playback stays controllable.
         self.settings.controlsOnVideoEnabled
             && self.youtubePlayer.currentVideo != nil
             && self.youtubePlayer.surfaceLocation == .inline
+            && self.youtubePlayer.inlineVideoOnScreen
     }
 
     /// The historical docked transport bar (thumbnail/title + progress + options

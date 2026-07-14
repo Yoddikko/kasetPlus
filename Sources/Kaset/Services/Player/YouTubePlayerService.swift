@@ -175,6 +175,11 @@ final class YouTubePlayerService {
     /// Opens the download sheet from the player bar button.
     var showsDownloadSheet = false
 
+    /// Whether the inline video surface is currently on screen in the watch
+    /// page's scroll view. When it scrolls out of view, the docked bar comes
+    /// back so playback stays controllable even with "controls on video" on.
+    var inlineVideoOnScreen = false
+
     /// Current playback speed (0.5, 0.75, 1.0, 1.25, 1.5, 2.0).
     var playbackSpeed: Double = 1.0 {
         didSet {
