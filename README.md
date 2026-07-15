@@ -25,6 +25,15 @@
 </p>
 
 <p align="center">
+  <a href="https://ko-fi.com/yodddd">
+    <img
+      src="https://img.shields.io/badge/💗_Support-KasetPlus-ff69b4?style=for-the-badge"
+      alt="Support KasetPlus on Ko-fi"
+    >
+  </a>
+</p>
+
+<p align="center">
   Native SwiftUI &nbsp;•&nbsp; Built-in addons &nbsp;•&nbsp; On-device AI<br>
   Video downloads &nbsp;•&nbsp; Lyrics &nbsp;•&nbsp; Distraction-free playback
 </p>
