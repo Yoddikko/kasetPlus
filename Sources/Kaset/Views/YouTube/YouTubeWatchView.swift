@@ -121,7 +121,7 @@ struct YouTubeWatchView: View {
             WatchAmbientBackground(video: self.video)
         }
         // The in-page metadata shows the title; keep the bar clean.
-        .navigationTitle("")
+        .navigationTitle(String(localized: ""))
         // Let the ambient reach under the nav bar, like the other accent pages.
         .toolbarBackgroundVisibility(.hidden, for: .automatic)
             .toolbar {

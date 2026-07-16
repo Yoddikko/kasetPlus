@@ -193,7 +193,7 @@ struct WhatsNewView: View {
                 Button {
                     NSWorkspace.shared.open(url)
                 } label: {
-                    Label("Learn more", systemImage: "arrow.up.right")
+                    Label(String(localized: "Learn more"), systemImage: "arrow.up.right")
                         .font(.subheadline.weight(.semibold))
                 }
                 .buttonStyle(.plain)
