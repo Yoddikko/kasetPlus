@@ -420,6 +420,32 @@ final class YouTubeWatchWebView {
                 "YouTube watch WebView finished loading: \(webView.url?.absoluteString ?? "nil")"
             )
 
+            // If YouTube served something other than a watch page — Google's
+            // "/sorry/" unusual-traffic CAPTCHA or the EU consent interstitial —
+            // our chrome-hiding extraction would leave it invisible and the video
+            // stuck "loading". Reveal the page so the user can actually solve it.
+            if let url = webView.url?.absoluteString,
+               url.contains("google.com/sorry") || url.contains("/sorry/")
+               || url.contains("consent.youtube") || url.contains("consent.google")
+            {
+                webView.evaluateJavaScript(
+                    """
+                    (function() {
+                        try { if (window.__kasetStopYTExtraction) { window.__kasetStopYTExtraction(); } } catch (e) {}
+                        ['kaset-yt-blackout', 'kaset-yt-video-style'].forEach(function(id) {
+                            var el = document.getElementById(id);
+                            if (el) { el.remove(); }
+                        });
+                        var s = document.createElement('style');
+                        s.textContent = 'html, body, * { visibility: visible !important; }';
+                        document.documentElement.appendChild(s);
+                    })();
+                    """,
+                    completionHandler: nil
+                )
+                self.playerService.clearPlaybackLoadingForInterstitial()
+            }
+
             // The resume-seek for an identity-switch reload is applied by the
             // observer's applyPendingSeek (gated on the <video> existing and being
             // seekable), not here: at didFinish the element often does not exist

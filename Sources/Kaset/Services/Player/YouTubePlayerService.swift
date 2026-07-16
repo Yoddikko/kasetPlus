@@ -538,6 +538,13 @@ final class YouTubePlayerService {
         self.playbackController.skipAd(resumeAt: self.lastNonAdContentProgress)
     }
 
+    /// Clears the loading spinner when the watch WebView shows a non-playable
+    /// page (Google's "/sorry/" CAPTCHA or the consent interstitial), so the
+    /// spinner doesn't hide the page the user needs to interact with.
+    func clearPlaybackLoadingForInterstitial() {
+        self.isPlaybackLoading = false
+    }
+
     /// Resumes playback.
     func resume() {
         if self.reloadPendingPausedIdentitySwitchForUserResume() {
@@ -1018,7 +1025,11 @@ final class YouTubePlayerService {
         if self.isAdSkippable != skippable {
             self.isAdSkippable = skippable
         }
-        if self.isPlaybackLoading {
+        // Keep the loading spinner up until the video actually has media — the
+        // first STATE_UPDATE arrives while the <video> is still at 0:00 with no
+        // frame, so clearing then leaves a black gap after the spinner vanishes.
+        // A known duration means metadata loaded and a frame is imminent.
+        if self.isPlaybackLoading, update.duration > 0 {
             self.isPlaybackLoading = false
         }
 
