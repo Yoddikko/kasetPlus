@@ -100,14 +100,17 @@ struct YouTubeWatchScriptTests {
         #expect(webView.pendingSeek == nil)
     }
 
-    @Test("SponsorBlock script contains skip logic and toast UI")
+    @Test("SponsorBlock script bridges skips and respects explicit seeks")
     func sponsorBlockScriptContract() {
         let script = YouTubeWatchWebView.sponsorBlockScript
         #expect(script.contains("sponsor.ajay.app/api/skipSegments"))
         #expect(script.contains("__kasetSponsorBlock"))
         #expect(script.contains("video.currentTime"))
-        #expect(script.contains("Skipped"))
-        #expect(script.contains("Undo"))
+        #expect(script.contains("SPONSOR_SKIPPED"))
+        #expect(script.contains("__kasetSponsorBlockManualSeek"))
+        #expect(script.contains("manuallyViewedSegments"))
+        #expect(script.contains("segmentLoadGeneration"))
+        #expect(script.contains("segmentsVideoId"))
     }
 
     @Test("Bootstrap carries SponsorBlock config when enabled")

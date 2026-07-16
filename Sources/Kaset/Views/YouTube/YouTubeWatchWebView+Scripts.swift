@@ -58,6 +58,16 @@ extension YouTubeWatchWebView {
                 return !!(player && player.classList && player.classList.contains('ad-showing'));
             }
 
+            // Whether YouTube's own "Skip" button is currently present — i.e. the
+            // ad can actually be skipped right now. Drives the native Skip Ad
+            // button's visibility so it never shows when clicking would do nothing.
+            function isAdSkippable() {
+                return !!document.querySelector(
+                    '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button,' +
+                    '.ytp-ad-skip-button-container button'
+                );
+            }
+
             function clearTrailingUpdate() {
                 if (trailingUpdateTimeoutId) {
                     clearTimeout(trailingUpdateTimeoutId);
@@ -97,7 +107,8 @@ extension YouTubeWatchWebView {
                         duration: (video.duration && isFinite(video.duration)) ? video.duration : 0,
                         videoId: videoId,
                         title: currentTitle(),
-                        isAd: isAdShowing()
+                        isAd: isAdShowing(),
+                        isAdSkippable: isAdSkippable()
                     });
                 } catch (e) {
                     console.log('[KasetYT] update error: ' + e);
@@ -545,11 +556,9 @@ extension YouTubeWatchWebView {
 
             const API = 'https://sponsor.ajay.app/api/skipSegments';
             let segments = [];
-            let lastSkipped = null;
-            let toastEl = null;
-            let toastTimer = null;
-
-            const L = cfg.labels || {};
+            let segmentsVideoId = '';
+            let segmentLoadGeneration = 0;
+            const manuallyViewedSegments = new Set();
 
             function getVideoId() {
                 const url = new URL(location.href);
@@ -560,29 +569,41 @@ extension YouTubeWatchWebView {
                 return document.querySelector('#movie_player video') || document.querySelector('video');
             }
 
-            function showToast(category) {
-                if (toastEl) { toastEl.remove(); toastEl = null; }
-                if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+            function segmentKey(segment) {
+                return segment.UUID || [segment.category, segment.segment[0], segment.segment[1]].join(':');
+            }
 
-                toastEl = document.createElement('div');
-                toastEl.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:24px;background:#212121;color:#f1f1f1;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;box-shadow:0 4px 24px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);white-space:nowrap;';
-                var catLabel = L[category] || category;
-                toastEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;vertical-align:middle"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z" fill="#3ea6ff"/></svg><span>' + (L.skipped || 'Skipped') + ' <strong>' + catLabel + '</strong></span><button id="kaset-sb-undo" style="all:unset;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:600;color:#3ea6ff;cursor:pointer">' + (L.undo || 'Undo') + '</button>';
+            function containsTime(segment, time) {
+                return time >= segment.segment[0] && time < segment.segment[1];
+            }
 
-                toastEl.querySelector('#kaset-sb-undo').addEventListener('click', function() {
-                    if (lastSkipped) {
-                        const video = findVideo();
-                        if (video) video.currentTime = lastSkipped.startTime;
-                        lastSkipped = null;
+            // Native seek controls set this request before changing currentTime.
+            // If the destination is inside a segment, that is explicit user
+            // intent to watch it; keep it playable until the user leaves it.
+            function consumeManualSeek(videoId) {
+                const request = window.__kasetSponsorBlockManualSeek;
+                if (!request || typeof request.target !== 'number') return;
+                if (request.videoId && request.videoId !== videoId) {
+                    window.__kasetSponsorBlockManualSeek = null;
+                    return;
+                }
+
+                for (var i = 0; i < segments.length; i++) {
+                    if (containsTime(segments[i], request.target)) {
+                        manuallyViewedSegments.add(segmentKey(segments[i]));
                     }
-                    if (toastEl) { toastEl.remove(); toastEl = null; }
-                    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
-                });
+                }
+                window.__kasetSponsorBlockManualSeek = null;
+            }
 
-                document.body.appendChild(toastEl);
-                toastTimer = setTimeout(function() {
-                    if (toastEl) { toastEl.remove(); toastEl = null; }
-                }, 5000);
+            function forgetSegmentsAfterLeaving(time) {
+                for (var i = 0; i < segments.length; i++) {
+                    var segment = segments[i];
+                    var key = segmentKey(segment);
+                    if (manuallyViewedSegments.has(key) && !containsTime(segment, time)) {
+                        manuallyViewedSegments.delete(key);
+                    }
+                }
             }
 
             function postSegments(videoId) {
@@ -599,16 +620,33 @@ extension YouTubeWatchWebView {
                 } catch(e) {}
             }
 
+            function postSkip(videoId, segment) {
+                try {
+                    window.webkit.messageHandlers.youtubePlayer.postMessage({
+                        type: 'SPONSOR_SKIPPED',
+                        videoId: videoId,
+                        start: segment.segment[0],
+                        end: segment.segment[1],
+                        category: segment.category
+                    });
+                } catch(e) {}
+            }
+
             async function loadSegments(videoId) {
+                const generation = ++segmentLoadGeneration;
                 segments = [];
+                segmentsVideoId = videoId;
+                manuallyViewedSegments.clear();
                 try {
                     const params = new URLSearchParams();
                     params.set('videoID', videoId);
                     cfg.categories.forEach(function(c) { params.append('category', c); });
                     const res = await fetch(API + '?' + params.toString());
+                    if (generation !== segmentLoadGeneration || getVideoId() !== videoId) return;
                     if (res.status === 404) { postSegments(videoId); return; }
                     if (!res.ok) return;
                     const data = await res.json();
+                    if (generation !== segmentLoadGeneration || getVideoId() !== videoId) return;
                     if (!Array.isArray(data)) return;
                     segments = data.filter(function(s) {
                         return s && Array.isArray(s.segment) && s.segment.length === 2
@@ -616,7 +654,12 @@ extension YouTubeWatchWebView {
                             && typeof s.category === 'string';
                     });
                     postSegments(videoId);
-                } catch(e) { segments = []; postSegments(videoId); }
+                } catch(e) {
+                    if (generation === segmentLoadGeneration && getVideoId() === videoId) {
+                        segments = [];
+                        postSegments(videoId);
+                    }
+                }
             }
 
             // Watch for video changes (SPA navigation)
@@ -634,15 +677,25 @@ extension YouTubeWatchWebView {
             // Skip monitor — check every 250ms
             setInterval(function() {
                 if (!segments.length) return;
+                // Never act while an ad is playing: the <video> element is the
+                // ad, whose timeline is unrelated to the content's SponsorBlock
+                // segments — seeking it would loop/stall the ad forever.
+                const mp = document.getElementById('movie_player');
+                if (mp && mp.classList && mp.classList.contains('ad-showing')) return;
                 const video = findVideo();
-                if (!video || video.paused) return;
+                if (!video) return;
                 const time = video.currentTime;
+                const videoId = getVideoId();
+                if (!videoId || segmentsVideoId !== videoId) return;
+                consumeManualSeek(segmentsVideoId);
+                forgetSegmentsAfterLeaving(time);
+                if (video.paused) return;
                 for (var i = 0; i < segments.length; i++) {
                     var seg = segments[i];
-                    if (time >= seg.segment[0] && time < seg.segment[1]) {
+                    if (containsTime(seg, time)) {
+                        if (manuallyViewedSegments.has(segmentKey(seg))) continue;
                         video.currentTime = seg.segment[1];
-                        lastSkipped = { startTime: seg.segment[0], endTime: seg.segment[1], category: seg.category };
-                        showToast(seg.category);
+                        postSkip(segmentsVideoId, seg);
                         break;
                     }
                 }
@@ -655,6 +708,27 @@ extension YouTubeWatchWebView {
 // MARK: - Playback Controls
 
 extension YouTubeWatchWebView {
+    /// Skips the ad currently playing. Currently a no-op mute: every reliable
+    /// skip path was a measured dead end in the extracted surface — a synthetic
+    /// Skip-button click leaves the content stream unassigned (stuck black),
+    /// `loadVideoById` broke player init, forcing playbackRate does nothing
+    /// (YouTube resets ads to 1x), and seeking restarts the ad from 0. The
+    /// on-video Skip button is disabled until we have a path that holds; the ad
+    /// is just muted while it plays.
+    func skipAd(resumeAt _: Double) {
+        self.webView?.evaluateJavaScript(
+            """
+            (function() {
+                var mp = document.getElementById('movie_player');
+                if (!mp || !mp.classList.contains('ad-showing')) { return; }
+                var video = document.querySelector('#movie_player video') || document.querySelector('video');
+                if (video) { video.muted = true; }
+            })();
+            """,
+            completionHandler: nil
+        )
+    }
+
     /// Toggles play/pause on the watch page's video element.
     func playPause() {
         self.webView?.evaluateJavaScript(
@@ -715,7 +789,15 @@ extension YouTubeWatchWebView {
             """
             (function() {
                 const video = document.querySelector('#movie_player video') || document.querySelector('video');
-                if (video) { video.currentTime = \(time); }
+                if (video) {
+                    var videoId = null;
+                    try { videoId = new URL(location.href).searchParams.get('v'); } catch (e) {}
+                    window.__kasetSponsorBlockManualSeek = {
+                        target: \(time),
+                        videoId: videoId
+                    };
+                    video.currentTime = \(time);
+                }
             })();
             """,
             completionHandler: nil

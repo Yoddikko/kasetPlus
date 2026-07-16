@@ -220,6 +220,70 @@ struct YouTubeWatchView: View {
                             .transition(.opacity)
                     }
                 }
+                // Loading state: the WebView surface is black until the stream
+                // is ready, so show a spinner over it instead of a blank frame.
+                .overlay {
+                    if self.youtubePlayer.isPlaybackLoading {
+                        ZStack {
+                            Rectangle().fill(.black)
+                            ProgressView()
+                                .controlSize(.large)
+                                .tint(.white)
+                        }
+                        .transition(.opacity)
+                    }
+                }
+                .animation(.easeInOut(duration: 0.25), value: self.youtubePlayer.isPlaybackLoading)
+                // "Ad" badge: a server-side (SSAI) ad can still slip past the
+                // blocker; label it so it's clear this isn't the content.
+                .overlay(alignment: .topLeading) {
+                    if self.youtubePlayer.isShowingAd {
+                        Text("Ad", comment: "Badge shown while a YouTube ad is playing")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.black)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(.yellow, in: .rect(cornerRadius: 3))
+                            .padding(10)
+                            .transition(.opacity)
+                    }
+                }
+                .animation(.easeInOut(duration: 0.2), value: self.youtubePlayer.isShowingAd)
+                // Native "Skip Ad" button — DISABLED for now. Every skip path we
+                // tried (synthetic Skip click, loadVideoById, playbackRate, seek)
+                // either left the content stuck black or was reset by YouTube.
+                // Ads are shown (muted) with the "Ad" badge until we land a skip
+                // that reliably hands off to the content. `isAdSkippable` is
+                // still plumbed so re-enabling is a one-line change.
+                //
+                // .overlay(alignment: .bottomTrailing) {
+                //     if self.youtubePlayer.isShowingAd, self.youtubePlayer.isAdSkippable {
+                //         Button {
+                //             self.youtubePlayer.skipAd()
+                //             HapticService.toggle()
+                //         } label: {
+                //             HStack(spacing: 6) {
+                //                 Text("Skip Ad", comment: "Button to skip a YouTube ad")
+                //                     .font(.system(size: 13, weight: .semibold))
+                //                 Image(systemName: "forward.end.fill")
+                //                     .font(.system(size: 11))
+                //             }
+                //             .foregroundStyle(.white)
+                //             .padding(.horizontal, 14)
+                //             .padding(.vertical, 8)
+                //             .background(.black.opacity(0.55), in: .capsule)
+                //             .overlay(Capsule().strokeBorder(.white.opacity(0.25), lineWidth: 1))
+                //         }
+                //         .buttonStyle(.plain)
+                //         .padding(.trailing, 16)
+                //         .padding(.bottom, 76)
+                //         .transition(.opacity)
+                //     }
+                // }
+                .overlay(alignment: .topTrailing) {
+                    SponsorBlockSkipNoticeOverlay()
+                        .padding(16)
+                }
                 .clipShape(.rect(cornerRadius: 12))
                 .onContinuousHover { phase in
                     guard self.settings.controlsOnVideoEnabled else { return }

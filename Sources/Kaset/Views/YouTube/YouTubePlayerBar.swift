@@ -360,8 +360,7 @@ struct YouTubePlayerBar: View {
                 onMarkerPreviewChange: { marker in
                     self.chapterPreviewMarker = marker
                 },
-                segmentMarkers: self.segmentFractionMarkers,
-                segmentColor: SponsorSegment.brandColor
+                segmentMarkers: self.segmentFractionMarkers
             )
             .padding(.top, 18)
 
@@ -372,11 +371,18 @@ struct YouTubePlayerBar: View {
     }
 
     /// Converts SponsorBlock segments (seconds) to fraction pairs for the progress lane.
-    private var segmentFractionMarkers: [(fractionStart: Double, fractionEnd: Double)] {
+    private var segmentFractionMarkers: [PlayerBarSegmentMarker] {
         let dur = self.youtubePlayer.duration
-        guard dur > 0 else { return [] }
+        // During an ad the <video> is the ad clip: its duration/timeline are
+        // unrelated to the content's SponsorBlock segments, so drawing them
+        // would smear meaningless bars across the ad's progress lane.
+        guard dur > 0, !self.youtubePlayer.isShowingAd else { return [] }
         return self.youtubePlayer.sponsorSegments.map { seg in
-            (fractionStart: seg.start / dur, fractionEnd: seg.end / dur)
+            PlayerBarSegmentMarker(
+                fractionStart: seg.start / dur,
+                fractionEnd: seg.end / dur,
+                color: seg.color
+            )
         }
     }
 

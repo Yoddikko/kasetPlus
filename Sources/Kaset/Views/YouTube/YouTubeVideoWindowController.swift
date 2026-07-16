@@ -413,6 +413,11 @@ private struct YouTubeVideoWindowContent: View {
                     }
                 }
         }
+        .overlay(alignment: .topTrailing) {
+            SponsorBlockSkipNoticeOverlay()
+                .padding(.top, 18)
+                .padding(.trailing, 16)
+        }
         .background(.black)
         .ignoresSafeArea()
         .onHover { hovering in

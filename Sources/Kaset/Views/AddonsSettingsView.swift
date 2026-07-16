@@ -33,18 +33,25 @@ struct AddonsSettingsView: View {
                             .padding(.top, 4)
 
                         ForEach(SettingsManager.sponsorBlockCategoryOptions, id: \.id) { category in
-                            Toggle(category.label, isOn: Binding(
-                                get: { self.settings.sponsorBlockCategories.contains(category.id) },
-                                set: { enabled in
-                                    if enabled {
-                                        if !self.settings.sponsorBlockCategories.contains(category.id) {
-                                            self.settings.sponsorBlockCategories.append(category.id)
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(SponsorSegment.color(for: category.id))
+                                    .frame(width: 8, height: 8)
+                                    .accessibilityHidden(true)
+
+                                Toggle(category.label, isOn: Binding(
+                                    get: { self.settings.sponsorBlockCategories.contains(category.id) },
+                                    set: { enabled in
+                                        if enabled {
+                                            if !self.settings.sponsorBlockCategories.contains(category.id) {
+                                                self.settings.sponsorBlockCategories.append(category.id)
+                                            }
+                                        } else {
+                                            self.settings.sponsorBlockCategories.removeAll { $0 == category.id }
                                         }
-                                    } else {
-                                        self.settings.sponsorBlockCategories.removeAll { $0 == category.id }
                                     }
-                                }
-                            ))
+                                ))
+                            }
                         }
                     }
                 }

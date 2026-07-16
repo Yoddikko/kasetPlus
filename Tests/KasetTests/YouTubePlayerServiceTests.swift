@@ -228,6 +228,86 @@ struct YouTubePlayerServiceTests {
         #expect(self.controller.seeks == [0, 15, 45])
     }
 
+    @Test("SponsorBlock skip notice returns to the skipped segment")
+    func sponsorBlockSkipNoticeUndo() {
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        self.sut.updatePlaybackState(.init(isPlaying: true, progress: 30, duration: 120, videoId: "abc"))
+
+        self.sut.handleSponsorBlockSkip(
+            start: 12,
+            end: 24,
+            category: "sponsor",
+            videoId: "abc"
+        )
+
+        #expect(self.sut.sponsorSkipNotice?.segment == SponsorSegment(start: 12, end: 24, category: "sponsor"))
+
+        self.sut.undoSponsorBlockSkip()
+
+        #expect(self.sut.sponsorSkipNotice == nil)
+        #expect(self.controller.seeks == [12])
+        #expect(self.sut.progress == 12)
+    }
+
+    @Test("SponsorBlock ignores stale skip messages and clears notices for a new video")
+    func sponsorBlockSkipNoticeIsVideoScoped() {
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+
+        self.sut.setSponsorSegments(
+            [SponsorSegment(start: 2, end: 4, category: "intro")],
+            videoId: "stale-video"
+        )
+        #expect(self.sut.sponsorSegments.isEmpty)
+
+        self.sut.handleSponsorBlockSkip(
+            start: 12,
+            end: 24,
+            category: "sponsor",
+            videoId: "stale-video"
+        )
+        #expect(self.sut.sponsorSkipNotice == nil)
+
+        self.sut.handleSponsorBlockSkip(
+            start: 12,
+            end: 24,
+            category: "sponsor",
+            videoId: "abc"
+        )
+        #expect(self.sut.sponsorSkipNotice != nil)
+
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "def"))
+        #expect(self.sut.sponsorSkipNotice == nil)
+    }
+
+    @Test("SponsorBlock state arriving before SPA adoption is applied to the new video")
+    func sponsorBlockStateFollowsSPAAdoption() {
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        let pendingSegments = [SponsorSegment(start: 0, end: 8, category: "intro")]
+
+        self.sut.setSponsorSegments(pendingSegments, videoId: "def")
+        self.sut.handleSponsorBlockSkip(
+            start: 0,
+            end: 8,
+            category: "intro",
+            videoId: "def"
+        )
+
+        #expect(self.sut.sponsorSegments.isEmpty)
+        #expect(self.sut.sponsorSkipNotice == nil)
+
+        self.sut.updatePlaybackState(.init(
+            isPlaying: true,
+            progress: 8,
+            duration: 120,
+            videoId: "def",
+            title: "Next video"
+        ))
+
+        #expect(self.sut.currentVideo?.videoId == "def")
+        #expect(self.sut.sponsorSegments == pendingSegments)
+        #expect(self.sut.sponsorSkipNotice?.segment == pendingSegments[0])
+    }
+
     @Test("Rapid relative seeks accumulate from the last requested target")
     func relativeSeeksAccumulateAcrossStaleObserverUpdates() {
         self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))

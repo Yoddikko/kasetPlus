@@ -15,10 +15,8 @@ struct PlayerBarProgressLane: View {
     let onCommit: () -> Void
     let onMarkerPreviewChange: (PlayerBarProgressMarker?) -> Void
 
-    /// Optional segment markers drawn directly on the track.
-    /// Each tuple is (fractionStart, fractionEnd) in 0...1.
-    var segmentMarkers: [(fractionStart: Double, fractionEnd: Double)] = []
-    var segmentColor: Color = SponsorSegment.brandColor
+    /// Optional colored segment markers drawn directly on the track.
+    var segmentMarkers: [PlayerBarSegmentMarker] = []
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
@@ -43,8 +41,7 @@ struct PlayerBarProgressLane: View {
         onScrub: @escaping (Double) -> Void,
         onCommit: @escaping () -> Void,
         onMarkerPreviewChange: @escaping (PlayerBarProgressMarker?) -> Void = { _ in },
-        segmentMarkers: [(fractionStart: Double, fractionEnd: Double)] = [],
-        segmentColor: Color = SponsorSegment.brandColor
+        segmentMarkers: [PlayerBarSegmentMarker] = []
     ) {
         self.fraction = fraction
         self.accent = accent
@@ -58,7 +55,6 @@ struct PlayerBarProgressLane: View {
         self.onCommit = onCommit
         self.onMarkerPreviewChange = onMarkerPreviewChange
         self.segmentMarkers = segmentMarkers
-        self.segmentColor = segmentColor
     }
 
     var body: some View {
@@ -113,17 +109,6 @@ struct PlayerBarProgressLane: View {
                     .fill(self.trackColor)
                     .frame(height: PlayerBarSliderVisuals.trackThickness)
 
-                // SponsorBlock / segment markers — drawn inside the track
-                ForEach(Array(self.segmentMarkers.enumerated()), id: \.offset) { _, marker in
-                    let segStart = CGFloat(marker.fractionStart) * width
-                    let segEnd = CGFloat(marker.fractionEnd) * width
-                    let segWidth = max(segEnd - segStart, 3)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(self.segmentColor)
-                        .frame(width: segWidth, height: PlayerBarSliderVisuals.trackThickness)
-                        .offset(x: segStart)
-                }
-
                 UnevenRoundedRectangle(
                     topLeadingRadius: 999,
                     bottomLeadingRadius: 999
@@ -131,6 +116,18 @@ struct PlayerBarProgressLane: View {
                 .fill(fillColor)
                 .frame(width: fillWidth, height: PlayerBarSliderVisuals.trackThickness)
                 .opacity(self.isLive ? 0 : 1)
+
+                // SponsorBlock segments sit above the progress fill so their
+                // category colors remain visible after a segment was skipped.
+                ForEach(Array(self.segmentMarkers.enumerated()), id: \.offset) { _, marker in
+                    let segStart = CGFloat(marker.fractionStart) * width
+                    let segEnd = CGFloat(marker.fractionEnd) * width
+                    let segWidth = max(segEnd - segStart, 3)
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(marker.color)
+                        .frame(width: segWidth, height: PlayerBarSliderVisuals.trackThickness)
+                        .offset(x: segStart)
+                }
 
                 if self.isLoading {
                     PlayerBarSliderLoadingShimmer(
@@ -331,6 +328,14 @@ struct PlayerBarProgressLane: View {
         }
         return .black.opacity(self.colorScheme == .dark ? 0.18 : 0.08)
     }
+}
+
+// MARK: - PlayerBarSegmentMarker
+
+struct PlayerBarSegmentMarker {
+    let fractionStart: Double
+    let fractionEnd: Double
+    let color: Color
 }
 
 // MARK: - PlayerBarProgressMarker

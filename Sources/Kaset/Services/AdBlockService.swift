@@ -100,35 +100,95 @@ enum AdBlockService {
 
     // MARK: - YouTube Ad Auto-Skip Script
 
-    /// JS injected into YouTube watch pages at document-start (only when ad
-    /// blocking is enabled — same gate as the `contentRulesJSON` network list).
+    /// JS injected into YouTube watch pages at document-start, in the page's
+    /// main world (the legacy `WKUserScript` init injects there), before
+    /// YouTube's own scripts run — only when ad blocking is enabled.
     ///
-    /// DOM-side ad skip only. Stripping ad scheduling from the player response
-    /// (`adPlacements` etc. via an accessor trap or fetch rewrite) was measured
-    /// to break playback outright: the media source is never created
-    /// (`readyState`/`networkState`/`currentSrc` all empty), YouTube's
-    /// anti-adblock detecting the tampering. So we never touch the player JSON;
-    /// we only fast-skip whatever the player itself exposes as a discrete ad.
+    /// Strips YouTube's ad scheduling (`adPlacements`/`playerAds`/…) from the
+    /// player response. Earlier naive attempts broke playback because YouTube's
+    /// #1 anti-adblock check is `Function.prototype.toString` on our hooked
+    /// natives: a patched `fetch`/`JSON.parse` whose source isn't `[native
+    /// code]` is detected and the player is deliberately killed. So we install
+    /// a **toString mask** (WeakMap → each hook's original native source) so the
+    /// hooks stay invisible, and prune ad fields *in place* (no object-identity
+    /// change). The DOM Skip-button click stays as a backstop. Server-side
+    /// (SSAI) ads are stitched into the stream and can't be removed here.
     static let adBlockScript: String = {
         """
         (function() {
             'use strict';
 
-            // ── Ad skip (safe) ───────────────────────────────
-            // Only clicks YouTube's own "Skip" button / closes overlay ads —
-            // exactly what a user would do, so it can never corrupt the player.
-            // Seeking the ad clip or forcing playbackRate was tried and broke
-            // the ad→content handoff (the video played ~0.5s then went black).
+            // ── toString mask: keep hooked natives reporting [native code] ──
+            var _toString = Function.prototype.toString;
+            var _masks = new WeakMap();
+            function mask(hooked, original) { try { _masks.set(hooked, original); } catch (e) {} return hooked; }
+            var patchedToString = function toString() {
+                var orig = _masks.get(this);
+                return _toString.call(orig !== undefined ? orig : this);
+            };
+            mask(patchedToString, _toString);
+            try {
+                Object.defineProperty(Function.prototype, 'toString', {
+                    value: patchedToString, writable: true, configurable: true
+                });
+            } catch (e) { Function.prototype.toString = patchedToString; }
+
+            // ── ad-field pruning helper (in place: preserves object identity,
+            //    which YouTube's player relies on — a deep copy desynced it) ──
+            var AD_KEYS = ['adPlacements', 'playerAds', 'adSlots', 'adBreakHeartbeatParams', 'adPlacementConfig'];
+            function pruneObject(o) {
+                if (!o || typeof o !== 'object') return o;
+                for (var i = 0; i < AD_KEYS.length; i++) {
+                    if (AD_KEYS[i] in o) { try { delete o[AD_KEYS[i]]; } catch (e) { o[AD_KEYS[i]] = undefined; } }
+                }
+                if (o.playerResponse && typeof o.playerResponse === 'object') { pruneObject(o.playerResponse); }
+                return o;
+            }
+
+            // ── Prune the inline ytInitialPlayerResponse (kills the pre/mid-roll
+            //    at the source on every full-page watch load). We deliberately do
+            //    NOT rewrite the fetched youtubei/v1/player response: rebuilding
+            //    that Response reliably blanks the player. Anything the refetch
+            //    still schedules is handled by the DOM backstop below. ──
+            var _ipr;
+            try {
+                Object.defineProperty(window, 'ytInitialPlayerResponse', {
+                    get: function() { return _ipr; },
+                    set: function(v) { _ipr = pruneObject(v); },
+                    configurable: true
+                });
+            } catch (e) {}
+
+            // ── DOM backstop for ads that still surface (e.g. SSAI): mute the
+            //       ad and click YouTube's own Skip the instant it appears.
+            //       Measured dead ends (all reverted): forcing playbackRate does
+            //       nothing — YouTube resets the ad to 1x every frame; seeking to
+            //       the clip end restarts the ad from 0; and re-running the
+            //       extraction on ad end blanked the content during the video
+            //       swap. So we only mute + click Skip; the content re-appears on
+            //       its own via the extraction's DOM observer. ──
+            var wasAd = false;
             function killAd() {
                 try {
-                    var player = document.getElementById('movie_player');
-                    if (!player || !player.classList.contains('ad-showing')) return;
-                    document.querySelectorAll(
-                        '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button,' +
-                        '.ytp-ad-skip-button-container button, button[aria-label*=\"Skip\"]'
-                    ).forEach(function(b) { b.click(); });
-                    document.querySelectorAll('.ytp-ad-overlay-close-button').forEach(function(o) { o.click(); });
-                } catch(e) {}
+                    var mp = document.getElementById('movie_player');
+                    var video = document.querySelector('#movie_player video') || document.querySelector('video');
+                    if (!video) { return; }
+                    var isAd = !!(mp && mp.classList && mp.classList.contains('ad-showing'));
+                    if (isAd) {
+                        wasAd = true;
+                        document.querySelectorAll(
+                            '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button,' +
+                            '.ytp-ad-skip-button-container button, button[aria-label*=\"Skip\"]'
+                        ).forEach(function(b) { b.click(); });
+                        document.querySelectorAll('.ytp-ad-overlay-close-button').forEach(function(o) { o.click(); });
+                        video.muted = true;
+                    } else if (wasAd) {
+                        wasAd = false;
+                        if (window.__kasetTargetVolume === undefined || window.__kasetTargetVolume > 0) {
+                            video.muted = false;
+                        }
+                    }
+                } catch (e) {}
             }
             setInterval(killAd, 250);
             if (window.MutationObserver) {

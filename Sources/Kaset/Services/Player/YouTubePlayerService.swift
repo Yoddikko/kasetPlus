@@ -15,6 +15,7 @@ protocol YouTubeWatchPlaybackControlling: AnyObject {
     func playPause()
     func play()
     func pause()
+    func skipAd(resumeAt: Double)
     func seek(to time: Double)
     func setVolume(_ volume: Double)
     func showAirPlayPicker()
@@ -130,6 +131,11 @@ final class YouTubePlayerService {
     /// Whether an ad is currently showing on the watch page.
     private(set) var isShowingAd = false
 
+    /// Whether the current ad can be skipped right now (YouTube's Skip button is
+    /// present). Drives the on-video "Skip Ad" button so it only shows when
+    /// clicking it will actually skip.
+    private(set) var isAdSkippable = false
+
     /// Whether the current video is waiting for the WebView to report playable media.
     private(set) var isPlaybackLoading = false
 
@@ -137,9 +143,86 @@ final class YouTubePlayerService {
     /// Updated by the WebView observer when segments are fetched from the SponsorBlock API.
     var sponsorSegments: [SponsorSegment] = []
 
+    /// Short-lived notice for the most recently auto-skipped SponsorBlock segment.
+    private(set) var sponsorSkipNotice: SponsorSkipNotice?
+    @ObservationIgnored private var sponsorSkipNoticeDismissTask: Task<Void, Never>?
+    @ObservationIgnored private var pendingSponsorSegments: (videoId: String, segments: [SponsorSegment])?
+    @ObservationIgnored private var pendingSponsorSkip: (videoId: String, segment: SponsorSegment)?
+
     /// Clears SponsorBlock segments when a new video starts loading.
-    func setSponsorSegments(_ segments: [SponsorSegment]) {
-        self.sponsorSegments = segments
+    func setSponsorSegments(_ segments: [SponsorSegment], videoId: String) {
+        if self.currentVideo?.videoId == videoId {
+            self.pendingSponsorSegments = nil
+            self.sponsorSegments = segments
+        } else {
+            // The watch page can finish its SponsorBlock request before the
+            // first STATE_UPDATE adopts a new SPA video in native state.
+            self.pendingSponsorSegments = (videoId, segments)
+        }
+    }
+
+    /// Surfaces an automatic SponsorBlock skip in the native player chrome.
+    func handleSponsorBlockSkip(
+        start: Double,
+        end: Double,
+        category: String,
+        videoId: String
+    ) {
+        guard start.isFinite,
+              end.isFinite,
+              start >= 0,
+              end > start,
+              !category.isEmpty
+        else { return }
+
+        let segment = SponsorSegment(start: start, end: end, category: category)
+        guard self.currentVideo?.videoId == videoId else {
+            self.pendingSponsorSkip = (videoId, segment)
+            return
+        }
+        self.presentSponsorBlockSkip(segment)
+    }
+
+    private func presentSponsorBlockSkip(_ segment: SponsorSegment) {
+        let notice = SponsorSkipNotice(segment: segment)
+        self.sponsorSkipNotice = notice
+        self.sponsorSkipNoticeDismissTask?.cancel()
+        self.sponsorSkipNoticeDismissTask = Task { @MainActor [weak self] in
+            do {
+                try await Task.sleep(for: .seconds(5))
+            } catch {
+                return
+            }
+            guard self?.sponsorSkipNotice?.id == notice.id else { return }
+            self?.sponsorSkipNotice = nil
+            self?.sponsorSkipNoticeDismissTask = nil
+        }
+    }
+
+    /// Returns to the beginning of the last skipped segment. The WebView seek
+    /// is tagged as explicit user intent so SponsorBlock lets it play through.
+    func undoSponsorBlockSkip() {
+        guard let notice = self.sponsorSkipNotice else { return }
+        self.dismissSponsorBlockSkipNotice()
+        self.seek(to: notice.segment.start)
+    }
+
+    func dismissSponsorBlockSkipNotice() {
+        self.sponsorSkipNoticeDismissTask?.cancel()
+        self.sponsorSkipNoticeDismissTask = nil
+        self.sponsorSkipNotice = nil
+    }
+
+    private func applyPendingSponsorBlockState(for videoId: String) {
+        if let pendingSponsorSegments, pendingSponsorSegments.videoId == videoId {
+            self.sponsorSegments = pendingSponsorSegments.segments
+        }
+        self.pendingSponsorSegments = nil
+
+        if let pendingSponsorSkip, pendingSponsorSkip.videoId == videoId {
+            self.presentSponsorBlockSkip(pendingSponsorSkip.segment)
+        }
+        self.pendingSponsorSkip = nil
     }
 
     // MARK: - Return YouTube Dislikes
@@ -448,6 +531,13 @@ final class YouTubePlayerService {
         self.playbackController.playPause()
     }
 
+    /// Skips the ad currently playing, resuming the real content at the last
+    /// known content position (0 for a pre-roll). Driven by the on-video "Skip
+    /// Ad" button.
+    func skipAd() {
+        self.playbackController.skipAd(resumeAt: self.lastNonAdContentProgress)
+    }
+
     /// Resumes playback.
     func resume() {
         if self.reloadPendingPausedIdentitySwitchForUserResume() {
@@ -523,6 +613,7 @@ final class YouTubePlayerService {
         self.progress = 0
         self.duration = 0
         self.isShowingAd = false
+        self.isAdSkippable = false
         self.resetPerVideoState()
         self.surfaceLocation = .none
         self.activeInlineVideoId = nil
@@ -646,7 +737,7 @@ final class YouTubePlayerService {
     }
 
     /// Clears state that is scoped to a single video.
-    private func resetPerVideoState() {
+    private func resetPerVideoState(preservingPendingSponsorBlockState: Bool = false) {
         self.progress = 0
         self.duration = 0
         self.currentRating = .none
@@ -658,6 +749,11 @@ final class YouTubePlayerService {
         self.currentQuality = nil
         self.storyboardSpec = nil
         self.sponsorSegments = []
+        self.dismissSponsorBlockSkipNotice()
+        if !preservingPendingSponsorBlockState {
+            self.pendingSponsorSegments = nil
+            self.pendingSponsorSkip = nil
+        }
         self.rydDislikes = nil
         self.rydLikes = nil
         self.rydFetchVideoId = nil
@@ -865,6 +961,7 @@ final class YouTubePlayerService {
         var videoId: String?
         var title: String?
         var isAd = false
+        var isAdSkippable = false
     }
 
     /// Applies a `STATE_UPDATE` from the watch page observer script.
@@ -916,6 +1013,10 @@ final class YouTubePlayerService {
         }
         if self.isShowingAd != update.isAd {
             self.isShowingAd = update.isAd
+        }
+        let skippable = update.isAd && update.isAdSkippable
+        if self.isAdSkippable != skippable {
+            self.isAdSkippable = skippable
         }
         if self.isPlaybackLoading {
             self.isPlaybackLoading = false
@@ -992,13 +1093,14 @@ final class YouTubePlayerService {
         {
             self.logger.info("YouTubePlayer: page drifted to a different video, following")
             let shouldRepointDriftedVideo = self.pendingPausedIdentityReloadVideoId != nil
-            self.resetPerVideoState()
+            self.resetPerVideoState(preservingPendingSponsorBlockState: true)
             self.currentVideo = YouTubeVideo(
                 videoId: videoId,
                 title: update.title ?? current.title,
                 channelName: current.channelName,
                 channelId: current.channelId
             )
+            self.applyPendingSponsorBlockState(for: videoId)
             // The page autoplayed/navigated to a new video (e.g. in the floating
             // window) — the prior video concluded and a new watch began. Signal
             // the conclusion (unless it already finished, to avoid double-bumping

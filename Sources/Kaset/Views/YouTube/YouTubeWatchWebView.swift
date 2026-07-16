@@ -350,7 +350,8 @@ final class YouTubeWatchWebView {
                     duration: body["duration"] as? Double ?? 0,
                     videoId: (body["videoId"] as? String).flatMap { $0.isEmpty ? nil : $0 },
                     title: body["title"] as? String,
-                    isAd: body["isAd"] as? Bool ?? false
+                    isAd: body["isAd"] as? Bool ?? false,
+                    isAdSkippable: body["isAdSkippable"] as? Bool ?? false
                 )
                 Task { @MainActor in
                     self.playerService.updatePlaybackState(update)
@@ -361,6 +362,7 @@ final class YouTubeWatchWebView {
                     self.playerService.handleVideoEnded(videoId: videoId)
                 }
             case "SPONSOR_SEGMENTS":
+                guard let videoId = body["videoId"] as? String else { return }
                 let segmentDictionaries = body["segments"] as? [[String: Any]] ?? []
                 let segments: [SponsorSegment] = segmentDictionaries.compactMap { dict in
                     guard let start = dict["start"] as? Double,
@@ -370,7 +372,21 @@ final class YouTubeWatchWebView {
                     return SponsorSegment(start: start, end: end, category: category)
                 }
                 Task { @MainActor in
-                    self.playerService.setSponsorSegments(segments)
+                    self.playerService.setSponsorSegments(segments, videoId: videoId)
+                }
+            case "SPONSOR_SKIPPED":
+                guard let start = body["start"] as? Double,
+                      let end = body["end"] as? Double,
+                      let category = body["category"] as? String,
+                      let videoId = body["videoId"] as? String
+                else { return }
+                Task { @MainActor in
+                    self.playerService.handleSponsorBlockSkip(
+                        start: start,
+                        end: end,
+                        category: category,
+                        videoId: videoId
+                    )
                 }
             default:
                 return
