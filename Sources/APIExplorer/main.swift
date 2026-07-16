@@ -2529,6 +2529,9 @@ func showHelp() {
           swift run api-explorer --guest continuation <token> search # guest filtered search results
           swift run api-explorer continuation <token> next      # next endpoint (for mix queues)
 
+          # Safely inspect a saved response without printing raw token values
+          swift run api-explorer analyze-file Tests/KasetTests/Fixtures/example.json
+
           # Check auth status
           swift run api-explorer auth
 
@@ -2541,6 +2544,25 @@ func showHelp() {
 
         """
     )
+}
+
+/// Analyzes a saved JSON response without printing raw values.
+/// Useful for parser/fixture validation when live authenticated cookies are unavailable.
+func analyzeSavedResponse(at path: String) {
+    let url = URL(fileURLWithPath: path)
+    do {
+        let data = try Data(contentsOf: url)
+        guard let response = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            print("❌ Saved response is not a JSON object")
+            return
+        }
+        print("📄 Analyzing saved response: \(url.lastPathComponent)")
+        print("   Raw JSON and token values remain hidden")
+        print()
+        print(analyzeResponse(response))
+    } catch {
+        print("❌ Failed to analyze saved response: \(error.localizedDescription)")
+    }
 }
 
 // MARK: - Main Entry Point
@@ -2680,6 +2702,13 @@ func runMain() async {
         await exploreContinuation(
             token, endpoint: endpoint, verbose: verbose, outputFile: outputFile
         )
+
+    case "analyze-file":
+        guard filteredArgs.count >= 2 else {
+            print("❌ Usage: analyze-file <path>")
+            return
+        }
+        analyzeSavedResponse(at: filteredArgs[1])
 
     case "list":
         listEndpoints()

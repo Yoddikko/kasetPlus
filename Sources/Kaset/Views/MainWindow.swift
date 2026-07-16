@@ -354,9 +354,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             // track/video still loaded under the previous identity must reload to
             // record to the new account. The shared cookie session covers both.
             guard self.accountService.verifiedAccountId != nil else { return }
-            if self.playerService.currentTrack != nil {
-                self.playerService.reloadCurrentTrackForIdentitySwitch()
-            }
+            self.playerService.reloadCurrentTrackForIdentitySwitch()
             if self.youtubePlayerService.currentVideo != nil {
                 self.youtubePlayerService.reloadCurrentVideoForIdentitySwitch()
             }
@@ -724,6 +722,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         }
         .environment(self.libraryViewModel)
         .environment(\.onPlaylistDeleted) {
+            self.selectedSidebarPinnedItem = nil
             self.navigationSelection = .home
         }
     }
