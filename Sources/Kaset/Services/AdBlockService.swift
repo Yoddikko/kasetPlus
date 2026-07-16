@@ -100,155 +100,42 @@ enum AdBlockService {
 
     // MARK: - YouTube Ad Auto-Skip Script
 
-    /// JS injected into YouTube watch pages at document-start.
+    /// JS injected into YouTube watch pages at document-start (only when ad
+    /// blocking is enabled — same gate as the `contentRulesJSON` network list).
     ///
-    /// Proven approach (YouTube DeAd, 2025-2026): replace ad-related property
-    /// names in RAW JSON strings BEFORE YouTube's player parses them. This
-    /// prevents ads at the API level — no DOM polling, no skip-button clicking
-    /// needed as primary defense. Aggressive ad-skip is kept as fallback.
-    ///
-    /// Key insight: renaming `"adPlacements"` → `"blockedPlacements"` in
-    /// the JSON string means YouTube's code finds `undefined` when reading
-    /// `playerResponse.adPlacements`, which is the same as "no ads for this
-    /// video." The player handles this gracefully.
+    /// DOM-side ad skip only. Stripping ad scheduling from the player response
+    /// (`adPlacements` etc. via an accessor trap or fetch rewrite) was measured
+    /// to break playback outright: the media source is never created
+    /// (`readyState`/`networkState`/`currentSrc` all empty), YouTube's
+    /// anti-adblock detecting the tampering. So we never touch the player JSON;
+    /// we only fast-skip whatever the player itself exposes as a discrete ad.
     static let adBlockScript: String = {
         """
         (function() {
             'use strict';
 
-            // ── Ad keys to rename in raw JSON ─────────────────
-            // Replaces the QUOTED key (e.g. "adPlacements") only when it
-            // appears as a JSON property name, not in arbitrary text.
-            // Uses string-replace on the raw response TEXT — much faster
-            // and more reliable than recursive object pruning.
-            var AD_RENAMES = [
-                ['"adPlacements"', '"blockedPlacements"'],
-                ['"adSlots"', '"blockedSlots"'],
-                ['"playerAds"', '"blockedPlayerAds"'],
-                ['"adBreakHeartbeatParams"', '"blockedAdBreakHeartbeat"'],
-                ['"adPodInfo"', '"blockedAdPodInfo"'],
-                ['"adPlaybackInfo"', '"blockedAdPlaybackInfo"'],
-                ['"adSlotsInfo"', '"blockedAdSlotsInfo"'],
-                ['"requestAd"', '"blockedRequestAd"'],
-                ['"companionAds"', '"blockedCompanionAds"'],
-                ['"adPlacementConfig"', '"blockedAdPlacementConfig"'],
-            ];
-
-            function stripAds(text) {
-                if (typeof text !== 'string' || !text) return text;
-                for (var i = 0; i < AD_RENAMES.length; i++) {
-                    // Only replace if the original key actually exists
-                    if (text.indexOf(AD_RENAMES[i][0]) !== -1) {
-                        text = text.split(AD_RENAMES[i][0]).join(AD_RENAMES[i][1]);
-                    }
-                }
-                return text;
-            }
-
-            // ── 1. Property trap on ytInitialPlayerResponse ──
-            // YouTube embeds initial ad data via inline <script>.
-            // This setter fires when the page assigns to the global,
-            // BEFORE YouTube's player reads it.
-            Object.defineProperty(window, 'ytInitialPlayerResponse', {
-                get: function() { return this.__ytIPR; },
-                set: function(data) {
-                    if (data) {
-                        try {
-                            this.__ytIPR = JSON.parse(stripAds(JSON.stringify(data)));
-                        } catch(e) { this.__ytIPR = data; }
-                    } else {
-                        this.__ytIPR = data;
-                    }
-                },
-                configurable: true
-            });
-
-            // Also trap ytInitialData (used on some YouTube pages)
-            Object.defineProperty(window, 'ytInitialData', {
-                get: function() { return this.__ytID; },
-                set: function(data) {
-                    if (data) {
-                        try {
-                            this.__ytID = JSON.parse(stripAds(JSON.stringify(data)));
-                        } catch(e) { this.__ytID = data; }
-                    } else {
-                        this.__ytID = data;
-                    }
-                },
-                configurable: true
-            });
-
-            // ── 2. fetch() override ──────────────────────────
-            var _fetch = window.fetch;
-            window.fetch = function(input, init) {
-                var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
-                if (url && (url.indexOf('youtubei/v1') !== -1 || url.indexOf('/watch') !== -1)) {
-                    return _fetch.apply(this, arguments).then(function(resp) {
-                        return resp.text().then(function(body) {
-                            return new Response(stripAds(body), {
-                                status: resp.status,
-                                statusText: resp.statusText,
-                                headers: resp.headers
-                            });
-                        });
-                    });
-                }
-                return _fetch.apply(this, arguments);
-            };
-
-            // ── 3. XMLHttpRequest override ──────────────────
-            var _xhrOpen = XMLHttpRequest.prototype.open;
-            var _xhrSend = XMLHttpRequest.prototype.send;
-            XMLHttpRequest.prototype.open = function(method, url) {
-                this.__kURL = typeof url === 'string' ? url : '';
-                return _xhrOpen.apply(this, arguments);
-            };
-            XMLHttpRequest.prototype.send = function() {
-                var self = this;
-                var url = self.__kURL || '';
-                if (url && (url.indexOf('youtubei/v1') !== -1 || url.indexOf('/watch') !== -1)) {
-                    var listener = function() {
-                        if (self.readyState === 4 && self.responseText) {
-                            try {
-                                Object.defineProperty(self, 'responseText',
-                                    {value: stripAds(self.responseText), writable: true});
-                                Object.defineProperty(self, 'response',
-                                    {value: stripAds(self.response), writable: true});
-                            } catch(e) {}
-                        }
-                    };
-                    self.addEventListener('readystatechange', listener);
-                }
-                return _xhrSend.apply(this, arguments);
-            };
-
-            // ── 4. Aggressive ad-skip fallback ───────────────
-            // Handles any ad that slips through (e.g. server-side ad stitching).
-            var wasAd = false;
-            setInterval(function() {
+            // ── Ad skip (safe) ───────────────────────────────
+            // Only clicks YouTube's own "Skip" button / closes overlay ads —
+            // exactly what a user would do, so it can never corrupt the player.
+            // Seeking the ad clip or forcing playbackRate was tried and broke
+            // the ad→content handoff (the video played ~0.5s then went black).
+            function killAd() {
                 try {
                     var player = document.getElementById('movie_player');
-                    if (!player) return;
-                    var isAd = player.classList.contains('ad-showing');
-                    var video = document.querySelector('#movie_player video') || document.querySelector('video');
-                    if (!video) return;
-                    if (isAd) {
-                        wasAd = true;
-                        var btns = document.querySelectorAll(
-                            '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button,' +
-                            '.ytp-ad-skip-button-container button, button[aria-label*=\"Skip\"]'
-                        );
-                        btns.forEach(function(b) { b.click(); });
-                        document.querySelectorAll('.ytp-ad-overlay-close-button').forEach(function(o) { o.click(); });
-                        video.playbackRate = 16;
-                        video.muted = true;
-                    } else if (wasAd) {
-                        wasAd = false;
-                        video.playbackRate = 1;
-                        if (window.__kasetTargetVolume > 0) video.muted = false;
-                    }
+                    if (!player || !player.classList.contains('ad-showing')) return;
+                    document.querySelectorAll(
+                        '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button,' +
+                        '.ytp-ad-skip-button-container button, button[aria-label*=\"Skip\"]'
+                    ).forEach(function(b) { b.click(); });
+                    document.querySelectorAll('.ytp-ad-overlay-close-button').forEach(function(o) { o.click(); });
                 } catch(e) {}
-            }, 150);
+            }
+            setInterval(killAd, 250);
+            if (window.MutationObserver) {
+                new MutationObserver(killAd).observe(document.documentElement, {
+                    attributes: true, subtree: true, attributeFilter: ['class']
+                });
+            }
         })();
         """
     }()

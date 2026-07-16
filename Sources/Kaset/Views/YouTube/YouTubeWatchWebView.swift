@@ -76,7 +76,12 @@ final class YouTubeWatchWebView {
         self.coordinator = Coordinator(playerService: playerService)
 
         let configuration = webKitManager.createWebViewConfiguration(
-            websiteDataStore: usesCookieFreeDataStore ? .nonPersistent() : nil
+            websiteDataStore: usesCookieFreeDataStore ? .nonPersistent() : nil,
+            // Never network-block ads on the YouTube player: it stalls the
+            // player on the killed ad request and blanks the video. The DOM
+            // skip script (installed below when ad blocking is on) handles
+            // client-side ads without breaking playback.
+            applyAdBlock: false
         )
         configuration.userContentController.add(self.coordinator!, name: "youtubePlayer")
         self.installUserScripts(

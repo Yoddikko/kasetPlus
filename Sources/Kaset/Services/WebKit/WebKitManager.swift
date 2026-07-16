@@ -257,7 +257,10 @@ final class WebKitManager: NSObject, WebKitManagerProtocol {
     }
 
     /// Creates a WebView configuration using the shared persistent data store by default.
-    func createWebViewConfiguration(websiteDataStore: WKWebsiteDataStore? = nil) -> WKWebViewConfiguration {
+    func createWebViewConfiguration(
+        websiteDataStore: WKWebsiteDataStore? = nil,
+        applyAdBlock: Bool = true
+    ) -> WKWebViewConfiguration {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = websiteDataStore ?? self.dataStore
 
@@ -273,8 +276,15 @@ final class WebKitManager: NSObject, WebKitManagerProtocol {
         // Enable AirPlay for streaming to Apple TV, HomePod, etc.
         configuration.allowsAirPlayForMediaPlayback = true
 
-        // Apply ad-blocking content rules if enabled
-        AdBlockService.apply(to: configuration)
+        // Apply ad-blocking content rules if enabled. Callers that host a
+        // YouTube player pass `false`: network-blocking YouTube's ad requests
+        // there doesn't block the ad, it stalls the player on the dead request
+        // and leaves a black screen (YouTube's anti-adblock — the ad can't be
+        // removed without breaking playback). Those surfaces rely on the DOM
+        // skip script instead.
+        if applyAdBlock {
+            AdBlockService.apply(to: configuration)
+        }
 
         return configuration
     }

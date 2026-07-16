@@ -277,6 +277,12 @@ extension YouTubeWatchWebView {
             style.textContent = `
                 html, body { background: #000 !important; }
                 html *, body * { visibility: hidden !important; }
+                /* Keep the media element itself rendered while the page is
+                   blacked out. WebKit/YouTube suspend stream loading for a
+                   visibility:hidden <video> (networkState stays EMPTY, the
+                   player never starts). A visible descendant overrides a hidden
+                   ancestor, so this loads the stream without revealing chrome. */
+                video { visibility: visible !important; }
             `;
             document.documentElement.appendChild(style);
         })();
@@ -312,6 +318,16 @@ extension YouTubeWatchWebView {
                     /* Hide everything by default */
                     html, body, * {
                         visibility: hidden !important;
+                    }
+
+                    /* Always keep the <video> rendered, even before its
+                       ancestor chain is marked visible: WebKit/YouTube suspend
+                       stream loading for a hidden media element, so during the
+                       gap before markAncestors() runs the player would stall
+                       with networkState EMPTY and never recover. A visible
+                       descendant overrides its hidden ancestors. */
+                    video {
+                        visibility: visible !important;
                     }
 
                     /* Show precisely the video's ancestor chain */
