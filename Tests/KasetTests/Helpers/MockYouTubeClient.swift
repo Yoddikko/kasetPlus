@@ -219,6 +219,19 @@ final class MockYouTubeClient: YouTubeClientProtocol {
         return self.commentsPage
     }
 
+    func getLiveChat(continuation _: String) async throws -> YouTubeLiveChatPage {
+        if let error {
+            throw error
+        }
+        return YouTubeLiveChatPage(messages: [], continuation: nil, timeoutMs: 5000, sendParams: nil)
+    }
+
+    func sendLiveChatMessage(text _: String, params _: String) async throws {
+        if let error {
+            throw error
+        }
+    }
+
     func postComment(text: String, createCommentParams: String) async throws {
         if let error {
             throw error

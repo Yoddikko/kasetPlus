@@ -68,6 +68,38 @@ final class YouTubeWatchViewModel {
     /// Parent comments whose replies are currently loading.
     private(set) var loadingReplies: Set<String> = []
 
+    // MARK: - Live Chat State
+
+    /// Whether this video is a live stream.
+    var isLive: Bool { self.video.isLive }
+
+    /// Live-chat messages accumulated while polling (oldest first, capped).
+    private(set) var liveChatMessages: [YouTubeLiveChatMessage] = []
+
+    /// The running live-chat poll loop, if any.
+    private var liveChatTask: Task<Void, Never>?
+
+    /// Whether at least one live-chat poll has completed (used to tell "loading"
+    /// apart from a genuinely empty chat).
+    private(set) var liveChatLoaded = false
+
+    /// Send-message params for the current chat (nil = can't post: signed out or
+    /// restricted). Refreshed each poll.
+    private(set) var liveChatSendParams: String?
+
+    /// Whether a live-chat message is currently being sent.
+    private(set) var isSendingLiveChat = false
+
+    /// Whether the signed-in user can post to this live chat.
+    var canSendLiveChat: Bool {
+        self.liveChatSendParams != nil
+    }
+
+    /// Whether the live chat is available for this video (live + chat enabled).
+    var hasLiveChat: Bool {
+        self.isLive && self.data.liveChatContinuation != nil
+    }
+
     func load() async {
         self.loadGeneration += 1
         let generation = self.loadGeneration
@@ -79,6 +111,9 @@ final class YouTubeWatchViewModel {
             self.isSubscribed = data.isSubscribed ?? false
             self.commentsContinuation = data.commentsContinuation
             self.loadingState = .loaded
+            if self.isLive, let liveChat = data.liveChatContinuation {
+                self.startLiveChat(continuation: liveChat, generation: generation)
+            }
             await self.loadMoreComments()
         } catch {
             guard generation == self.loadGeneration else { return }
@@ -90,6 +125,77 @@ final class YouTubeWatchViewModel {
             }
             self.logger.error("Failed to load watch-next data: \(error.localizedDescription)")
             self.loadingState = .error(LoadingError(from: error))
+        }
+    }
+
+    // MARK: - Live Chat
+
+    /// Polls the live chat, appending new messages after each server-provided
+    /// `timeoutMs`, until the video changes (generation bumps) or it's stopped.
+    private func startLiveChat(continuation: String, generation: Int) {
+        self.liveChatTask?.cancel()
+        self.liveChatTask = Task { [weak self] in
+            var token: String? = continuation
+            while let current = token, !Task.isCancelled {
+                guard let self, generation == self.loadGeneration else { return }
+                do {
+                    let page = try await self.client.getLiveChat(continuation: current)
+                    guard generation == self.loadGeneration, !Task.isCancelled else { return }
+                    self.appendLiveChat(page.messages)
+                    // Send params usually appear only on the first page; keep them
+                    // once found so the composer doesn't flicker away on later polls.
+                    if let params = page.sendParams {
+                        self.liveChatSendParams = params
+                    }
+                    self.liveChatLoaded = true
+                    token = page.continuation
+                    // Clamp the server delay to a sane range so a bad value can't
+                    // hammer the endpoint or stall the chat.
+                    try await Task.sleep(for: .milliseconds(min(max(page.timeoutMs, 1000), 10000)))
+                } catch {
+                    if error is CancellationError { return }
+                    // Transient failure: back off and retry with the same token.
+                    try? await Task.sleep(for: .seconds(3))
+                }
+            }
+        }
+    }
+
+    private func appendLiveChat(_ messages: [YouTubeLiveChatMessage]) {
+        let existing = Set(self.liveChatMessages.map(\.id))
+        let fresh = messages.filter { !existing.contains($0.id) }
+        guard !fresh.isEmpty else { return }
+        self.liveChatMessages.append(contentsOf: fresh)
+        // Cap memory on long-running streams; keep the most recent messages.
+        if self.liveChatMessages.count > 250 {
+            self.liveChatMessages.removeFirst(self.liveChatMessages.count - 250)
+        }
+    }
+
+    /// Stops the live-chat poll loop (call when the watch view goes away).
+    func stopLiveChat() {
+        self.liveChatTask?.cancel()
+        self.liveChatTask = nil
+    }
+
+    /// Sends a live-chat message; returns true on success. The message shows up
+    /// on the next poll like any other, so nothing is appended optimistically.
+    func sendLiveChatMessage(text: String) async -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let params = self.liveChatSendParams, !self.isSendingLiveChat else {
+            return false
+        }
+
+        self.isSendingLiveChat = true
+        defer { self.isSendingLiveChat = false }
+        do {
+            try await self.client.sendLiveChatMessage(text: trimmed, params: params)
+            HapticService.success()
+            return true
+        } catch {
+            self.logger.error("Failed to send live chat message: \(error.localizedDescription)")
+            HapticService.error()
+            return false
         }
     }
 

@@ -850,3 +850,41 @@ struct WatchNextParserHeatmapTests {
         #expect(WatchNextParser.heatmap(of: data).isEmpty)
     }
 }
+
+// MARK: - LiveChatParser
+
+@Suite("LiveChatParser")
+struct LiveChatParserTests {
+    @Test("Parses text messages, roles, emoji, and the next poll token")
+    func parsesLiveChat() {
+        let data: [String: Any] = [
+            "continuationContents": ["liveChatContinuation": [
+                "actions": [
+                    ["addChatItemAction": ["item": ["liveChatTextMessageRenderer": [
+                        "id": "msg-1",
+                        "authorName": ["simpleText": "@Alice"],
+                        "authorExternalChannelId": "UC123",
+                        "message": ["runs": [
+                            ["text": "hello "],
+                            ["emoji": ["emojiId": "😀", "isCustomEmoji": false]],
+                        ]],
+                        "authorBadges": [
+                            ["liveChatAuthorBadgeRenderer": ["icon": ["iconType": "MODERATOR"]]],
+                        ],
+                    ]]]],
+                ],
+                "continuations": [
+                    ["invalidationContinuationData": ["continuation": "next-token", "timeoutMs": 8000]],
+                ],
+            ]],
+        ]
+        let page = LiveChatParser.parse(data)
+        #expect(page.messages.count == 1)
+        #expect(page.messages.first?.author == "@Alice")
+        #expect(page.messages.first?.message == "hello 😀")
+        #expect(page.messages.first?.isModerator == true)
+        #expect(page.messages.first?.authorChannelId == "UC123")
+        #expect(page.continuation == "next-token")
+        #expect(page.timeoutMs == 8000)
+    }
+}

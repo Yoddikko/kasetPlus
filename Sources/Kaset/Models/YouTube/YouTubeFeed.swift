@@ -187,6 +187,9 @@ struct WatchNextData {
     var isSubscribed: Bool?
     /// Continuation token for the video's comments section.
     var commentsContinuation: String?
+    /// Initial continuation token for the live chat, when the video is a live
+    /// stream (or premiere) with chat enabled.
+    var liveChatContinuation: String?
 
     init(
         videoTitle: String?,
@@ -198,7 +201,8 @@ struct WatchNextData {
         heatmap: [YouTubeHeatmapMarker] = [],
         descriptionText: String? = nil,
         isSubscribed: Bool? = nil,
-        commentsContinuation: String? = nil
+        commentsContinuation: String? = nil,
+        liveChatContinuation: String? = nil
     ) {
         self.videoTitle = videoTitle
         self.viewCountText = viewCountText
@@ -210,6 +214,7 @@ struct WatchNextData {
         self.descriptionText = descriptionText
         self.isSubscribed = isSubscribed
         self.commentsContinuation = commentsContinuation
+        self.liveChatContinuation = liveChatContinuation
     }
 
     static let empty = WatchNextData(
@@ -219,6 +224,39 @@ struct WatchNextData {
         channel: nil,
         related: []
     )
+}
+
+// MARK: - YouTubeLiveChatMessage
+
+/// A single live-chat message from a live stream's chat.
+struct YouTubeLiveChatMessage: Identifiable, Hashable {
+    let id: String
+    let author: String
+    let authorAvatarURL: URL?
+    let authorChannelId: String?
+    /// Flattened message text (text runs joined; emoji rendered as their
+    /// character or `:shortcut:`).
+    let message: String
+    /// Send time formatted as a short clock time (e.g. "14:32"), when known.
+    let timestampText: String?
+    let isVerified: Bool
+    let isModerator: Bool
+    let isMember: Bool
+    let isOwner: Bool
+}
+
+// MARK: - YouTubeLiveChatPage
+
+/// One polled page of live chat: new messages plus the token and delay for the
+/// next poll.
+struct YouTubeLiveChatPage {
+    let messages: [YouTubeLiveChatMessage]
+    let continuation: String?
+    /// How long to wait before the next poll, in milliseconds (server-provided).
+    let timeoutMs: Int
+    /// Opaque params for `live_chat/send_message`, present only when the signed-in
+    /// user is allowed to post (nil for signed-out or restricted chats).
+    let sendParams: String?
 }
 
 // MARK: - YouTubeDestination

@@ -252,6 +252,23 @@ final class YouTubeClient: YouTubeClientProtocol {
         return YouTubeCommentsParser.parse(data)
     }
 
+    /// Fetches one page of a live stream's chat. Poll again with the returned
+    /// continuation after waiting its `timeoutMs`.
+    func getLiveChat(continuation: String) async throws -> YouTubeLiveChatPage {
+        let data = try await self.request("live_chat/get_live_chat", body: ["continuation": continuation])
+        return LiveChatParser.parse(data)
+    }
+
+    func sendLiveChatMessage(text: String, params: String) async throws {
+        self.logger.info("Sending live chat message")
+
+        let body: [String: Any] = [
+            "richMessage": ["textSegments": [["text": text]]],
+            "params": params,
+        ]
+        _ = try await self.request("live_chat/send_message", body: body, retry: false)
+    }
+
     func postComment(text: String, createCommentParams: String) async throws {
         self.logger.info("Posting YouTube comment")
 

@@ -70,8 +70,25 @@ enum WatchNextParser {
             heatmap: Self.heatmap(of: data),
             descriptionText: Self.descriptionText(of: data) ?? secondaryDescriptionText,
             isSubscribed: isSubscribed,
-            commentsContinuation: Self.commentsContinuation(of: data)
+            commentsContinuation: Self.commentsContinuation(of: data),
+            liveChatContinuation: Self.liveChatContinuation(of: data)
         )
+    }
+
+    /// Initial live-chat continuation token, present only for live streams (or
+    /// premieres) with chat enabled: `conversationBar.liveChatRenderer`.
+    static func liveChatContinuation(of data: [String: Any]) -> String? {
+        let results = (data["contents"] as? [String: Any])?["twoColumnWatchNextResults"] as? [String: Any]
+        let renderer = (results?["conversationBar"] as? [String: Any])?["liveChatRenderer"] as? [String: Any]
+        let continuations = renderer?["continuations"] as? [[String: Any]] ?? []
+        for continuation in continuations {
+            if let reload = continuation["reloadContinuationData"] as? [String: Any],
+               let token = reload["continuation"] as? String
+            {
+                return token
+            }
+        }
+        return nil
     }
 
     /// "Most replayed" heatmap samples, exposed via a `macroMarkersListEntity`

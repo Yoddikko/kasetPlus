@@ -116,6 +116,12 @@ final class MockUITestYouTubeClient: YouTubeClientProtocol {
         )
     }
 
+    func getLiveChat(continuation _: String) async throws -> YouTubeLiveChatPage {
+        YouTubeLiveChatPage(messages: [], continuation: nil, timeoutMs: 5000, sendParams: nil)
+    }
+
+    func sendLiveChatMessage(text _: String, params _: String) async throws {}
+
     func postComment(text _: String, createCommentParams _: String) async throws {}
 
     func performCommentAction(_: String) async throws {}

@@ -37,6 +37,7 @@ struct YouTubeWatchView: View {
     /// moving for a few seconds (restarted on every movement).
     @State private var overlayHideTask: Task<Void, Never>?
     @State private var commentSearchQuery = ""
+    @State private var liveChatDraft = ""
 
     // AI video summary (on-device, macOS 26+). Stored as plain values so the
     // view doesn't reference the macOS-26-only VideoSummary type outside a guard.
@@ -95,7 +96,9 @@ struct YouTubeWatchView: View {
 
                         // Distraction-free mode hides the comments and the
                         // related rail, leaving just the video and its metadata.
-                        if !self.settings.distractionFreeEnabled {
+                        // Live streams show live chat instead of comments (like
+                        // YouTube), so the comments section is hidden for them.
+                        if !self.settings.distractionFreeEnabled, !self.viewModel.hasLiveChat {
                             Divider()
 
                             self.commentsSection
@@ -104,8 +107,13 @@ struct YouTubeWatchView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     if !self.settings.distractionFreeEnabled {
-                        self.relatedColumn
-                            .frame(width: 360)
+                        VStack(alignment: .leading, spacing: 20) {
+                            if self.viewModel.hasLiveChat {
+                                self.liveChatSection
+                            }
+                            self.relatedColumn
+                        }
+                        .frame(width: 360)
                     }
                 }
             }
@@ -154,6 +162,7 @@ struct YouTubeWatchView: View {
                 self.youtubePlayer.inlineSurfaceWillDisappear(videoId: self.video.videoId)
                 self.overlayHideTask?.cancel()
                 self.youtubePlayer.inlineVideoOnScreen = false
+                self.viewModel.stopLiveChat()
             }
     }
 
@@ -995,6 +1004,118 @@ struct YouTubeWatchView: View {
         .accessibilityIdentifier(AccessibilityID.YouTubeContent.commentsSection)
     }
 
+    // MARK: - Live Chat
+
+    private var liveChatSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(.red)
+                    .frame(width: 7, height: 7)
+                    .accessibilityHidden(true)
+                Text("Live chat", comment: "Live chat panel header")
+                    .font(.title3.bold())
+            }
+
+            Group {
+                if self.viewModel.liveChatMessages.isEmpty {
+                    VStack(spacing: 8) {
+                        if self.viewModel.liveChatLoaded {
+                            Image(systemName: "bubble.left.and.bubble.right")
+                                .font(.largeTitle)
+                                .foregroundStyle(.tertiary)
+                            Text("No messages yet", comment: "Empty live chat state")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 440)
+                } else {
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 10) {
+                                ForEach(self.viewModel.liveChatMessages) { message in
+                                    LiveChatRow(message: message)
+                                        .id(message.id)
+                                }
+                                Color.clear
+                                    .frame(height: 1)
+                                    .id("live-chat-bottom")
+                            }
+                            .padding(10)
+                        }
+                        .frame(height: 440)
+                        .onChange(of: self.viewModel.liveChatMessages.count) { _, _ in
+                            withAnimation(.easeOut(duration: 0.15)) {
+                                proxy.scrollTo("live-chat-bottom", anchor: .bottom)
+                            }
+                        }
+                        .onAppear {
+                            proxy.scrollTo("live-chat-bottom", anchor: .bottom)
+                        }
+                    }
+                }
+            }
+            .background {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.secondary.opacity(0.06))
+            }
+
+            if self.viewModel.canSendLiveChat {
+                self.liveChatComposer
+            }
+        }
+    }
+
+    private var liveChatComposer: some View {
+        HStack(spacing: 8) {
+            TextField(
+                String(localized: "Chat…", comment: "Live chat message field placeholder"),
+                text: self.$liveChatDraft,
+                axis: .vertical
+            )
+            .textFieldStyle(.plain)
+            .font(.system(size: 12))
+            .lineLimit(1 ... 3)
+            .onSubmit { self.sendLiveChatDraft() }
+
+            Button(action: self.sendLiveChatDraft) {
+                if self.viewModel.isSendingLiveChat {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Self.brandAccent)
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(
+                self.viewModel.isSendingLiveChat
+                    || self.liveChatDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            )
+            .accessibilityLabel(String(localized: "Send chat message"))
+        }
+        .padding(8)
+        .background {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.secondary.opacity(0.08))
+        }
+    }
+
+    private func sendLiveChatDraft() {
+        let text = self.liveChatDraft
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        Task {
+            if await self.viewModel.sendLiveChatMessage(text: text) {
+                self.liveChatDraft = ""
+            }
+        }
+    }
+
     private var commentComposer: some View {
         HStack(spacing: 10) {
             TextField(
@@ -1308,6 +1429,86 @@ func commentAttributedText(_ text: String, duration: TimeInterval) -> Attributed
         result[start ..< end].foregroundColor = .accentColor
     }
     return result
+}
+
+// MARK: - LiveChatRow
+
+/// One live-chat message: small avatar, author (colored by role), and the
+/// message text. Author role badges (owner/moderator/member/verified) match
+/// YouTube's live chat.
+private struct LiveChatRow: View {
+    let message: YouTubeLiveChatMessage
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            self.avatar
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Text(self.message.author)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(self.authorColor)
+                        .lineLimit(1)
+
+                    if self.message.isOwner {
+                        self.badge("crown.fill", .yellow)
+                    }
+                    if self.message.isModerator {
+                        self.badge("wrench.adjustable.fill", .blue)
+                    }
+                    if self.message.isMember {
+                        self.badge("star.fill", .green)
+                    }
+                    if self.message.isVerified {
+                        self.badge("checkmark.seal.fill", .secondary)
+                    }
+
+                    if let timestampText = self.message.timestampText {
+                        Text(timestampText)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                            .monospacedDigit()
+                    }
+                }
+
+                Text(self.message.message)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.primary)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var authorColor: Color {
+        if self.message.isOwner { return .yellow }
+        if self.message.isModerator { return .blue }
+        if self.message.isMember { return .green }
+        return .secondary
+    }
+
+    private var avatar: some View {
+        CachedAsyncImage(
+            url: self.message.authorAvatarURL,
+            targetSize: CGSize(width: 24, height: 24)
+        ) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } placeholder: {
+            Circle()
+                .fill(.quaternary)
+        }
+        .frame(width: 24, height: 24)
+        .clipShape(.circle)
+    }
+
+    private func badge(_ systemName: String, _ color: Color) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 9))
+            .foregroundStyle(color)
+            .accessibilityHidden(true)
+    }
 }
 
 // MARK: - CommentRow

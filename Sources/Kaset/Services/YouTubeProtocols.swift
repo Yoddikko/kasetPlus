@@ -60,6 +60,12 @@ protocol YouTubeClientProtocol: Sendable {
     /// Fetches a page of comments by continuation token.
     func getComments(continuation: String) async throws -> YouTubeCommentsPage
 
+    /// Fetches one page of a live stream's chat by continuation token.
+    func getLiveChat(continuation: String) async throws -> YouTubeLiveChatPage
+
+    /// Sends a live-chat message using the send params from a live-chat page.
+    func sendLiveChatMessage(text: String, params: String) async throws
+
     /// Posts a top-level comment.
     func postComment(text: String, createCommentParams: String) async throws
 
