@@ -53,6 +53,17 @@ final class YouTubeWatchWebView {
     /// superseded, so a stale reload can't navigate over a newer selection.
     private var loadGeneration = 0
 
+    /// Monotonic counter for actual document navigations, baked into each page
+    /// via the bootstrap script (`window.__kasetDocGeneration`) and echoed back
+    /// in every STATE_UPDATE/VIDEO_ENDED. After a new video is requested the old
+    /// page's observer briefly keeps posting for the prior video; those messages
+    /// carry the old generation and are dropped (see the Coordinator gate).
+    ///
+    /// Distinct from `loadGeneration`, which `cancelPendingLoad()` bumps on
+    /// pause without navigating — reusing it would wrongly drop the still-live
+    /// (merely paused) document's updates. This only advances on a real load.
+    private(set) var documentGeneration = 0
+
     private init() {}
 
     /// Get or create the watch WebView.
@@ -86,6 +97,7 @@ final class YouTubeWatchWebView {
         configuration.userContentController.add(self.coordinator!, name: "youtubePlayer")
         self.installUserScripts(
             on: configuration.userContentController,
+            documentGeneration: self.documentGeneration,
             targetVolume: playerService.volume
         )
 
@@ -163,12 +175,14 @@ final class YouTubeWatchWebView {
 
         self.loadGeneration += 1
         let myLoadGeneration = self.loadGeneration
+        self.documentGeneration += 1
 
         let isShort = self.coordinator?.playerService.currentVideo?.videoId == videoId
             && self.coordinator?.playerService.currentVideo?.isShort == true
         let targetVolume = self.coordinator?.playerService.volume ?? 1.0
         self.installUserScripts(
             on: webView.configuration.userContentController,
+            documentGeneration: self.documentGeneration,
             targetVolume: targetVolume,
             pendingSeek: self.pendingSeek,
             isShort: isShort
@@ -196,6 +210,7 @@ final class YouTubeWatchWebView {
         guard let webView else { return }
         self.logger.info("Tearing down YouTube watch WebView")
         self.loadGeneration += 1
+        self.documentGeneration += 1
         self.currentVideoId = nil
         webView.evaluateJavaScript("window.__kasetStopYTExtraction?.(); document.querySelector('video')?.pause()") { _, _ in }
         webView.loadHTMLString("", baseURL: nil)
@@ -211,6 +226,7 @@ final class YouTubeWatchWebView {
 
     private func installUserScripts(
         on contentController: WKUserContentController,
+        documentGeneration: Int,
         targetVolume: Double,
         pendingSeek: Double? = nil,
         isShort: Bool = false
@@ -220,6 +236,7 @@ final class YouTubeWatchWebView {
         let sbSettings = SettingsManager.shared
         let bootstrap = WKUserScript(
             source: Self.pageBootstrapScript(
+                documentGeneration: documentGeneration,
                 targetVolume: targetVolume,
                 pendingSeek: pendingSeek,
                 sponsorBlockEnabled: sbSettings.sponsorBlockEnabled,
@@ -281,13 +298,17 @@ final class YouTubeWatchWebView {
     /// it is in place before the player boots, and naturally scoped to this one
     /// navigation.
     nonisolated static func pageBootstrapScript(
+        documentGeneration: Int = 0,
         targetVolume: Double,
         pendingSeek: Double? = nil,
         sponsorBlockEnabled: Bool,
         sponsorBlockCategories: [String]
     ) -> String {
         let clamped = targetVolume.isFinite ? min(max(targetVolume, 0), 1) : 1.0
-        var script = "window.__kasetTargetVolume = \(clamped);"
+        // Stamp this document's generation so the bridge can drop late messages
+        // from a superseded page (see Coordinator's generation gate).
+        var script = "window.__kasetDocGeneration = \(documentGeneration);"
+        script += " window.__kasetTargetVolume = \(clamped);"
         if let pendingSeek, pendingSeek.isFinite, pendingSeek >= 0 {
             script += " window.__kasetPendingSeek = \(pendingSeek);"
         }
@@ -341,6 +362,18 @@ final class YouTubeWatchWebView {
             guard let body = message.body as? [String: Any],
                   let type = body["type"] as? String
             else { return }
+
+            // Drop playback messages from a superseded document: after a new
+            // video is requested the old page's observer briefly keeps posting
+            // for the prior video, which would corrupt the new track's state.
+            // The generation is baked into each page and only advances on a real
+            // navigation, so a still-live (merely paused) page is never dropped.
+            if type == "STATE_UPDATE" || type == "VIDEO_ENDED",
+               let generation = body["generation"] as? Int,
+               generation != YouTubeWatchWebView.shared.documentGeneration
+            {
+                return
+            }
 
             switch type {
             case "STATE_UPDATE":

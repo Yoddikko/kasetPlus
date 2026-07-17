@@ -102,6 +102,7 @@ extension YouTubeWatchWebView {
                     if (videoId !== '') { lastVideoId = videoId; }
                     bridge.postMessage({
                         type: 'STATE_UPDATE',
+                        generation: (window.__kasetDocGeneration || 0),
                         isPlaying: !video.paused && !video.ended,
                         progress: video.currentTime || 0,
                         duration: (video.duration && isFinite(video.duration)) ? video.duration : 0,
@@ -118,6 +119,7 @@ extension YouTubeWatchWebView {
             function sendEnded() {
                 bridge.postMessage({
                     type: 'VIDEO_ENDED',
+                    generation: (window.__kasetDocGeneration || 0),
                     videoId: lastVideoId || currentVideoId()
                 });
             }

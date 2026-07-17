@@ -15,6 +15,20 @@ struct YouTubeWatchScriptTests {
         #expect(script.contains("__kasetTargetVolume"))
     }
 
+    @Test("Bootstrap stamps the document generation and the observer echoes it")
+    func documentGenerationIsStampedAndEchoed() {
+        // The generation gate depends on the page carrying its generation and the
+        // observer sending it back on both message types; without either half a
+        // superseded page's updates would slip through.
+        let script = YouTubeWatchWebView.pageBootstrapScript(
+            documentGeneration: 7, targetVolume: 1, sponsorBlockEnabled: false, sponsorBlockCategories: []
+        )
+        #expect(script.contains("__kasetDocGeneration = 7"))
+
+        let observer = YouTubeWatchWebView.observerScript
+        #expect(observer.contains("generation: (window.__kasetDocGeneration || 0)"))
+    }
+
     @Test("Extraction script defines the callable hook and visibility chain")
     func extractionScriptContract() {
         let script = YouTubeWatchWebView.extractionScript
