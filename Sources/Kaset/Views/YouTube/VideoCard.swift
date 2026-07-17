@@ -16,7 +16,9 @@ struct VideoCard: View {
                     for: self.video.videoId, original: self.video.title))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.primary)
-                    .lineLimit(2)
+                    // Always reserve two lines so 1- vs 2-line titles don't make
+                    // cards in a row different heights (they're top-aligned).
+                    .lineLimit(2, reservesSpace: true)
                     .multilineTextAlignment(.leading)
                     .id("dearrow-\(self.video.videoId)-\(DearrowCache.shared.hasDearrow(for: self.video.videoId))")
 
