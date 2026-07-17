@@ -559,7 +559,7 @@ final class SettingsManager {
             to: Self.smartShuffleSuggestionsAheadRange
         )
         self.ambientBackdropEnabled = UserDefaults.standard.object(forKey: Keys.ambientBackdropEnabled) as? Bool ?? true
-        self.controlsOnVideoEnabled = UserDefaults.standard.object(forKey: Keys.controlsOnVideo) as? Bool ?? false
+        self.controlsOnVideoEnabled = UserDefaults.standard.object(forKey: Keys.controlsOnVideo) as? Bool ?? true
         self.popOutVideoOnNavigateAway = UserDefaults.standard.object(forKey: Keys.popOutVideoOnNavigateAway) as? Bool ?? true
         self.sponsorBlockEnabled = UserDefaults.standard.object(forKey: Keys.sponsorBlockEnabled) as? Bool ?? false
         self.sponsorBlockCategories = UserDefaults.standard.object(forKey: Keys.sponsorBlockCategories) as? [String] ?? ["sponsor", "selfpromo", "interaction"]

@@ -748,8 +748,10 @@ struct SettingsView: View {
                     Label("Addons", systemImage: "app.connected.to.app.below.fill")
                 }
         }
-        // 520×520 fits the Equalizer tab's six-band slider grid + curve
-        // preview; the other tabs grow comfortably into the extra space.
-        .frame(width: 520, height: 520)
+        // 840 wide so all eight tabs fit in the toolbar without overflowing into
+        // the "»" menu (the localized labels are wide); height 520 fits the
+        // Equalizer tab's six-band slider grid + curve preview. Other tabs grow
+        // comfortably into the extra space.
+        .frame(width: 840, height: 520)
     }
 }
