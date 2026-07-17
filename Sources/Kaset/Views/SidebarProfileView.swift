@@ -16,19 +16,51 @@ struct SidebarProfileView: View {
     @Environment(AuthService.self) private var authService
 
     @State private var showingAccountSwitcher = false
+    @State private var showsCommunity = false
 
     var body: some View {
-        Group {
-            if self.authService.hasPersonalAccount {
-                self.loggedInContent
-            } else if self.authService.state.isLoggedIn {
-                self.loggedInGuestContent
-            } else {
-                self.loggedOutContent
+        VStack(spacing: 6) {
+            self.communityButton
+
+            Group {
+                if self.authService.hasPersonalAccount {
+                    self.loggedInContent
+                } else if self.authService.state.isLoggedIn {
+                    self.loggedInGuestContent
+                } else {
+                    self.loggedOutContent
+                }
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+        .sheet(isPresented: self.$showsCommunity) {
+            CommunityView()
+        }
+    }
+
+    /// Opens the in-app community hub (report/browse issues + discussions).
+    private var communityButton: some View {
+        Button {
+            self.showsCommunity = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "ladybug")
+                    .font(.system(size: 12))
+                Text("Report an issue or discuss", comment: "Sidebar community entry point")
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(String(localized: "Report an issue or join the KasetPlus community"))
     }
 
     // MARK: - Logged In Content
