@@ -389,6 +389,28 @@ struct YouTubePlayerBar: View {
 
     private var youtubeTransportControls: some View {
         HStack(spacing: 6) {
+            if self.youtubePlayer.isLive {
+                Button {
+                    HapticService.playback()
+                    self.youtubePlayer.seekToLive()
+                } label: {
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(self.youtubePlayer.isAtLiveEdge ? Color.red : Color.secondary)
+                            .frame(width: 7, height: 7)
+                        Text("LIVE", comment: "Button that jumps to the live edge of a stream")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(self.youtubePlayer.isAtLiveEdge ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(String(localized: "Jump to live"))
+                .accessibilityLabel(String(localized: "Jump to live"))
+            }
+
             PlayerBarIconButton(
                 action: {
                     HapticService.playback()

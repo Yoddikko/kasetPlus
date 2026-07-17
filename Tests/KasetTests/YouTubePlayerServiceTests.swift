@@ -53,6 +53,8 @@ private final class MockYouTubeWatchPlaybackController: YouTubeWatchPlaybackCont
         self.seeks.append(time)
     }
 
+    func seekToLive() {}
+
     func setVolume(_ volume: Double) {
         self.volumes.append(volume)
     }

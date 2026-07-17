@@ -17,6 +17,7 @@ protocol YouTubeWatchPlaybackControlling: AnyObject {
     func pause()
     func skipAd(resumeAt: Double)
     func seek(to time: Double)
+    func seekToLive()
     func setVolume(_ volume: Double)
     func showAirPlayPicker()
     func availableCaptionTracks() async -> [YouTubeCaptionTrack]
@@ -135,6 +136,13 @@ final class YouTubePlayerService {
     /// present). Drives the on-video "Skip Ad" button so it only shows when
     /// clicking it will actually skip.
     private(set) var isAdSkippable = false
+
+    /// Whether the current video is a live stream (reported by the observer).
+    private(set) var isLive = false
+
+    /// Whether live playback is at the live edge (within a few seconds of the
+    /// seekable end). Drives the "LIVE" button's red/grey state.
+    private(set) var isAtLiveEdge = false
 
     /// Whether the current video is waiting for the WebView to report playable media.
     private(set) var isPlaybackLoading = false
@@ -542,6 +550,11 @@ final class YouTubePlayerService {
         self.playbackController.skipAd(resumeAt: self.lastNonAdContentProgress)
     }
 
+    /// Jumps live playback to the live edge (the "LIVE" button).
+    func seekToLive() {
+        self.playbackController.seekToLive()
+    }
+
     /// Clears the loading spinner when the watch WebView shows a non-playable
     /// page (Google's "/sorry/" CAPTCHA or the consent interstitial), so the
     /// spinner doesn't hide the page the user needs to interact with.
@@ -625,6 +638,8 @@ final class YouTubePlayerService {
         self.duration = 0
         self.isShowingAd = false
         self.isAdSkippable = false
+        self.isLive = false
+        self.isAtLiveEdge = false
         self.resetPerVideoState()
         self.surfaceLocation = .none
         self.activeInlineVideoId = nil
@@ -983,6 +998,8 @@ final class YouTubePlayerService {
         var title: String?
         var isAd = false
         var isAdSkippable = false
+        var isLive = false
+        var isAtLiveEdge = false
     }
 
     /// Applies a `STATE_UPDATE` from the watch page observer script.
@@ -1038,6 +1055,12 @@ final class YouTubePlayerService {
         let skippable = update.isAd && update.isAdSkippable
         if self.isAdSkippable != skippable {
             self.isAdSkippable = skippable
+        }
+        if self.isLive != update.isLive {
+            self.isLive = update.isLive
+        }
+        if self.isAtLiveEdge != update.isAtLiveEdge {
+            self.isAtLiveEdge = update.isAtLiveEdge
         }
         // Keep the loading spinner up until the video actually has media — the
         // first STATE_UPDATE arrives while the <video> is still at 0:00 with no

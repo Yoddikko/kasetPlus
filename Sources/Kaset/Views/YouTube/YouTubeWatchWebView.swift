@@ -384,7 +384,9 @@ final class YouTubeWatchWebView {
                     videoId: (body["videoId"] as? String).flatMap { $0.isEmpty ? nil : $0 },
                     title: body["title"] as? String,
                     isAd: body["isAd"] as? Bool ?? false,
-                    isAdSkippable: body["isAdSkippable"] as? Bool ?? false
+                    isAdSkippable: body["isAdSkippable"] as? Bool ?? false,
+                    isLive: body["isLive"] as? Bool ?? false,
+                    isAtLiveEdge: body["isAtLiveEdge"] as? Bool ?? false
                 )
                 Task { @MainActor in
                     self.playerService.updatePlaybackState(update)

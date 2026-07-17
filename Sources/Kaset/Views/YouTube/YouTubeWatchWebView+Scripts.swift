@@ -68,6 +68,44 @@ extension YouTubeWatchWebView {
                 );
             }
 
+            // Live state: whether the stream is live and whether we're at the
+            // live edge (within a few seconds of the seekable end).
+            function liveState() {
+                var live = false, atEdge = false;
+                try {
+                    const player = moviePlayer();
+                    if (player) {
+                        const data = (typeof player.getVideoData === 'function') ? player.getVideoData() : null;
+                        live = !!(data && data.isLive);
+                        if (live && typeof player.getProgressState === 'function') {
+                            const ps = player.getProgressState();
+                            if (ps && typeof ps.seekableEnd === 'number' && typeof ps.current === 'number') {
+                                atEdge = (ps.seekableEnd - ps.current) < 10;
+                            }
+                        }
+                    }
+                } catch (e) {}
+                return { live: live, atEdge: atEdge };
+            }
+
+            // Seek to the live head (called by the native "LIVE" button).
+            window.__kasetSeekToLive = function() {
+                try {
+                    const player = moviePlayer();
+                    const video = videoEl();
+                    if (player && typeof player.getProgressState === 'function' && video) {
+                        const ps = player.getProgressState();
+                        if (ps && typeof ps.seekableEnd === 'number') {
+                            video.currentTime = ps.seekableEnd;
+                            return;
+                        }
+                    }
+                    if (video && video.seekable && video.seekable.length) {
+                        video.currentTime = video.seekable.end(video.seekable.length - 1);
+                    }
+                } catch (e) {}
+            };
+
             function clearTrailingUpdate() {
                 if (trailingUpdateTimeoutId) {
                     clearTimeout(trailingUpdateTimeoutId);
@@ -100,16 +138,39 @@ extension YouTubeWatchWebView {
 
                     const videoId = currentVideoId();
                     if (videoId !== '') { lastVideoId = videoId; }
+                    const live = liveState();
+
+                    // Default to the media element's clock; for a live stream use
+                    // the DVR window (seekableStart…seekableEnd) instead, so the bar
+                    // fills to the live edge (full + 0s remaining when caught up)
+                    // rather than treating the whole broadcast duration as the range.
+                    let progress = video.currentTime || 0;
+                    let duration = (video.duration && isFinite(video.duration)) ? video.duration : 0;
+                    if (live.live) {
+                        try {
+                            const player = moviePlayer();
+                            const ps = (player && typeof player.getProgressState === 'function')
+                                ? player.getProgressState() : null;
+                            if (ps && typeof ps.seekableEnd === 'number' && typeof ps.current === 'number') {
+                                const start = (typeof ps.seekableStart === 'number') ? ps.seekableStart : 0;
+                                duration = Math.max(ps.seekableEnd - start, 0);
+                                progress = Math.max(Math.min(ps.current - start, duration), 0);
+                            }
+                        } catch (e) {}
+                    }
+
                     bridge.postMessage({
                         type: 'STATE_UPDATE',
                         generation: (window.__kasetDocGeneration || 0),
                         isPlaying: !video.paused && !video.ended,
-                        progress: video.currentTime || 0,
-                        duration: (video.duration && isFinite(video.duration)) ? video.duration : 0,
+                        progress: progress,
+                        duration: duration,
                         videoId: videoId,
                         title: currentTitle(),
                         isAd: isAdShowing(),
-                        isAdSkippable: isAdSkippable()
+                        isAdSkippable: isAdSkippable(),
+                        isLive: live.live,
+                        isAtLiveEdge: live.atEdge
                     });
                 } catch (e) {
                     console.log('[KasetYT] update error: ' + e);
@@ -782,6 +843,11 @@ extension YouTubeWatchWebView {
             """,
             completionHandler: nil
         )
+    }
+
+    /// Jumps live playback to the live edge.
+    func seekToLive() {
+        self.webView?.evaluateJavaScript("window.__kasetSeekToLive?.();", completionHandler: nil)
     }
 
     /// Seeks to a position in seconds.
