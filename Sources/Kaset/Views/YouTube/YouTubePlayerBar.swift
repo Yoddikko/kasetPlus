@@ -533,19 +533,22 @@ struct YouTubePlayerBar: View {
             )
             .disabled(self.youtubePlayer.currentVideo == nil)
 
-            PlayerBarIconButton(
-                action: {
-                    self.youtubePlayer.showsDownloadSheet = true
-                },
-                accessibilityLabel: String(localized: "Download"),
-                icon: {
-                    Image(systemName: "arrow.down.circle")
-                        .font(.system(size: 16, weight: .regular))
-                        .frame(width: 16, height: 16)
-                        .foregroundStyle(.primary)
-                }
-            )
-            .disabled(self.youtubePlayer.currentVideo == nil)
+            // Live streams can't be downloaded — hide the button for them.
+            if !self.youtubePlayer.isLive {
+                PlayerBarIconButton(
+                    action: {
+                        self.youtubePlayer.showsDownloadSheet = true
+                    },
+                    accessibilityLabel: String(localized: "Download"),
+                    icon: {
+                        Image(systemName: "arrow.down.circle")
+                            .font(.system(size: 16, weight: .regular))
+                            .frame(width: 16, height: 16)
+                            .foregroundStyle(.primary)
+                    }
+                )
+                .disabled(self.youtubePlayer.currentVideo == nil)
+            }
 
             self.compactCaptionsMenu
             self.compactQualityMenu

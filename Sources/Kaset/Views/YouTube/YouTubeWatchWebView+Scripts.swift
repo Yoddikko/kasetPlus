@@ -860,11 +860,25 @@ extension YouTubeWatchWebView {
                 if (video) {
                     var videoId = null;
                     try { videoId = new URL(location.href).searchParams.get('v'); } catch (e) {}
+                    // Targets are relative to the DVR window on live streams (the
+                    // observer reports position within seekableStart…seekableEnd),
+                    // so add seekableStart back to get an absolute currentTime.
+                    var target = \(time);
+                    try {
+                        var player = document.getElementById('movie_player');
+                        var data = (player && player.getVideoData) ? player.getVideoData() : null;
+                        if (data && data.isLive && player.getProgressState) {
+                            var ps = player.getProgressState();
+                            if (ps && typeof ps.seekableStart === 'number') {
+                                target = ps.seekableStart + \(time);
+                            }
+                        }
+                    } catch (e) {}
                     window.__kasetSponsorBlockManualSeek = {
-                        target: \(time),
+                        target: target,
                         videoId: videoId
                     };
-                    video.currentTime = \(time);
+                    video.currentTime = target;
                 }
             })();
             """,

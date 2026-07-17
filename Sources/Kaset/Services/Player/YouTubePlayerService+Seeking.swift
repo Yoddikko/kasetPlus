@@ -23,7 +23,10 @@ extension YouTubePlayerService {
     private func performSeek(to time: Double) {
         guard time.isFinite else { return }
         let target = self.clampedSeekTarget(time)
-        if self.duration > 0, target >= self.duration - Self.seekToEndThreshold {
+        // A live stream never "ends" when you catch up to the edge — seeking to
+        // the end of the DVR window just parks at the live head, so don't treat
+        // it as a completed watch (which would pause the stream).
+        if !self.isLive, self.duration > 0, target >= self.duration - Self.seekToEndThreshold {
             self.handleManualSeekToEnd()
             return
         }
