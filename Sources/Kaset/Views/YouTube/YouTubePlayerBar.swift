@@ -124,7 +124,7 @@ struct YouTubePlayerBar: View {
                             height: 52
                         )
 
-                    self.youtubeProgressSection
+                    self.youtubeProgressSection(showsHeatmap: false)
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
 
@@ -149,7 +149,7 @@ struct YouTubePlayerBar: View {
     /// which already collapses quality/captions into menus on narrow widths.
     private var videoOverlayControls: some View {
         HStack(spacing: 10) {
-            self.youtubeProgressSection
+            self.youtubeProgressSection(showsHeatmap: true)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
 
@@ -339,7 +339,7 @@ struct YouTubePlayerBar: View {
         self.chapterPreviewMarker?.title != nil
     }
 
-    private var youtubeProgressSection: some View {
+    private func youtubeProgressSection(showsHeatmap: Bool = false) -> some View {
         ZStack(alignment: .top) {
             PlayerBarProgressLane(
                 fraction: self.displayFraction,
@@ -360,7 +360,8 @@ struct YouTubePlayerBar: View {
                 onMarkerPreviewChange: { marker in
                     self.chapterPreviewMarker = marker
                 },
-                segmentMarkers: self.segmentFractionMarkers
+                segmentMarkers: self.segmentFractionMarkers,
+                heatmap: showsHeatmap ? self.youtubePlayer.heatmap : []
             )
             .padding(.top, 18)
 

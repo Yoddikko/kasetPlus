@@ -344,6 +344,10 @@ final class YouTubePlayerService {
     /// companion `next` response.
     private(set) var chapters: [YouTubeChapter] = []
 
+    /// "Most replayed" heatmap samples for the current video, from the same
+    /// `next` response. Empty when YouTube exposes no heatmap.
+    private(set) var heatmap: [YouTubeHeatmapMarker] = []
+
     /// Videos played earlier this session, for skip-backward.
     private var history: [YouTubeVideo] = []
 
@@ -676,6 +680,15 @@ final class YouTubePlayerService {
         self.chapters = chapters.filter { $0.videoId == nil || $0.videoId == currentId }
     }
 
+    /// Supplies "most replayed" heatmap samples for the current video.
+    func setHeatmap(_ heatmap: [YouTubeHeatmapMarker]) {
+        guard self.currentVideo != nil else {
+            self.heatmap = []
+            return
+        }
+        self.heatmap = heatmap
+    }
+
     /// Skips to the next video (first up-next candidate; fetched lazily
     /// when none are known, e.g. when playing in the floating window).
     func skipForward() async {
@@ -750,6 +763,7 @@ final class YouTubePlayerService {
         self.currentRating = .none
         self.isInWatchLater = false
         self.chapters = []
+        self.heatmap = []
         self.captionTracks = []
         self.activeCaptionLanguageCode = nil
         self.qualityLevels = []

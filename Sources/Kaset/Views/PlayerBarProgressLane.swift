@@ -18,6 +18,39 @@ struct PlayerBarProgressLane: View {
     /// Optional colored segment markers drawn directly on the track.
     var segmentMarkers: [PlayerBarSegmentMarker] = []
 
+    /// Optional "most replayed" heatmap samples, drawn as a curve above the
+    /// track and revealed only while hovering/scrubbing the bar.
+    var heatmap: [YouTubeHeatmapMarker] = []
+
+    /// Height of the heatmap band. Its baseline sits on the track (YouTube
+    /// style) and the filled area rises upward from the bar — that rising shape
+    /// is what reads as "above the bar". The centre and both ends are cleared by
+    /// the legibility mask, since the transport buttons sit directly above the
+    /// track and the time text sits at the ends.
+    private static let heatmapHeight: CGFloat = 20
+    private static let heatmapGap: CGFloat = 6
+
+    /// Horizontal alpha mask that fades the "most replayed" curve to transparent
+    /// at the far ends (behind the elapsed/remaining time text) and in a central
+    /// dip (behind the centered transport buttons), leaving it visible only in
+    /// the two side regions between.
+    private static var heatmapLegibilityMask: some View {
+        LinearGradient(
+            stops: [
+                .init(color: .clear, location: 0.0),
+                .init(color: .white, location: 0.06),
+                .init(color: .white, location: 0.39),
+                .init(color: .clear, location: 0.43),
+                .init(color: .clear, location: 0.57),
+                .init(color: .white, location: 0.61),
+                .init(color: .white, location: 0.94),
+                .init(color: .clear, location: 1.0),
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
     @State private var isDragging = false
@@ -41,7 +74,8 @@ struct PlayerBarProgressLane: View {
         onScrub: @escaping (Double) -> Void,
         onCommit: @escaping () -> Void,
         onMarkerPreviewChange: @escaping (PlayerBarProgressMarker?) -> Void = { _ in },
-        segmentMarkers: [PlayerBarSegmentMarker] = []
+        segmentMarkers: [PlayerBarSegmentMarker] = [],
+        heatmap: [YouTubeHeatmapMarker] = []
     ) {
         self.fraction = fraction
         self.accent = accent
@@ -55,6 +89,7 @@ struct PlayerBarProgressLane: View {
         self.onCommit = onCommit
         self.onMarkerPreviewChange = onMarkerPreviewChange
         self.segmentMarkers = segmentMarkers
+        self.heatmap = heatmap
     }
 
     var body: some View {
@@ -105,6 +140,23 @@ struct PlayerBarProgressLane: View {
             let previewMarker = self.previewChapterMarker
 
             ZStack(alignment: .topLeading) {
+                // "Most replayed" curve floats in a band above the track — a gap
+                // "Most replayed" curve floats in a band above the track — a gap
+                // separates it from the bar. Only the on-video overlay passes
+                // heatmap data, and that bar only appears while the controls are
+                // up, so no hover gate is needed.
+                if !self.heatmap.isEmpty, !self.isLive, !self.isLoading {
+                    PlayerBarHeatmapCurve(samples: self.heatmap)
+                        .frame(width: width, height: Self.heatmapHeight)
+                        // Mask BEFORE offset: `.offset` is a render-time shift
+                        // that doesn't move layout bounds, so masking after it
+                        // leaves the mask on the un-shifted frame and clips the
+                        // curve to nothing.
+                        .mask(Self.heatmapLegibilityMask)
+                        .offset(y: -(Self.heatmapHeight + Self.heatmapGap))
+                        .allowsHitTesting(false)
+                }
+
                 Capsule()
                     .fill(self.trackColor)
                     .frame(height: PlayerBarSliderVisuals.trackThickness)
@@ -327,6 +379,52 @@ struct PlayerBarProgressLane: View {
             return self.accent.opacity(self.colorScheme == .dark ? 0.36 : 0.22)
         }
         return .black.opacity(self.colorScheme == .dark ? 0.18 : 0.08)
+    }
+}
+
+// MARK: - PlayerBarHeatmapCurve
+
+/// Draws YouTube's "most replayed" curve: a filled intensity graph with a crisp
+/// top line, baseline at the bottom (intensity 0) rising to the top (intensity 1).
+private struct PlayerBarHeatmapCurve: View {
+    let samples: [YouTubeHeatmapMarker]
+
+    var body: some View {
+        Canvas { context, size in
+            guard size.width > 0, size.height > 0, self.samples.count > 1 else { return }
+            let points = self.samples.map { sample in
+                CGPoint(
+                    x: min(max(0, sample.fraction), 1) * size.width,
+                    y: size.height * (1 - min(max(0, sample.intensity), 1))
+                )
+            }
+
+            var line = Path()
+            line.move(to: points[0])
+            for point in points.dropFirst() {
+                line.addLine(to: point)
+            }
+            // Extend the last sample horizontally to the right edge so the fill
+            // spans the full track (samples end just short of fraction 1.0).
+            if let last = points.last {
+                line.addLine(to: CGPoint(x: size.width, y: last.y))
+            }
+
+            var fill = line
+            fill.addLine(to: CGPoint(x: size.width, y: size.height))
+            fill.addLine(to: CGPoint(x: 0, y: size.height))
+            fill.closeSubpath()
+
+            context.fill(
+                fill,
+                with: .linearGradient(
+                    Gradient(colors: [.white.opacity(0.14), .white.opacity(0.03)]),
+                    startPoint: CGPoint(x: 0, y: 0),
+                    endPoint: CGPoint(x: 0, y: size.height)
+                )
+            )
+            context.stroke(line, with: .color(.white.opacity(0.4)), lineWidth: 1.0)
+        }
     }
 }
 

@@ -67,10 +67,72 @@ enum WatchNextParser {
             channel: channel,
             related: YouTubeFeedParser.deduplicate(related),
             chapters: chapters,
+            heatmap: Self.heatmap(of: data),
             descriptionText: Self.descriptionText(of: data) ?? secondaryDescriptionText,
             isSubscribed: isSubscribed,
             commentsContinuation: Self.commentsContinuation(of: data)
         )
+    }
+
+    /// "Most replayed" heatmap samples, exposed via a `macroMarkersListEntity`
+    /// of type `MARKER_TYPE_HEATMAP` inside `frameworkUpdates`. Each sample is a
+    /// normalized position (start / total span) and its replay intensity (0…1).
+    static func heatmap(of data: [String: Any]) -> [YouTubeHeatmapMarker] {
+        let videoId = self.currentVideoId(of: data)
+        guard let markers = self.firstHeatmapMarkers(in: data, videoId: videoId),
+              let last = markers.last,
+              let lastStart = self.intValue(from: last["startMillis"]),
+              let lastDuration = self.intValue(from: last["durationMillis"])
+        else {
+            return []
+        }
+        let span = Double(lastStart + lastDuration)
+        guard span > 0 else { return [] }
+
+        return markers.compactMap { marker in
+            guard let start = self.intValue(from: marker["startMillis"]),
+                  let intensity = marker["intensityScoreNormalized"] as? Double
+            else {
+                return nil
+            }
+            return YouTubeHeatmapMarker(
+                fraction: min(max(Double(start) / span, 0), 1),
+                intensity: min(max(intensity, 0), 1)
+            )
+        }
+    }
+
+    /// Recursively finds the first heatmap `macroMarkersListEntity` matching the
+    /// current video, returning its raw marker dictionaries.
+    private static func firstHeatmapMarkers(
+        in value: Any,
+        videoId: String?
+    ) -> [[String: Any]]? {
+        if let dict = value as? [String: Any] {
+            if let entity = dict["macroMarkersListEntity"] as? [String: Any],
+               let list = entity["markersList"] as? [String: Any],
+               list["markerType"] as? String == "MARKER_TYPE_HEATMAP",
+               let markers = list["markers"] as? [[String: Any]],
+               !markers.isEmpty
+            {
+                let entityVideoId = entity["externalVideoId"] as? String
+                if videoId == nil || entityVideoId == nil || entityVideoId == videoId {
+                    return markers
+                }
+            }
+            for nested in dict.values {
+                if let found = self.firstHeatmapMarkers(in: nested, videoId: videoId) {
+                    return found
+                }
+            }
+        } else if let array = value as? [Any] {
+            for element in array {
+                if let found = self.firstHeatmapMarkers(in: element, videoId: videoId) {
+                    return found
+                }
+            }
+        }
+        return nil
     }
 
     /// Navigation chapters exposed by YouTube's watch-next response.

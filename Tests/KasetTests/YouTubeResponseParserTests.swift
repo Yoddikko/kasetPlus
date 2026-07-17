@@ -798,3 +798,55 @@ struct YouTubeCommentsParserTests {
         #expect(page.createCommentParams == "create-params-token")
     }
 }
+
+// MARK: - WatchNextParser heatmap
+
+@Suite("WatchNextParser heatmap")
+struct WatchNextParserHeatmapTests {
+    /// Builds the minimal `next` shape carrying a MARKER_TYPE_HEATMAP entity.
+    private func response(videoId: String, markers: [[String: Any]]) -> [String: Any] {
+        [
+            "currentVideoEndpoint": ["watchEndpoint": ["videoId": videoId]],
+            "frameworkUpdates": ["entityBatchUpdate": ["mutations": [
+                ["payload": ["macroMarkersListEntity": [
+                    "externalVideoId": videoId,
+                    "markersList": [
+                        "markerType": "MARKER_TYPE_HEATMAP",
+                        "markers": markers,
+                    ],
+                ]]],
+            ]]],
+        ]
+    }
+
+    @Test("Normalizes heatmap samples to fraction/intensity spanning the video")
+    func parsesHeatmap() {
+        let markers: [[String: Any]] = [
+            ["startMillis": "0", "durationMillis": "1000", "intensityScoreNormalized": 1.0],
+            ["startMillis": "1000", "durationMillis": "1000", "intensityScoreNormalized": 0.5],
+            ["startMillis": "2000", "durationMillis": "2000", "intensityScoreNormalized": 0.0],
+        ]
+        let heatmap = WatchNextParser.heatmap(of: self.response(videoId: "abc", markers: markers))
+
+        #expect(heatmap.count == 3)
+        // Span = last.start(2000) + last.duration(2000) = 4000.
+        #expect(heatmap[0].fraction == 0)
+        #expect(heatmap[1].fraction == 0.25)
+        #expect(heatmap[2].fraction == 0.5)
+        #expect(heatmap[0].intensity == 1.0)
+        #expect(heatmap[2].intensity == 0.0)
+    }
+
+    @Test("Ignores a heatmap entity for a different video")
+    func skipsMismatchedVideo() {
+        let markers: [[String: Any]] = [
+            ["startMillis": "0", "durationMillis": "1000", "intensityScoreNormalized": 1.0],
+            ["startMillis": "1000", "durationMillis": "1000", "intensityScoreNormalized": 0.2],
+        ]
+        var data = self.response(videoId: "other", markers: markers)
+        // Current video is "abc" but the entity belongs to "other".
+        data["currentVideoEndpoint"] = ["watchEndpoint": ["videoId": "abc"]]
+
+        #expect(WatchNextParser.heatmap(of: data).isEmpty)
+    }
+}

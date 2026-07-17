@@ -147,6 +147,7 @@ struct YouTubeWatchView: View {
                 if self.youtubePlayer.currentVideo?.videoId == self.video.videoId {
                     self.youtubePlayer.setUpNext(self.viewModel.data.related)
                     self.youtubePlayer.setChapters(self.viewModel.data.chapters)
+                    self.youtubePlayer.setHeatmap(self.viewModel.data.heatmap)
                 }
             }
             .onDisappear {
@@ -380,6 +381,7 @@ struct YouTubeWatchView: View {
         }
         self.youtubePlayer.setUpNext(self.viewModel.data.related)
         self.youtubePlayer.setChapters(self.viewModel.data.chapters)
+        self.youtubePlayer.setHeatmap(self.viewModel.data.heatmap)
         self.youtubePlayer.activeInlineVideoId = self.video.videoId
     }
 

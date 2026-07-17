@@ -154,6 +154,16 @@ enum YouTubeSearchFilter: String, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - YouTubeHeatmapMarker
+
+/// A single sample of YouTube's "most replayed" heatmap: a normalized position
+/// along the timeline (0…1) and its replay intensity (0…1). The `next` response
+/// exposes ~100 evenly spaced samples spanning the whole video.
+struct YouTubeHeatmapMarker: Equatable {
+    let fraction: Double
+    let intensity: Double
+}
+
 // MARK: - WatchNextData
 
 /// Watch-page companion data from the `next` endpoint: video metadata and
@@ -168,6 +178,8 @@ struct WatchNextData {
     let related: [YouTubeVideo]
     /// Navigation chapters for the current video, when YouTube exposes them.
     let chapters: [YouTubeChapter]
+    /// "Most replayed" heatmap samples, when YouTube exposes them.
+    let heatmap: [YouTubeHeatmapMarker]
     /// Full watch-page description text, from the structured panel or secondary-info fallback.
     let descriptionText: String?
     /// Whether the signed-in user is subscribed to the video's channel
@@ -183,6 +195,7 @@ struct WatchNextData {
         channel: YouTubeChannel?,
         related: [YouTubeVideo],
         chapters: [YouTubeChapter] = [],
+        heatmap: [YouTubeHeatmapMarker] = [],
         descriptionText: String? = nil,
         isSubscribed: Bool? = nil,
         commentsContinuation: String? = nil
@@ -193,6 +206,7 @@ struct WatchNextData {
         self.channel = channel
         self.related = related
         self.chapters = chapters
+        self.heatmap = heatmap
         self.descriptionText = descriptionText
         self.isSubscribed = isSubscribed
         self.commentsContinuation = commentsContinuation
