@@ -510,6 +510,20 @@ final class SingletonPlayerWebView {
     ) {
         contentController.removeAllUserScripts()
 
+        // Ad-block: prune ad entries from the player response before YouTube
+        // Music's JS reads them, so audio ads between songs never load. Same
+        // in-place `ytInitialPlayerResponse` trap used on the YouTube watch
+        // page; the DOM backstop's Skip selectors simply no-op on YTM. Gated on
+        // the shared Ad Blocker setting and injected first at document start.
+        if SettingsManager.shared.adBlockEnabled {
+            let adBlock = WKUserScript(
+                source: AdBlockService.adBlockScript,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true
+            )
+            contentController.addUserScript(adBlock)
+        }
+
         // Autoplay intent must exist before media lifecycle events like `canplay`.
         // `didFinish` is too late on fast or cached player loads.
         let pageBootstrapScript = WKUserScript(
