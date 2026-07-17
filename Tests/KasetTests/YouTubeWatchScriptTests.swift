@@ -15,6 +15,24 @@ struct YouTubeWatchScriptTests {
         #expect(script.contains("__kasetTargetVolume"))
     }
 
+    @Test("Comment timestamps parse M:SS and H:MM:SS")
+    func commentTimestampParsing() {
+        #expect(parseCommentTimestamp("0:37") == 37)
+        #expect(parseCommentTimestamp("10:32") == 632)
+        #expect(parseCommentTimestamp("1:08:41") == 4121)
+        #expect(parseCommentTimestamp("notatime") == nil)
+    }
+
+    @Test("Comment timestamps link only within the video duration")
+    func commentTimestampLinking() {
+        let text = "Intro 0:37 and way past 99:59:59"
+        let links = commentAttributedText(text, duration: 600).runs.compactMap { $0.link?.absoluteString }
+        // 0:37 is within 10 min; 99:59:59 is past it, so it stays plain text.
+        #expect(links == ["kasetseek://37"])
+        // Nothing links when the duration is still unknown.
+        #expect(commentAttributedText(text, duration: 0).runs.allSatisfy { $0.link == nil })
+    }
+
     @Test("Bootstrap stamps the document generation and the observer echoes it")
     func documentGenerationIsStampedAndEchoed() {
         // The generation gate depends on the page carrying its generation and the

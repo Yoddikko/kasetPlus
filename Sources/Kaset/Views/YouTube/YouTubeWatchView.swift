@@ -1269,6 +1269,47 @@ private struct CommentThread: View {
     }
 }
 
+// MARK: - Comment timestamp links
+
+/// Parses a `M:SS`, `MM:SS`, or `H:MM:SS` timestamp token into total seconds.
+func parseCommentTimestamp(_ token: String) -> Int? {
+    let parts = token.split(separator: ":").map { Int($0) }
+    guard !parts.contains(nil) else { return nil }
+    let nums = parts.compactMap(\.self)
+    switch nums.count {
+    case 2: return nums[0] * 60 + nums[1]
+    case 3: return nums[0] * 3600 + nums[1] * 60 + nums[2]
+    default: return nil
+    }
+}
+
+/// Builds an attributed comment where in-range timestamps (`M:SS` / `H:MM:SS`)
+/// become `kasetseek://<seconds>` links, matching YouTube. Timestamps past the
+/// video's duration stay plain text; when the duration is unknown (0) nothing
+/// is linked. Character offsets (not UTF-16) are used so emoji don't shift the
+/// link ranges.
+func commentAttributedText(_ text: String, duration: TimeInterval) -> AttributedString {
+    var result = AttributedString(text)
+    guard duration > 0 else { return result }
+    let pattern = "(?<![\\d:])\\d{1,2}:\\d{2}(?::\\d{2})?(?![\\d:])"
+    guard let regex = try? NSRegularExpression(pattern: pattern) else { return result }
+    let ns = text as NSString
+    for match in regex.matches(in: text, range: NSRange(location: 0, length: ns.length)) {
+        guard let stringRange = Range(match.range, in: text) else { continue }
+        let token = String(text[stringRange])
+        guard let seconds = parseCommentTimestamp(token), Double(seconds) <= duration else { continue }
+
+        let startOffset = text.distance(from: text.startIndex, to: stringRange.lowerBound)
+        let chars = result.characters
+        guard let start = chars.index(chars.startIndex, offsetBy: startOffset, limitedBy: chars.endIndex),
+              let end = chars.index(start, offsetBy: token.count, limitedBy: chars.endIndex)
+        else { continue }
+        result[start ..< end].link = URL(string: "kasetseek://\(seconds)")
+        result[start ..< end].foregroundColor = .accentColor
+    }
+    return result
+}
+
 // MARK: - CommentRow
 
 /// One comment: avatar, author + time, text, and working like/dislike.
@@ -1280,6 +1321,8 @@ private struct CommentRow: View {
     let onLike: () -> Void
     let onDislike: () -> Void
     let allowsActions: Bool
+
+    @Environment(YouTubePlayerService.self) private var youtubePlayer
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -1303,10 +1346,16 @@ private struct CommentRow: View {
                     }
                 }
 
-                Text(self.comment.text)
+                Text(commentAttributedText(self.comment.text, duration: self.youtubePlayer.duration))
                     .font(.system(size: 12))
                     .foregroundStyle(.primary)
                     .textSelection(.enabled)
+                    .environment(\.openURL, OpenURLAction { url in
+                        guard url.scheme == "kasetseek", let host = url.host, let seconds = Double(host)
+                        else { return .systemAction }
+                        self.youtubePlayer.seek(to: seconds)
+                        return .handled
+                    })
 
                 HStack(spacing: 14) {
                     Button(action: self.onLike) {
