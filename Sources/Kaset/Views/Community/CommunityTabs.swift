@@ -13,10 +13,12 @@ struct IssuesTabView: View {
             if self.viewModel.isLoadingIssues, self.viewModel.issues.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if self.viewModel.issues.isEmpty {
-                ContentUnavailableView(
-                    "No open issues",
-                    systemImage: "checkmark.circle",
-                    description: Text("Be the first to report one.")
+                CommunityEmptyState(
+                    icon: "ladybug.fill",
+                    title: String(localized: "No open issues"),
+                    subtitle: String(localized: "Found a bug or have an idea? Report it — logs and specs are attached for you."),
+                    ctaTitle: String(localized: "Report an issue"),
+                    onCTA: self.onCompose
                 )
             } else {
                 ScrollView {
@@ -100,53 +102,51 @@ private struct IssueRow: View {
 
 struct DiscussionsTabView: View {
     @Bindable var viewModel: CommunityViewModel
-    let requiresSignIn: Bool
     let onCompose: () -> Void
 
     var body: some View {
-        if self.requiresSignIn {
-            GitHubSignInGate(message: String(
-                localized: "Sign in with GitHub to browse and join Discussions."
-            ))
-        } else {
-            VStack(spacing: 0) {
-                HStack {
-                    Spacer()
-                    Button(action: self.onCompose) {
-                        Label("New discussion", systemImage: "plus")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
+        VStack(spacing: 0) {
+            HStack {
+                Text("\(self.viewModel.discussions.count) discussions", comment: "Discussion count")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button(action: self.onCompose) {
+                    Label("New discussion", systemImage: "plus")
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                Divider()
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            Divider()
 
-                if self.viewModel.isLoadingDiscussions, self.viewModel.discussions.isEmpty {
-                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if self.viewModel.discussions.isEmpty {
-                    ContentUnavailableView(
-                        "No discussions yet",
-                        systemImage: "bubble.left.and.bubble.right",
-                        description: Text("Start the conversation.")
-                    )
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(self.viewModel.discussions) { discussion in
-                                DiscussionRow(discussion: discussion) {
-                                    Task { await self.viewModel.toggleUpvote(discussion) }
-                                }
-                                Divider()
+            if self.viewModel.isLoadingDiscussions, self.viewModel.discussions.isEmpty {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if self.viewModel.discussions.isEmpty {
+                CommunityEmptyState(
+                    icon: "bubble.left.and.bubble.right.fill",
+                    title: String(localized: "No discussions yet"),
+                    subtitle: String(localized: "Ask a question, share an idea, or just say hi to the community."),
+                    ctaTitle: String(localized: "Start a discussion"),
+                    onCTA: self.onCompose
+                )
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(self.viewModel.discussions) { discussion in
+                            DiscussionRow(discussion: discussion) {
+                                Task { await self.viewModel.toggleUpvote(discussion) }
                             }
+                            Divider()
                         }
                     }
                 }
             }
-            .task {
-                if self.viewModel.discussions.isEmpty {
-                    await self.viewModel.loadDiscussions()
-                }
+        }
+        .task {
+            if self.viewModel.discussions.isEmpty {
+                await self.viewModel.loadDiscussions()
             }
         }
     }
@@ -201,5 +201,49 @@ private struct DiscussionRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+    }
+}
+
+// MARK: - Empty state
+
+/// A friendly empty state with a brand-tinted icon and a call to action.
+struct CommunityEmptyState: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let ctaTitle: String
+    let onCTA: () -> Void
+
+    private static let accent = PackageResourceLookup.brandAccent
+
+    var body: some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Self.accent.opacity(0.12))
+                    .frame(width: 76, height: 76)
+                Image(systemName: self.icon)
+                    .font(.system(size: 30))
+                    .foregroundStyle(Self.accent)
+            }
+            Text(self.title)
+                .font(.title3.bold())
+            Text(self.subtitle)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 320)
+            Button(action: self.onCTA) {
+                Label(self.ctaTitle, systemImage: "plus")
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Self.accent)
+            .controlSize(.large)
+            .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(30)
     }
 }

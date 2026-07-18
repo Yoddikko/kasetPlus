@@ -55,13 +55,19 @@ final class GitHubClient {
         let files = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
         var templates: [GitHubIssueTemplate] = []
         for file in files {
-            guard let name = file["name"] as? String, name.hasSuffix(".md"),
+            guard let name = file["name"] as? String,
+                  // config.yml is the template chooser config, not a template.
+                  name != "config.yml", name != "config.yaml",
                   let downloadURL = (file["download_url"] as? String).flatMap(URL.init(string:))
             else { continue }
-            if let (_, raw) = try? await self.download(downloadURL),
-               let markdown = String(data: raw, encoding: .utf8)
-            {
-                templates.append(Self.parseTemplate(filename: name, markdown: markdown))
+            guard let (_, raw) = try? await self.download(downloadURL),
+                  let text = String(data: raw, encoding: .utf8)
+            else { continue }
+
+            if name.hasSuffix(".md") {
+                templates.append(Self.parseTemplate(filename: name, markdown: text))
+            } else if name.hasSuffix(".yml") || name.hasSuffix(".yaml") {
+                templates.append(Self.parseFormTemplate(filename: name, yaml: text))
             }
         }
         templates.append(.blank)
@@ -78,7 +84,7 @@ final class GitHubClient {
               nodes {
                 id number title bodyText url createdAt upvoteCount viewerHasUpvoted
                 author { login avatarUrl }
-                category { id name emoji description isAnswerable }
+                category { id name emoji emojiHTML description isAnswerable }
                 comments { totalCount }
               }
             }
@@ -95,7 +101,7 @@ final class GitHubClient {
         query($owner:String!, $repo:String!) {
           repository(owner:$owner, name:$repo) {
             discussionCategories(first: 25) {
-              nodes { id name emoji description isAnswerable }
+              nodes { id name emoji emojiHTML description isAnswerable }
             }
           }
         }
@@ -129,7 +135,7 @@ final class GitHubClient {
             discussion {
               id number title bodyText url createdAt upvoteCount viewerHasUpvoted
               author { login avatarUrl }
-              category { id name emoji description isAnswerable }
+              category { id name emoji emojiHTML description isAnswerable }
               comments { totalCount }
             }
           }
@@ -253,10 +259,23 @@ final class GitHubClient {
         return GitHubDiscussionCategory(
             id: id,
             name: name,
-            emoji: dict["emoji"] as? String ?? "💬",
+            emoji: Self.emoji(from: dict),
             description: dict["description"] as? String ?? "",
             isAnswerable: dict["isAnswerable"] as? Bool ?? false
         )
+    }
+
+    /// The category's emoji as an actual character. GraphQL's `emoji` is a
+    /// shortcode (`:mega:`); `emojiHTML` wraps the real glyph in tags, so strip
+    /// the tags to recover it.
+    private static func emoji(from dict: [String: Any]) -> String {
+        if let html = dict["emojiHTML"] as? String {
+            let stripped = html
+                .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !stripped.isEmpty { return stripped }
+        }
+        return dict["emoji"] as? String ?? "💬"
     }
 
     private static func user(from value: Any?) -> GitHubUser? {
@@ -304,6 +323,73 @@ final class GitHubClient {
             titlePrefix: title,
             labels: labels,
             body: body
+        )
+    }
+
+    /// Parses a GitHub **issue form** (`.yml`). We can't render the form natively,
+    /// so pull the metadata (name/description/title/labels) and build a fillable
+    /// Markdown body from each field's `label:` as a heading.
+    private static func parseFormTemplate(filename: String, yaml: String) -> GitHubIssueTemplate {
+        var name = filename
+        var about = ""
+        var title = ""
+        var labels: [String] = []
+        var sections: [String] = []
+
+        func scalar(_ line: String) -> String {
+            guard let colon = line.firstIndex(of: ":") else { return "" }
+            var value = String(line[line.index(after: colon)...]).trimmingCharacters(in: .whitespaces)
+            if value.count >= 2,
+               (value.hasPrefix("\"") && value.hasSuffix("\"")) || (value.hasPrefix("'") && value.hasSuffix("'"))
+            {
+                value = String(value.dropFirst().dropLast())
+            }
+            return value
+        }
+
+        let lines = yaml.components(separatedBy: "\n")
+        for (index, line) in lines.enumerated() {
+            let isTopLevel = !line.hasPrefix(" ") && !line.hasPrefix("\t")
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            if isTopLevel {
+                if line.hasPrefix("name:") { name = scalar(line) }
+                else if line.hasPrefix("description:") { about = scalar(line) }
+                else if line.hasPrefix("title:") { title = scalar(line) }
+                else if line.hasPrefix("labels:") {
+                    let inline = scalar(line)
+                    if inline.hasPrefix("[") {
+                        labels = inline.dropFirst().dropLast()
+                            .split(separator: ",")
+                            .map { $0.trimmingCharacters(in: CharacterSet(charactersIn: " \"'")) }
+                            .filter { !$0.isEmpty }
+                    } else {
+                        var next = index + 1
+                        while next < lines.count {
+                            let item = lines[next].trimmingCharacters(in: .whitespaces)
+                            guard item.hasPrefix("-") else { break }
+                            let label = String(item.dropFirst())
+                                .trimmingCharacters(in: CharacterSet(charactersIn: " \"'"))
+                            if !label.isEmpty { labels.append(label) }
+                            next += 1
+                        }
+                    }
+                }
+            }
+
+            if trimmed.hasPrefix("label:") {
+                let label = scalar(trimmed)
+                if !label.isEmpty { sections.append("### \(label)\n") }
+            }
+        }
+
+        return GitHubIssueTemplate(
+            filename: filename,
+            name: name,
+            about: about,
+            titlePrefix: title,
+            labels: labels,
+            body: sections.joined(separator: "\n")
         )
     }
 }

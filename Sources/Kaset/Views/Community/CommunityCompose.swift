@@ -4,7 +4,6 @@ import SwiftUI
 
 struct IssueComposeView: View {
     @Bindable var viewModel: CommunityViewModel
-    @State private var auth = GitHubAuthService.shared
     @Environment(\.dismiss) private var dismiss
 
     @State private var template: GitHubIssueTemplate = .blank
@@ -16,12 +15,7 @@ struct IssueComposeView: View {
         VStack(spacing: 0) {
             self.composeHeader(title: String(localized: "Report an issue"))
             Divider()
-
-            if !self.auth.isSignedIn {
-                GitHubSignInGate(message: String(localized: "Sign in with GitHub to file an issue."))
-            } else {
-                self.form
-            }
+            self.form
         }
         .frame(width: 560, height: 600)
     }
@@ -98,7 +92,6 @@ struct IssueComposeView: View {
 
 struct DiscussionComposeView: View {
     @Bindable var viewModel: CommunityViewModel
-    @State private var auth = GitHubAuthService.shared
     @Environment(\.dismiss) private var dismiss
 
     @State private var categoryID = ""
@@ -128,30 +121,26 @@ struct DiscussionComposeView: View {
             .padding(12)
             Divider()
 
-            if !self.auth.isSignedIn {
-                GitHubSignInGate(message: String(localized: "Sign in with GitHub to start a discussion."))
-            } else {
-                Form {
-                    Picker(String(localized: "Category"), selection: self.$categoryID) {
-                        Text(String(localized: "Choose…")).tag("")
-                        ForEach(self.viewModel.categories) { category in
-                            Text("\(category.emoji) \(category.name)").tag(category.id)
-                        }
-                    }
-                    Section(String(localized: "Title")) {
-                        TextField(String(localized: "Discussion title"), text: self.$title)
-                    }
-                    Section(String(localized: "Body")) {
-                        TextEditor(text: self.$bodyText)
-                            .font(.system(size: 12))
-                            .frame(minHeight: 200)
+            Form {
+                Picker(String(localized: "Category"), selection: self.$categoryID) {
+                    Text(String(localized: "Choose…")).tag("")
+                    ForEach(self.viewModel.categories) { category in
+                        Text("\(category.emoji) \(category.name)").tag(category.id)
                     }
                 }
-                .formStyle(.grouped)
-                .task {
-                    if self.viewModel.categories.isEmpty {
-                        await self.viewModel.loadDiscussions()
-                    }
+                Section(String(localized: "Title")) {
+                    TextField(String(localized: "Discussion title"), text: self.$title)
+                }
+                Section(String(localized: "Body")) {
+                    TextEditor(text: self.$bodyText)
+                        .font(.system(size: 12))
+                        .frame(minHeight: 200)
+                }
+            }
+            .formStyle(.grouped)
+            .task {
+                if self.viewModel.categories.isEmpty {
+                    await self.viewModel.loadDiscussions()
                 }
             }
         }

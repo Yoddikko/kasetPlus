@@ -14,12 +14,16 @@ enum GitHubConfig {
     static let owner = "Yoddikko"
     static let repo = "kasetPlus"
 
-    /// TODO: replace with the real OAuth App client ID (Device Flow enabled).
-    static let clientID = ""
+    /// OAuth App client ID (Device Flow enabled). This is **not** a secret —
+    /// Device Flow uses no client secret and the ID ships inside the binary
+    /// anyway — so it's safe to commit in this open-source app.
+    static let clientID = "Ov23liqdaRDcP5EDvKRs"
 
-    /// Scopes requested during the device-flow login. `public_repo` is enough to
-    /// create issues, comment, and vote/create discussions on a public repo.
-    static let scopes = "public_repo read:discussion write:discussion"
+    /// Scopes requested during the device-flow login. `public_repo` covers
+    /// creating issues, commenting, and creating/upvoting Discussions on a public
+    /// repo. (`read:/write:discussion` are for org *team* discussions, not repo
+    /// Discussions, so they aren't needed here.)
+    static let scopes = "public_repo"
 
     static var isLoginConfigured: Bool { !Self.clientID.isEmpty }
 

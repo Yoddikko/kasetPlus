@@ -36,13 +36,18 @@ final class GitHubAuthService {
         return false
     }
 
-    private let tokenKey = "com.kaset.github.token"
+    /// The user access token is the real secret here — kept in the Keychain, not
+    /// UserDefaults, and never committed.
+    private let keychain = KeychainCredentialStore()
     private var pollTask: Task<Void, Never>?
 
     private init() {
-        if let saved = UserDefaults.standard.string(forKey: self.tokenKey), !saved.isEmpty {
-            self.token = saved
-            Task { await self.restoreSession() }
+        // Read the token off the init critical path.
+        Task {
+            if let saved = self.keychain.getGitHubToken(), !saved.isEmpty {
+                self.token = saved
+                await self.restoreSession()
+            }
         }
     }
 
@@ -73,7 +78,7 @@ final class GitHubAuthService {
     func signOut() {
         self.pollTask?.cancel()
         self.token = nil
-        UserDefaults.standard.removeObject(forKey: self.tokenKey)
+        self.keychain.removeGitHubToken()
         self.state = .signedOut
     }
 
@@ -112,7 +117,7 @@ final class GitHubAuthService {
             do {
                 if let token = try await self.exchangeToken(deviceCode: code.deviceCode) {
                     self.token = token
-                    UserDefaults.standard.set(token, forKey: self.tokenKey)
+                    try? self.keychain.saveGitHubToken(token)
                     await self.restoreSession()
                     return
                 }

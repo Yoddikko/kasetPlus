@@ -69,6 +69,21 @@ final class KeychainCredentialStore {
         self.delete(key: "listenBrainzUsername")
     }
 
+    /// Saves the GitHub (community) OAuth access token to Keychain.
+    func saveGitHubToken(_ token: String) throws {
+        try self.save(key: "gitHubToken", value: token)
+    }
+
+    /// Retrieves the stored GitHub access token, if any.
+    func getGitHubToken() -> String? {
+        self.get(key: "gitHubToken")
+    }
+
+    /// Removes the stored GitHub access token.
+    func removeGitHubToken() {
+        self.delete(key: "gitHubToken")
+    }
+
     // MARK: - Private Helpers
 
     private func save(key: String, value: String) throws {
