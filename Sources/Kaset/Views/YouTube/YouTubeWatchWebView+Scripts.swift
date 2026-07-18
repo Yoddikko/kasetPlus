@@ -93,10 +93,14 @@ extension YouTubeWatchWebView {
                 try {
                     const player = moviePlayer();
                     const video = videoEl();
-                    if (player && typeof player.getProgressState === 'function' && video) {
+                    if (player && typeof player.getProgressState === 'function') {
                         const ps = player.getProgressState();
                         if (ps && typeof ps.seekableEnd === 'number') {
-                            video.currentTime = ps.seekableEnd;
+                            if (typeof player.seekTo === 'function') {
+                                player.seekTo(ps.seekableEnd, true);
+                            } else if (video) {
+                                video.currentTime = ps.seekableEnd;
+                            }
                             return;
                         }
                     }
@@ -857,27 +861,34 @@ extension YouTubeWatchWebView {
             """
             (function() {
                 const video = document.querySelector('#movie_player video') || document.querySelector('video');
-                if (video) {
-                    var videoId = null;
-                    try { videoId = new URL(location.href).searchParams.get('v'); } catch (e) {}
-                    // Targets are relative to the DVR window on live streams (the
-                    // observer reports position within seekableStart…seekableEnd),
-                    // so add seekableStart back to get an absolute currentTime.
-                    var target = \(time);
+                if (!video) { return; }
+                var videoId = null;
+                try { videoId = new URL(location.href).searchParams.get('v'); } catch (e) {}
+
+                var player = document.getElementById('movie_player');
+                var data = (player && player.getVideoData) ? player.getVideoData() : null;
+                var isLive = !!(data && data.isLive);
+
+                // Live targets are relative to the DVR window (the observer reports
+                // position within seekableStart…seekableEnd), so add seekableStart
+                // back for an absolute stream position.
+                var target = \(time);
+                if (isLive && player && typeof player.getProgressState === 'function') {
                     try {
-                        var player = document.getElementById('movie_player');
-                        var data = (player && player.getVideoData) ? player.getVideoData() : null;
-                        if (data && data.isLive && player.getProgressState) {
-                            var ps = player.getProgressState();
-                            if (ps && typeof ps.seekableStart === 'number') {
-                                target = ps.seekableStart + \(time);
-                            }
+                        var ps = player.getProgressState();
+                        if (ps && typeof ps.seekableStart === 'number') {
+                            target = ps.seekableStart + \(time);
                         }
                     } catch (e) {}
-                    window.__kasetSponsorBlockManualSeek = {
-                        target: target,
-                        videoId: videoId
-                    };
+                }
+
+                window.__kasetSponsorBlockManualSeek = { target: target, videoId: videoId };
+
+                // On live streams YouTube's player owns the buffer and reverts a
+                // direct currentTime write, so use its seekTo() API instead.
+                if (isLive && player && typeof player.seekTo === 'function') {
+                    player.seekTo(target, true);
+                } else {
                     video.currentTime = target;
                 }
             })();
