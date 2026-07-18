@@ -47,6 +47,7 @@ struct YouTubePlayerBar: View {
     @State private var isAdjustingVolume = false
     @State private var showsVolumeOverlay = false
     @State private var chapterPreviewMarker: PlayerBarProgressMarker?
+    @State private var hoverPreviewFraction: Double?
     @State private var settings = SettingsManager.shared
 
     var body: some View {
@@ -361,7 +362,10 @@ struct YouTubePlayerBar: View {
                     self.chapterPreviewMarker = marker
                 },
                 segmentMarkers: self.segmentFractionMarkers,
-                heatmap: showsHeatmap ? self.youtubePlayer.heatmap : []
+                heatmap: showsHeatmap ? self.youtubePlayer.heatmap : [],
+                onHoverFractionChange: self.mode == .videoOverlay
+                    ? { fraction in self.hoverPreviewFraction = fraction }
+                    : nil
             )
             .padding(.top, 18)
 
@@ -369,6 +373,40 @@ struct YouTubePlayerBar: View {
                 .padding(.top, 2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Storyboard scrub preview, floating over the video above the bar
+        // (and above the "most replayed" band), YouTube-style. Only on the
+        // on-video overlay bar, and only when a storyboard spec resolved.
+        .overlay(alignment: .topLeading) {
+            if let hoverFraction = self.hoverPreviewFraction,
+               self.mode == .videoOverlay,
+               !self.youtubePlayer.isLive,
+               !self.isProgressLoading,
+               self.youtubePlayer.duration > 0,
+               let spec = self.youtubePlayer.storyboardSpec
+            {
+                GeometryReader { proxy in
+                    let halfWidth = StoryboardHoverPreview.previewWidth / 2
+                    StoryboardHoverPreview(
+                        spec: spec,
+                        fraction: hoverFraction,
+                        duration: self.youtubePlayer.duration
+                    )
+                    // The lane's track spans this section's full width, so the
+                    // hovered fraction maps 1:1 onto proxy width; clamp so the
+                    // bubble never spills past the bar's ends. The track sits
+                    // ~36pt below the section top, so a center 54pt above the
+                    // top edge leaves the bubble clear of the heatmap band.
+                    .position(
+                        x: min(
+                            max(halfWidth, proxy.size.width * hoverFraction),
+                            max(halfWidth, proxy.size.width - halfWidth)
+                        ),
+                        y: -StoryboardHoverPreview.totalHeight / 2 + 6
+                    )
+                }
+                .allowsHitTesting(false)
+            }
+        }
     }
 
     /// Converts SponsorBlock segments (seconds) to fraction pairs for the progress lane.

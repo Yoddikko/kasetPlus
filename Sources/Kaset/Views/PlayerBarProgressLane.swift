@@ -22,6 +22,11 @@ struct PlayerBarProgressLane: View {
     /// track and revealed only while hovering/scrubbing the bar.
     var heatmap: [YouTubeHeatmapMarker] = []
 
+    /// Reports the 0…1 track fraction under the pointer while hovering or
+    /// scrubbing, and `nil` when the pointer leaves the bar. Drives the
+    /// storyboard hover preview on the on-video overlay bar.
+    var onHoverFractionChange: ((Double?) -> Void)?
+
     /// Height of the heatmap band. Its baseline sits on the track (YouTube
     /// style) and the filled area rises upward from the bar — that rising shape
     /// is what reads as "above the bar". The centre and both ends are cleared by
@@ -75,7 +80,8 @@ struct PlayerBarProgressLane: View {
         onCommit: @escaping () -> Void,
         onMarkerPreviewChange: @escaping (PlayerBarProgressMarker?) -> Void = { _ in },
         segmentMarkers: [PlayerBarSegmentMarker] = [],
-        heatmap: [YouTubeHeatmapMarker] = []
+        heatmap: [YouTubeHeatmapMarker] = [],
+        onHoverFractionChange: ((Double?) -> Void)? = nil
     ) {
         self.fraction = fraction
         self.accent = accent
@@ -90,6 +96,7 @@ struct PlayerBarProgressLane: View {
         self.onMarkerPreviewChange = onMarkerPreviewChange
         self.segmentMarkers = segmentMarkers
         self.heatmap = heatmap
+        self.onHoverFractionChange = onHoverFractionChange
     }
 
     var body: some View {
@@ -226,12 +233,14 @@ struct PlayerBarProgressLane: View {
                         let fraction = Double(min(max(0, x / width), 1))
                         self.dragFraction = fraction
                         self.updatePreviewMarker(self.nearestMarker(to: fraction, width: width))
+                        self.onHoverFractionChange?(fraction)
                         self.onScrub(fraction)
                     }
                     .onEnded { value in
                         defer {
                             self.dragFraction = nil
                             self.updatePreviewMarker(nil)
+                            self.onHoverFractionChange?(nil)
                             self.isDragging = false
                         }
                         guard self.canSeek, width > 0 else { return }
@@ -250,10 +259,12 @@ struct PlayerBarProgressLane: View {
                     let fraction = Double(min(max(0, x / width), 1))
                     if self.dragFraction == nil {
                         self.updatePreviewMarker(self.nearestMarker(to: fraction, width: width))
+                        self.onHoverFractionChange?(fraction)
                     }
                 case .ended:
                     if self.dragFraction == nil {
                         self.updatePreviewMarker(nil)
+                        self.onHoverFractionChange?(nil)
                     }
                 }
             }
@@ -263,6 +274,7 @@ struct PlayerBarProgressLane: View {
                 if !hovering {
                     if self.dragFraction == nil {
                         self.updatePreviewMarker(nil)
+                        self.onHoverFractionChange?(nil)
                     }
                 }
             }

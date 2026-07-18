@@ -1118,16 +1118,18 @@ final class YouTubePlayerService {
             DearrowCache.shared.fetchOneIfNeeded(videoId: videoId)
         }
 
-        // Storyboard color drives the ambient backdrop, so only fetch it when
-        // the feature is on and real content (not a preroll ad) is playing.
-        // Not gated on the one-shot playback-options branch above, so it also
-        // fires when the user enables ambient mid-playback or when content
-        // starts after an ad. `refreshStoryboardSpec` is self-guarding, so
-        // calling it on each qualifying update is cheap.
+        // The storyboard spec drives the ambient backdrop's color and the
+        // on-video scrub hover preview, so fetch it when either feature is on
+        // and real content (not a preroll ad) is playing. Not gated on the
+        // one-shot playback-options branch above, so it also fires when the
+        // user enables a feature mid-playback or when content starts after an
+        // ad. `refreshStoryboardSpec` is self-guarding, so calling it on each
+        // qualifying update is cheap.
         if update.isPlaying,
            !update.isAd,
            self.currentVideo != nil,
            SettingsManager.shared.ambientBackdropEnabled
+           || SettingsManager.shared.controlsOnVideoEnabled
         {
             Task {
                 await self.refreshStoryboardSpec()
