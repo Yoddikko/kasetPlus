@@ -183,6 +183,11 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 }
             }
             .task {
+                // KasetApp's root task also drives the startup login check (plus
+                // playback cleanup and account fetch). checkLoginStatus() is
+                // idempotent — it coalesces onto any in-flight check via
+                // loginCheckTask/generation — so this fork-side call is a harmless
+                // safety net if this view's task lands first. Kept from HEAD.
                 DiagnosticsLogger.app.info("MainWindow: Starting login check check...")
                 await self.authService.checkLoginStatus()
                 DiagnosticsLogger.app.info("MainWindow: Login check complete")
@@ -741,6 +746,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     }
 
     private func handleAuthStateChange(oldState: AuthService.State, newState: AuthService.State) {
+        self.accountService.authenticationIdentityDidChange()
         switch newState {
         case .initializing:
             // Still checking login status, do nothing
