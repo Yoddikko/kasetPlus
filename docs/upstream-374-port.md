@@ -85,14 +85,18 @@ These are two different implementations of the same concept. Resolving it means
 nothing regressed. That is a dedicated integration effort, not a merge-marker
 cleanup, and it must be validated by a test suite.
 
-## Prerequisite: restore the test target
+## Prerequisite: restore the test target — ✅ DONE (`c78aa6a`)
 
-`swift test` does not build on `main` (stale test files reference removed
-symbols: `SidebarPinnedItemsManagerTests`, `AppDelegateOpenURLTests`,
-`ChartsViewModelTests`, …). #374 is a *reliability/race* rework — the only real
-validation is its own test suite (it ships ~15 new player test files). **Fix the
-test target first**, or the port cannot be verified beyond a manual smoke test,
-and a green `swift build` will give false confidence.
+**Resolved on this branch.** The test target's ~36k errors were a single
+cascade, not stale files: the rebranding renamed the app target `Kaset` →
+`KasetPlus` but left every test on `@testable import Kaset`, so the test module
+never loaded. Fixed by the import rename across 151 files (+ 3 small drift
+fixes); `swift test --skip KasetUITests` now compiles and runs (1983 tests, 90
+pre-existing runtime failures). See `docs/test-suite-recovery.md`.
+
+This matters because #374 is a *reliability/race* rework whose real validation
+is its own test suite (~15 new player test files it ships). With the target
+restored, those tests can now gate the port.
 
 ## Recommended execution plan (dedicated session)
 
@@ -139,7 +143,8 @@ regresses. Track it as its own row in the sync ledger.
 | PR | State |
 |----|-------|
 | #396, #379 | ✅ synced to `main` |
-| #374 | ⛔ blocked — two-architecture merge; needs test target restored first |
+| test target | ✅ restored on this branch (`c78aa6a`) — the #374 prerequisite is cleared |
+| #374 | ◻︎ ready to attempt: 6 source conflicts (see map), ~17 two-architecture blocks in `YouTubePlayerService`/`YouTubeWatchWebView`. Resolve by adopting #374's plumbing (`WebPlaybackDocumentGeneration`, `effectiveIsPlaying`) while **preserving the fork's live-stream / controls-on-video / ad-skippable logic** (e.g. `YouTubePlayerService` block @L1518 merges the fork's ad/live/spinner state application with #374's `effectiveIsPlaying`). Gate on the restored test suite + #374's own player tests, then smoke-test YouTube video + live + controls-on-video. |
 | #392, #391, #389, #368 | ⛔ blocked on #374 |
 | #368 (UI only) | ◻︎ optional standalone extraction (see above) |
 
