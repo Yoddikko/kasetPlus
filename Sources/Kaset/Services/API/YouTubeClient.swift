@@ -475,6 +475,19 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
         return YouTubeFeedParser.collectPlaylists(data)
     }
 
+    // MARK: - Notifications
+
+    func getNotifications() async throws -> [YouTubeNotification] {
+        self.logger.info("Fetching YouTube notification inbox")
+
+        let data = try await self.request(
+            "notification/get_notification_menu",
+            body: ["notificationsMenuRequestType": "NOTIFICATIONS_MENU_REQUEST_TYPE_INBOX"],
+            retry: false
+        )
+        return YouTubeNotificationsParser.parse(data)
+    }
+
     // MARK: - Actions
 
     func rateVideo(videoId: String, rating: YouTubeRating) async throws {
@@ -610,6 +623,7 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
         "browse/edit_playlist",
         "comment/create_comment",
         "comment/perform_comment_action",
+        "notification/get_notification_menu",
     ]
 
     /// Builds authentication headers with the YouTube (not music) origin.

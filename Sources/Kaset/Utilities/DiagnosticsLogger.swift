@@ -18,8 +18,11 @@ enum DiagnosticsLogger {
     /// Logger for UI-related events.
     static let ui = Logger(subsystem: "com.sertacozercan.Kaset", category: "UI")
 
-    /// Logger for notification-related events.
+    /// Logger for macOS user-notification events (now-playing alerts).
     static let notification = Logger(subsystem: "com.sertacozercan.Kaset", category: "Notification")
+
+    /// Logger for the YouTube notification bell/inbox.
+    static let youtubeNotifications = Logger(subsystem: "com.sertacozercan.Kaset", category: "YouTubeNotifications")
 
     /// Logger for AI/Foundation Models-related events.
     static let ai = Logger(subsystem: "com.sertacozercan.Kaset", category: "AI")

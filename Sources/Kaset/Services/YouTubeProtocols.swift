@@ -115,6 +115,11 @@ protocol YouTubeClientProtocol: Sendable {
     /// Fetches the signed-in user's playlists.
     func getUserPlaylists() async throws -> [YouTubePlaylist]
 
+    // MARK: Notifications
+
+    /// Fetches the notification bell inbox.
+    func getNotifications() async throws -> [YouTubeNotification]
+
     // MARK: Actions
 
     /// Rates a video (like / dislike / remove rating).
@@ -146,5 +151,10 @@ extension YouTubeClientProtocol {
 
     func getChannelTabContinuation(token _: String) async throws -> ([YouTubeVideo], continuation: String?) {
         ([], nil)
+    }
+
+    /// Default so the mock/UI-test client compiles without a notifications backend.
+    func getNotifications() async throws -> [YouTubeNotification] {
+        []
     }
 }

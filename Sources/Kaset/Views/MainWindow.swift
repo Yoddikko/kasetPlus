@@ -58,6 +58,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     @State private var youtubeStore: YouTubeViewModelStore
 
     @State private var showLoginSheet = false
+    @State private var showingNotifications = false
     @State private var isCommandBarPresented = false
     @State private var whatsNewToPresent: PresentedWhatsNew?
     @State private var selectedSidebarPinnedItem: SidebarPinnedItem?
@@ -76,6 +77,9 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     @State private var likedMusicViewModel: PlaylistDetailViewModel?
     @State private var libraryViewModel: LibraryViewModel?
     @State private var historyViewModel: HistoryViewModel?
+
+    /// Drives the notification bell (unseen-count poll + inbox).
+    @State private var notificationsViewModel: YouTubeNotificationsViewModel
 
     /// Navigation path for the Liked Music route.
     @State private var likedMusicNavigationPath = NavigationPath()
@@ -114,6 +118,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         )
         _libraryViewModel = State(initialValue: LibraryViewModel(client: client))
         _historyViewModel = State(initialValue: HistoryViewModel(client: client))
+        _notificationsViewModel = State(initialValue: YouTubeNotificationsViewModel(client: youtubeClient))
     }
 
     /// Access to the app delegate for persistent WebView.
@@ -510,12 +515,81 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                     .accessibilityIdentifier(AccessibilityID.MainWindow.aiButton)
                 }
             }
+
+            if self.hasPersonalAccount {
+                ToolbarItem(placement: .primaryAction) {
+                    NotificationsBellButton(
+                        viewModel: self.notificationsViewModel,
+                        isPresented: self.$showingNotifications
+                    )
+                }
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if self.showingNotifications {
+                ZStack(alignment: .topTrailing) {
+                    // Outside tap dismisses the panel.
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture { self.showingNotifications = false }
+
+                    NotificationsInboxPanel(viewModel: self.notificationsViewModel) { notification in
+                        self.showingNotifications = false
+                        // Navigate in a separate transaction so the panel's
+                        // dismiss animation doesn't sweep the navigation push
+                        // into itself (which renders the watch view over Home).
+                        Task { @MainActor in
+                            self.openNotification(notification)
+                        }
+                    }
+                    .padding(.top, 8)
+                    .padding(.trailing, 12)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            }
+        }
+        .animation(.easeOut(duration: 0.18), value: self.showingNotifications)
+        .task(id: self.showingNotifications) {
+            guard self.showingNotifications else { return }
+            await self.notificationsViewModel.openInbox()
+        }
+        .onChange(of: self.hasPersonalAccount) { _, hasAccount in
+            if !hasAccount { self.showingNotifications = false }
+        }
+        .task(id: self.authService.hasPersonalAccount) {
+            // Poll the notification bell only while signed in; stop and clear
+            // the badge on sign-out.
+            if self.authService.hasPersonalAccount {
+                self.notificationsViewModel.startPolling()
+            } else {
+                self.notificationsViewModel.stopPolling()
+            }
         }
     }
 
     private func presentCommandBarIfAvailable() {
         guard self.supportsCommandBarUI else { return }
         self.isCommandBarPresented = true
+    }
+
+    /// Opens a tapped notification inside the app — the native watch view for a
+    /// video, or the channel view otherwise. Never an external browser/webview.
+    private func openNotification(_ notification: YouTubeNotification) {
+        self.settings.appSource = .video
+        // The YouTube selection is normally already `.home`; only seed it when
+        // unset so we don't trip the selection-change path reset before append.
+        if self.youtubeNavigationSelection == nil {
+            self.youtubeNavigationSelection = .home
+        }
+
+        self.youtubeStore.navigationPath.append(YouTubeRoute.watch(
+            YouTubeVideo(
+                videoId: notification.videoId,
+                title: notification.message,
+                thumbnailURL: notification.thumbnailURL
+            )
+        ))
     }
 
     private var supportsCommandBarUI: Bool {
