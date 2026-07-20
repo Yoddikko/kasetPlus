@@ -52,6 +52,7 @@ struct KasetApp: App {
     @State private var likeStatusManager = SongLikeStatusManager.shared
     @State private var accountService: AccountService?
     @State private var scrobblingCoordinator: ScrobblingCoordinator
+    @State private var nowPlayingTracklistProvider: NowPlayingTracklistProvider
     @State private var syncedLyricsService: SyncedLyricsService
     @State private var equalizerService = EqualizerService.shared
     @State private var settings = SettingsManager.shared
@@ -147,10 +148,18 @@ struct KasetApp: App {
         _notificationService = State(initialValue: NotificationService(playerService: player))
         _accountService = State(initialValue: account)
 
-        // Create scrobbling coordinator with mix tracklist parser
+        // Playback-UI tracklist provider: owns seek-bar segmentation for the current item and is
+        // driven by the player, so segments show even without Last.fm connected. Scrobbling keeps
+        // its provisional classification state but shares the same cached/coalescing parser.
+        let mixTracklistParser = MixTracklistParser(youTubeClient: youtubeClient)
+        let tracklistProvider = NowPlayingTracklistProvider(parser: mixTracklistParser)
+        player.setNowPlayingTracklistProvider(tracklistProvider)
+        _nowPlayingTracklistProvider = State(initialValue: tracklistProvider)
+
+        // Create the scrobbling coordinator with the shared parser. Its classification lifecycle is
+        // intentionally independent from the current-item UI provider.
         let lastFMService = LastFMService(credentialStore: KeychainCredentialStore())
         let listenBrainzService = ListenBrainzService(credentialStore: KeychainCredentialStore())
-        let mixTracklistParser = MixTracklistParser(youTubeClient: youtubeClient)
         let scrobblingCoordinator = ScrobblingCoordinator(
             playerService: player,
             services: [lastFMService, listenBrainzService],
@@ -200,6 +209,7 @@ struct KasetApp: App {
                 .environment(self.likeStatusManager)
                 .environment(self.accountService)
                 .environment(self.scrobblingCoordinator)
+                .environment(self.nowPlayingTracklistProvider)
                 .environment(self.syncedLyricsService)
                 .environment(self.equalizerService)
                 .environment(self.podcastsAvailabilityService)

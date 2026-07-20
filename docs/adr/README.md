@@ -63,3 +63,4 @@ What becomes easier or more difficult because of this change?
 | [0026](0026-generation-scoped-web-playback-bridge.md) | Generation-Scoped Web Playback Bridge Events | Accepted |
 | [0027](0027-native-music-playback-intents-and-queue-entry-identity.md) | Native Music Playback Intents and Queue-Entry Identity | Accepted |
 | [0028](0028-ordered-semantic-music-search-results.md) | Ordered Semantic YouTube Music Search Results | Accepted |
+| [0029](0029-now-playing-tracklist-provider.md) | Shared Now-Playing Mix Tracklist Provider | Accepted |
