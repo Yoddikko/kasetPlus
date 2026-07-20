@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for `EQPreset` (band-count alignment, picker ordering, display
 /// names, special-cased presets).

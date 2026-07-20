@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for NotificationService track-change observation.
 @Suite(.serialized, .tags(.service))

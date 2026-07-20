@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for PlayerService+Library extension (like/dislike/library actions).
 @Suite(.serialized, .tags(.service))

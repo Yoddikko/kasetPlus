@@ -1,7 +1,7 @@
 import Foundation
 import FoundationModels
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 private let optimizedPromptIntegrationEnabled: Bool = {
     if #available(macOS 26.4, *) {

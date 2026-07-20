@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 // MARK: - YouTubeSingleFlightViewModelTests
 
@@ -336,6 +336,15 @@ private final class SingleFlightYouTubeClient: YouTubeClientProtocol {
     func getComments(continuation _: String) async throws -> YouTubeCommentsPage {
         try await self.waitIfNeeded()
         return self.commentsPage
+    }
+
+    func getLiveChat(continuation _: String) async throws -> YouTubeLiveChatPage {
+        try await self.waitIfNeeded()
+        return YouTubeLiveChatPage(messages: [], continuation: nil, timeoutMs: 5000, sendParams: nil)
+    }
+
+    func sendLiveChatMessage(text _: String, params _: String) async throws {
+        try await self.waitIfNeeded()
     }
 
     func postComment(text _: String, createCommentParams _: String) async throws {

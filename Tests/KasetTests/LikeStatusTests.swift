@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Unit tests for LikeStatus and FeedbackTokens.
 @Suite(.tags(.model))

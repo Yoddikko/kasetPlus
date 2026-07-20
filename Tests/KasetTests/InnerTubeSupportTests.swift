@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for shared InnerTube helpers — especially SAPISIDHASH origin
 /// sensitivity, where a wrong origin produces silent 401s.

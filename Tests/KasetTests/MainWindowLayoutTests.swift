@@ -1,6 +1,6 @@
 import AppKit
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite("Main window layout", .serialized)
 struct MainWindowLayoutTests {

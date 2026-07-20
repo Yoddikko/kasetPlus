@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for FavoritesManager using Swift Testing.
 @Suite(.serialized, .tags(.service), .timeLimit(.minutes(1)))

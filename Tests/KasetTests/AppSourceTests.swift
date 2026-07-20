@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for the AppSource model and its SettingsManager persistence.
 @Suite("AppSource", .serialized, .tags(.model))

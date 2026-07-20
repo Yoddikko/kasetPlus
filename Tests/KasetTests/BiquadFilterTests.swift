@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for `BiquadFilter`. These exercise the DSP path directly so we can
 /// verify coefficient correctness, parameter slewing and stability without

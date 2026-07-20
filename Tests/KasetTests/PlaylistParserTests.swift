@@ -1,7 +1,7 @@
 // swiftlint:disable file_length
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for the PlaylistParser.
 @Suite(.tags(.parser))

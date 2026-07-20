@@ -1,6 +1,6 @@
 import CoreAudio
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite(.tags(.service))
 struct ProcessTapHelperTests {

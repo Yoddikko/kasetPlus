@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Unit tests for `YouTubeItemParser` with handcrafted renderer payloads.
 @Suite("YouTubeItemParser", .tags(.parser))

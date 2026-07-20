@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Extended tests for YTMusicError.
 @Suite(.tags(.model))

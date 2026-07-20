@@ -1,7 +1,7 @@
 import Foundation
 import Network
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for NetworkMonitor.
 @Suite(.tags(.service))

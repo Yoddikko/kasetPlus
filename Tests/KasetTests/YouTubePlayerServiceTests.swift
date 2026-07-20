@@ -1,7 +1,7 @@
 // swiftlint:disable file_length
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 // MARK: - MockYouTubeWatchPlaybackController
 
@@ -51,6 +51,12 @@ private final class MockYouTubeWatchPlaybackController: YouTubeWatchPlaybackCont
 
     func seek(to time: Double) {
         self.seeks.append(time)
+    }
+
+    private(set) var skipAdResumeSeconds: [Double] = []
+
+    func skipAd(resumeAt: Double) {
+        self.skipAdResumeSeconds.append(resumeAt)
     }
 
     func seekToLive() {}
@@ -1018,19 +1024,24 @@ struct YouTubePlayerServiceTests {
         #expect(self.sut.popInRequest == nil)
     }
 
-    @Test("Storyboard refresh task starts once while in-flight and once resolved")
-    func storyboardRefreshTaskStartIsGuarded() async throws {
+    // Updated for the current API: the fork replaced the synchronous,
+    // bool-returning `startStoryboardSpecRefreshIfNeeded()` with the async
+    // `refreshStoryboardSpec()` that guards against duplicate fetches
+    // internally (by video id). We assert the resolved-once, cached-negative
+    // behaviour instead of the old task-start return value.
+    @Test("Storyboard refresh resolves once and caches the result per video")
+    func storyboardRefreshResolvesOncePerVideo() async throws {
         self.controller.storyboardSpecResponse = "mock-storyboard-spec"
         self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
 
-        #expect(self.sut.startStoryboardSpecRefreshIfNeeded())
-        #expect(!self.sut.startStoryboardSpecRefreshIfNeeded())
-
-        try await Task.sleep(for: .milliseconds(20))
+        await self.sut.refreshStoryboardSpec()
 
         #expect(self.controller.storyboardSpecRequests == ["abc"])
         #expect(self.sut.storyboardSpec == "mock-storyboard-spec")
-        #expect(!self.sut.startStoryboardSpecRefreshIfNeeded())
+
+        // A second refresh for the same video is a no-op (already resolved).
+        await self.sut.refreshStoryboardSpec()
+        #expect(self.controller.storyboardSpecRequests == ["abc"])
     }
 
     @Test("Playback tick skips storyboard refresh unless live ambient is active")

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 // MARK: - StoryboardSheetTests
 
@@ -165,26 +165,12 @@ struct AmbientBackdropStyleTests {
         }
     }
 
-    @Test("Default ambient style favors the steady low-energy glow")
-    func defaultAmbientStyleIsSteady() {
-        #expect(SettingsManager.defaultAmbientBackdropStyle == .soft)
-    }
-
-    @Test("Resolved ambient style only reflects stored user preference")
-    func resolvedAmbientStyleReflectsStoredPreference() {
-        #expect(SettingsManager.resolveAmbientStyle(
-            enabled: false,
-            preferredStyle: .live
-        ) == .off)
-        #expect(SettingsManager.resolveAmbientStyle(
-            enabled: true,
-            preferredStyle: .live
-        ) == .live)
-        #expect(SettingsManager.resolveAmbientStyle(
-            enabled: true,
-            preferredStyle: .glow
-        ) == .glow)
-    }
+    // NOTE: The former tests for `SettingsManager.defaultAmbientBackdropStyle`
+    // and `SettingsManager.resolveAmbientStyle(enabled:preferredStyle:)` were
+    // removed: the fork replaced those static helpers with the instance-level
+    // `SettingsManager.resolvedAmbientStyle` computed property (and changed the
+    // default style). `SettingsManager` is a singleton with a private init, so
+    // the resolution logic can no longer be exercised via static helpers.
 
     @Test("Ambient rendering downgrades live for Reduce Motion or Low Power Mode")
     func ambientRenderingDowngradesLiveForEnergyAndAccessibility() {

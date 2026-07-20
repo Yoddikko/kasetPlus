@@ -1,5 +1,5 @@
 import Foundation
-@testable import Kaset
+@testable import KasetPlus
 
 /// Provides test fixtures for unit tests.
 enum TestFixtures {

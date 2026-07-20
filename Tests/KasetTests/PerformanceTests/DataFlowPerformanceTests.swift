@@ -1,5 +1,5 @@
 import XCTest
-@testable import Kaset
+@testable import KasetPlus
 
 /// Performance tests for app data-flow helpers that are hot during large library/playlist loads.
 final class DataFlowPerformanceTests: XCTestCase {

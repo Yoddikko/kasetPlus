@@ -1,6 +1,6 @@
 // swiftlint:disable file_length
 import Foundation
-@testable import Kaset
+@testable import KasetPlus
 
 /// A mock implementation of YTMusicClientProtocol for testing.
 @MainActor

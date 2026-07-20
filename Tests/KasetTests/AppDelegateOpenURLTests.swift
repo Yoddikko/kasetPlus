@@ -1,6 +1,6 @@
 import AppKit
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite("App delegate URL delivery", .serialized)
 @MainActor

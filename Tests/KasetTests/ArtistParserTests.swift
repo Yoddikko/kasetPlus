@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 // swiftlint:disable type_body_length file_length
 /// Tests for ArtistParser.

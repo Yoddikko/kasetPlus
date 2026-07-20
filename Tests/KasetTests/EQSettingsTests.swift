@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for `EQSettings` (clamping, automatic headroom trim, JSON
 /// round-tripping through the persistence layer).

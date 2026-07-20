@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for PlayerService queue operations, undo/redo, and metadata enrichment.
 @Suite(.serialized, .tags(.service))

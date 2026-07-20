@@ -1,5 +1,5 @@
 import Foundation
-@testable import Kaset
+@testable import KasetPlus
 
 /// Configurable mock implementation of YouTubeClientProtocol for unit tests.
 @MainActor

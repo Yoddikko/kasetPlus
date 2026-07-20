@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 import WebKit
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for WebKitManager.
 @Suite(.serialized, .tags(.service))

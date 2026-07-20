@@ -1,5 +1,5 @@
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 struct LRCParserTests {
     @Test("Parse basic LRC")

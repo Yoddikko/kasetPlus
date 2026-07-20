@@ -1,5 +1,5 @@
 import Foundation
-@testable import Kaset
+@testable import KasetPlus
 
 // MARK: - MockEqualizerAudioEngine
 

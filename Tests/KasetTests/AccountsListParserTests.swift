@@ -4,7 +4,7 @@
 // Tests for AccountsListParser using Swift Testing framework.
 
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 // MARK: - AccountsListParserTests
 

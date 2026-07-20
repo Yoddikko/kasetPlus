@@ -1,5 +1,5 @@
 import XCTest
-@testable import Kaset
+@testable import KasetPlus
 
 /// Performance tests for API response parsers.
 ///

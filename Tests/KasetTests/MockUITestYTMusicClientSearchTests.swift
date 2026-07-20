@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite("Mock UI-test YouTube Music search configuration", .serialized)
 struct MockUITestYTMusicClientSearchTests {

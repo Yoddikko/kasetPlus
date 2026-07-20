@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import Kaset
+@testable import KasetPlus
 
 /// Performance tests for image color extraction paths used by accent backgrounds.
 final class ColorExtractorPerformanceTests: XCTestCase {

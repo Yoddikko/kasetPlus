@@ -1,5 +1,5 @@
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Unit tests for HapticService.
 @Suite(.tags(.service))

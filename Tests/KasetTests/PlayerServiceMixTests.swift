@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for PlayerService+Queue mix functionality.
 @Suite(.serialized, .tags(.service))

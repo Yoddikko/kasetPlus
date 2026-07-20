@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Tests for standalone artist-page episode playback.
 @Suite(.serialized, .tags(.service))

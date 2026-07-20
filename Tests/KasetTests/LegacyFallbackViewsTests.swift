@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Construction-level tests for the legacy fallback views used on macOS 15.
 ///

@@ -1,5 +1,5 @@
 import Foundation
-@testable import Kaset
+@testable import KasetPlus
 
 /// A mock implementation of WebKitManagerProtocol for testing.
 /// Does not interact with real WebKit or file storage.

@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 /// Smoke tests for the Liquid Glass macOS 15 compatibility shims.
 ///

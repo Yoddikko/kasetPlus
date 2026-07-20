@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @MainActor
 @Suite(.tags(.model))
