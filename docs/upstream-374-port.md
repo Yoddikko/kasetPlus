@@ -145,8 +145,14 @@ regresses. Track it as its own row in the sync ledger.
 | #396, #379 | ✅ synced to `main` |
 | test target | ✅ restored on this branch (`c78aa6a`) — the #374 prerequisite is cleared |
 | #374 | ✅ **landed** on `feature/upstream-374-and-dependents` as a single cherry-pick keeping the original author/message. All 8 conflicts (`APIExplorer/main.swift`, `docs/adr/README.md`, `PlayerService+Library.swift`, `YouTubePlayerService.swift`, `YouTubeWatchWebView.swift`, `+Scripts.swift`, `MockYTMusicClient.swift`, `YouTubeWatchScriptTests.swift`) resolved by adopting #374's plumbing (`WebPlaybackDocumentGeneration`, `effectiveIsPlaying`, generation-scoped bridge) **while preserving the fork's live-stream / controls-on-video / ad-skippable / SponsorBlock / RYD / DeArrow / interstitial-reveal logic**. `swift build` green; `swift build --build-tests` green; all 15 of #374's own player test suites pass. Full suite: 2337 tests, 76 pre-existing baseline issues (localization + WhatsNew data + 1 fork storyboard test), no new player-test failures. Fork feature merge notes: (a) the STATE_UPDATE apply block uses #374's `effectiveIsPlaying` with the fork's equality-gated ad/live/spinner state application; (b) `YouTubeWatchWebView` migrated from `Int` `documentGeneration` to the `WebPlaybackDocumentGeneration` struct, fork Coordinator deleted and its SponsorBlock + interstitial handling folded into `+Coordinator.swift`, SponsorBlock config injection folded into `+DocumentGeneration.swift`'s bootstrap; (c) `+Scripts` observer sends the union of #374's bridge fields and the fork's `isAdSkippable`/`isLive`/`isAtLiveEdge` + DVR-window progress. **Smoke-test still recommended:** YouTube video, live streams (DVR/live-edge), controls-on-video, SponsorBlock, ad-block recovery. |
-| #392, #391, #389, #368 | ◻︎ unblocked — ready to take in order (`#392` → `#389` → `#391` → `#368`) |
-| #368 (UI only) | ◻︎ optional standalone extraction (see above) |
+| #392, #391, #389, #368 | ✅ **all landed on `main`** — applied on top of #374 with minimal conflict (#391/#389 auto-merged; #392 one conflict; #368 two, keeping the fork's heatmap + hover overlay). |
+| #383, #398, #387 | ✅ **also landed on `main`** — later upstream PRs synced in the same effort (#383 account-scoped favorites is another #374-scale rework; auto-merged bar one `MainWindow` conflict). |
+
+**This whole plan is complete.** #374 and every dependent are merged to `main`
+and pushed. The sync ledger (`docs/upstream-sync.md`) is the live source of
+truth; "Deliberately skipped" there is now empty. Nothing left to merge from
+upstream as of `c1dae03`. This doc is kept as the record of how the #374
+integration was done.
 
 ## Reproduce the conflict map
 
