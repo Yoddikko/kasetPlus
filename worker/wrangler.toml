@@ -12,7 +12,7 @@ compatibility_date = "2024-12-01"
 # then paste the printed id below.
 [[kv_namespaces]]
 binding = "SUPPORTERS"
-id = "3905845ed3b942de85e5c222c3075ab2"
+id = "7d36ade9123847708dd327a22299d99a"
 
 [observability]
 enabled = true
