@@ -31,11 +31,11 @@ struct YouTubePlayerBar: View {
     private static let fullVideoDetailsWidth: CGFloat = 294
     private static let compactVideoDetailsWidth: CGFloat = 141
     /// When the video has chapters, the progress lane floats a chapter tooltip
-    /// above the track; lift the scrub bubble by roughly that tooltip's height
-    /// so its timestamp capsule clears the chapter name instead of landing on it.
-    /// ponytail: fixed heuristic (~chapter-tooltip height); nudge if the two ever
-    /// touch again.
-    private static let chapterScrubLift: CGFloat = 52
+    /// above the track; lift the scrub bubble just enough that its timestamp
+    /// capsule sits a little above the chapter tooltip instead of landing on it
+    /// (close, with a small gap — not floating far above).
+    /// ponytail: fixed heuristic; nudge if the two ever touch or drift apart.
+    private static let chapterScrubLift: CGFloat = 22
 
     private struct ChapterProgressSpan {
         let chapter: YouTubeChapter
