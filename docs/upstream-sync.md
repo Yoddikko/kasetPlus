@@ -21,9 +21,16 @@ the fork diverged, keeping the original author and message (the `(#NNN)` suffix 
 sometimes dropped, but the subject is preserved). Add a row to the relevant table
 on every pick or skip.
 
-**Baseline:** everything up to upstream `50685c9` is already in `main` via the
-wholesale merge `f180d2e` (2026-07-13). Only PRs merged upstream *after* that
-point are tracked individually below.
+**Baseline / ancestry:** everything up to upstream `50685c9` came in via the
+wholesale merge `f180d2e` (2026-07-13). Since then, upstream PRs are
+**cherry-picked** (adapted), so their original SHAs are not in our ancestry —
+which is why GitHub showed the fork "N commits behind" even after syncing.
+On 2026-07-21, after cherry-picking through upstream `c1dae03`, a
+`git merge -s ours upstream/main` recorded that main is caught up **without
+changing any code** (we already had the content): the fork now reads **0
+behind**, and `git log main..upstream/main` starts empty from `c1dae03`.
+Repeat that `-s ours` merge after each cherry-pick batch to keep the baseline
+clean. (The fork stays permanently "ahead" — that's its own features, expected.)
 
 ## Pending (to sync)
 
