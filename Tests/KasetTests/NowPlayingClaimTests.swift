@@ -1,7 +1,7 @@
 import Foundation
 import MediaPlayer
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite("Now playing claim", .serialized, .tags(.service))
 struct NowPlayingClaimTests {
