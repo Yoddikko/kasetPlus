@@ -30,6 +30,12 @@ struct YouTubePlayerBar: View {
     private static let brandAccent = PackageResourceLookup.brandAccent
     private static let fullVideoDetailsWidth: CGFloat = 294
     private static let compactVideoDetailsWidth: CGFloat = 141
+    /// When the video has chapters, the progress lane floats a chapter tooltip
+    /// above the track; lift the scrub bubble by roughly that tooltip's height
+    /// so its timestamp capsule clears the chapter name instead of landing on it.
+    /// ponytail: fixed heuristic (~chapter-tooltip height); nudge if the two ever
+    /// touch again.
+    private static let chapterScrubLift: CGFloat = 52
 
     private struct ChapterProgressSpan {
         let chapter: YouTubeChapter
@@ -416,7 +422,9 @@ struct YouTubePlayerBar: View {
                             max(halfWidth, proxy.size.width * hoverFraction),
                             max(halfWidth, proxy.size.width - halfWidth)
                         ),
+                        // Lift clear of the chapter tooltip when the video has chapters.
                         y: -StoryboardHoverPreview.totalHeight / 2 + 6
+                            - (self.youtubePlayer.chapters.isEmpty ? 0 : Self.chapterScrubLift)
                     )
                 }
                 .allowsHitTesting(false)
