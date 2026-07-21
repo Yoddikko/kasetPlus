@@ -7,6 +7,20 @@
         <language>en</language>
 
         <item>
+            <title>Version 0.12.0-kp.18</title>
+            <sparkle:releaseNotesLink>https://github.com/Yoddikko/kasetPlus/releases/tag/v0.12.0-kp.18</sparkle:releaseNotesLink>
+            <pubDate>Tue, 21 Jul 2026 08:31:22 +0000</pubDate>
+            <enclosure
+                url="https://github.com/Yoddikko/kasetPlus/releases/download/v0.12.0-kp.18/KasetPlus.zip"
+                sparkle:version="35"
+                sparkle:shortVersionString="0.12.0"
+                length="48227741"
+                type="application/octet-stream"
+                sparkle:edSignature="MKriTlDNrubg9DSk3UhfynlcrT2VO2QuPapuM4DHZfNrXZpN7rx2RTrxOdN4Yon0gom5Wz0Z7mNo2OJ027uyCg=="/>
+            <sparkle:minimumSystemVersion>15.4</sparkle:minimumSystemVersion>
+        </item>
+
+        <item>
             <title>Version 0.12.0-kp.17</title>
             <sparkle:releaseNotesLink>https://github.com/Yoddikko/kasetPlus/releases/tag/v0.12.0-kp.17</sparkle:releaseNotesLink>
             <pubDate>Sat, 18 Jul 2026 18:01:36 +0000</pubDate>
