@@ -503,6 +503,10 @@ ${APP_LOCALIZATIONS_PLIST}
     <key>NSScreenCaptureUsageDescription</key>
     <string>Kaset taps its own audio output (not the screen) so the built-in equalizer can apply effects to your music. No screen content is recorded.</string>
 
+    <!-- KasetPlus support (Ko-fi) — Cloudflare Worker for supporter verification -->
+    <key>SupportWorkerURL</key>
+    <string>https://kaset-lastfm.alessioiodiceuni.workers.dev</string>
+
     <!-- Build Metadata -->
     <key>KasetBuildTimestamp</key>
     <string>${BUILD_TIMESTAMP}</string>

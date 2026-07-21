@@ -3,6 +3,7 @@
 //
 // Profile section displayed at the bottom of the sidebar for account management.
 
+import AppKit
 import SwiftUI
 
 // MARK: - SidebarProfileView
@@ -17,9 +18,17 @@ struct SidebarProfileView: View {
 
     @State private var showingAccountSwitcher = false
     @State private var showsCommunity = false
+    @State private var showsSupport = false
+    @State private var support = SupportManager.shared
+
+    /// Warm red used for the "Support the project" affordance (transparent when
+    /// idle, filled/gradient once the user is a supporter).
+    private static let supportColor = Color(red: 1.0, green: 0.30, blue: 0.45)
 
     var body: some View {
         VStack(spacing: 6) {
+            self.supportButton
+
             self.communityButton
 
             Group {
@@ -37,6 +46,53 @@ struct SidebarProfileView: View {
         .sheet(isPresented: self.$showsCommunity) {
             CommunityView()
         }
+        .sheet(isPresented: self.$showsSupport) {
+            SupportView()
+        }
+    }
+
+    /// "Support the project" — opens the Ko-fi support sheet. Turns into a filled
+    /// "Supporter" pill once the user has an active supporter status.
+    private var supportButton: some View {
+        Button {
+            self.showsSupport = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: self.support.isSupporter ? "heart.fill" : "heart")
+                    .font(.system(size: 12))
+                Text(self.support.isSupporter ? "Supporter" : "Support the project", comment: "Sidebar support entry point")
+                    .font(.system(size: 11, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 0)
+                if self.support.isSupporter {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 11))
+                }
+            }
+            .foregroundStyle(self.support.isSupporter ? Color.white : Self.supportColor)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(self.supportButtonBackground)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(String(localized: "Support KasetPlus on Ko-fi"))
+    }
+
+    @ViewBuilder
+    private var supportButtonBackground: some View {
+        if self.support.isSupporter {
+            LinearGradient(colors: [Self.supportColor, .purple], startPoint: .leading, endPoint: .trailing)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } else {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Self.supportColor.opacity(0.14))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Self.supportColor.opacity(0.30), lineWidth: 1)
+                }
+        }
     }
 
     /// Opens the in-app community hub (report/browse issues + discussions).
@@ -45,8 +101,7 @@ struct SidebarProfileView: View {
             self.showsCommunity = true
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: "ladybug")
-                    .font(.system(size: 12))
+                GitHubMark(size: 13)
                 Text("Report an issue or discuss", comment: "Sidebar community entry point")
                     .font(.system(size: 11, weight: .medium))
                     .lineLimit(1)
@@ -322,4 +377,33 @@ extension AccessibilityID {
         .environment(authService)
         .frame(width: 220)
         .padding()
+}
+
+// MARK: - GitHubMark
+
+/// The GitHub mark, rendered from an embedded SVG so it needs no asset catalog
+/// or bundle lookup. Drawn as a template image so it tints with `foregroundStyle`.
+/// Falls back to an SF Symbol if SVG rasterization is unavailable.
+struct GitHubMark: View {
+    var size: CGFloat = 13
+
+    private static let image: NSImage? = {
+        let svg = #"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>"#
+        guard let data = svg.data(using: .utf8), let image = NSImage(data: data) else { return nil }
+        image.isTemplate = true
+        return image
+    }()
+
+    var body: some View {
+        if let image = Self.image {
+            Image(nsImage: image)
+                .resizable()
+                .renderingMode(.template)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: self.size, height: self.size)
+        } else {
+            Image(systemName: "chevron.left.forwardslash.chevron.right")
+                .font(.system(size: self.size))
+        }
+    }
 }

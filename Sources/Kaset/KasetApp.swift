@@ -255,6 +255,10 @@ struct KasetApp: App {
                     // Fetch accounts after login check (for account switcher)
                     await self.accountService?.fetchAccounts()
 
+                    // Refresh Ko-fi supporter status (no-op unless a worker URL
+                    // is configured and an email was verified).
+                    await SupportManager.shared.refreshFromKofi()
+
                     // Warm up Foundation Models in background (macOS 26+ only)
                     if !self.settings.useLegacyMacOS15UI, #available(macOS 26.0, *) {
                         await FoundationModelsService.shared.warmup()

@@ -78,12 +78,148 @@ function errorResponse(message, status = 400) {
 	});
 }
 
+/**
+ * JSON success response helper.
+ */
+function jsonResponse(obj, status = 200) {
+	return new Response(JSON.stringify(obj), {
+		status,
+		headers: { "Content-Type": "application/json" },
+	});
+}
+
+// KasetPlus supporter windows.
+// A subscription payment grants ~34 days (each renewal payment extends it, so a
+// cancelled membership lapses ~1 month after the last payment). A one-time tip
+// grants 30 days.
+const SUPPORT_SUB_GRANT_MS = 34 * 24 * 60 * 60 * 1000;
+const SUPPORT_TIP_GRANT_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Ko-fi webhook: Ko-fi POSTs `application/x-www-form-urlencoded` with a `data`
+ * field holding the event JSON. We record the supporter (keyed by email) in KV.
+ * Configure this URL + its Verification Token in Ko-fi → Settings → Webhooks.
+ */
+async function handleKofiWebhook(request, env) {
+	if (!env.SUPPORTERS) return errorResponse("Supporters KV not bound", 500);
+
+	let data;
+	try {
+		const form = await request.formData();
+		data = JSON.parse(form.get("data"));
+	} catch {
+		return errorResponse("Invalid Ko-fi payload");
+	}
+
+	if (!env.KOFI_VERIFICATION_TOKEN || data.verification_token !== env.KOFI_VERIFICATION_TOKEN) {
+		return errorResponse("Bad verification token", 401);
+	}
+
+	const email = (data.email || "").trim().toLowerCase();
+	// Ko-fi expects a 2xx even when we can't act on the event.
+	if (!email) return jsonResponse({ ok: true, note: "no email in payload" });
+
+	const isSubscription = data.type === "Subscription" || data.is_subscription_payment === true;
+	const now = Date.now();
+	let tier = isSubscription ? "subscription" : "onetime";
+	let expiry = now + (isSubscription ? SUPPORT_SUB_GRANT_MS : SUPPORT_TIP_GRANT_MS);
+
+	const existing = await env.SUPPORTERS.get(email, "json");
+	if (existing) {
+		// A later one-time tip must not downgrade an active subscription.
+		if (existing.tier === "subscription" && existing.expiry > now && !isSubscription) {
+			tier = "subscription";
+			expiry = Math.max(existing.expiry, expiry);
+		} else {
+			expiry = Math.max(existing.expiry || 0, expiry);
+		}
+	}
+
+	// Cumulative months of support = number of subscription payments seen
+	// (one-time tips don't add months). Preserved across renewals.
+	const months = (existing?.months || 0) + (isSubscription ? 1 : 0);
+	const name = (data.from_name || existing?.name || "").toString().trim();
+
+	await env.SUPPORTERS.put(email, JSON.stringify({
+		tier,
+		expiry,
+		months,
+		name,
+		since: existing?.since || now,
+		tierName: data.tier_name || null,
+		updatedAt: now,
+		lastTransactionId: data.kofi_transaction_id || null,
+	}));
+
+	return jsonResponse({ ok: true });
+}
+
+/**
+ * Public supporters wall: active supporters only, **names only** (never emails),
+ * newest payer first. Used by the app's Support sheet.
+ */
+async function handleKofiSupporters(request, env) {
+	if (!env.SUPPORTERS) return errorResponse("Supporters KV not bound", 500);
+
+	const now = Date.now();
+	const supporters = [];
+	let cursor;
+	do {
+		const page = await env.SUPPORTERS.list({ cursor });
+		for (const key of page.keys) {
+			const rec = await env.SUPPORTERS.get(key.name, "json");
+			if (!rec || rec.expiry <= now) continue;
+			supporters.push({
+				name: (rec.name || "").trim() || "Anonymous",
+				tier: rec.tier,
+				months: rec.months || 0,
+				updatedAt: Math.floor((rec.updatedAt || 0) / 1000),
+			});
+		}
+		cursor = page.list_complete ? undefined : page.cursor;
+	} while (cursor);
+
+	supporters.sort((a, b) => b.updatedAt - a.updatedAt);
+	return jsonResponse({ supporters });
+}
+
+/**
+ * App-side verification: the app sends the email the user donated with; we
+ * return whether it currently maps to an active supporter (and which tier).
+ * Note: email-only (no code) — fine for a cosmetic status; harden with a code
+ * in the Ko-fi message if abuse ever matters.
+ */
+async function handleKofiVerify(request, env) {
+	if (!env.SUPPORTERS) return errorResponse("Supporters KV not bound", 500);
+
+	const email = (new URL(request.url).searchParams.get("email") || "").trim().toLowerCase();
+	if (!email) return errorResponse("Missing 'email' parameter");
+
+	const rec = await env.SUPPORTERS.get(email, "json");
+	if (rec && rec.expiry > Date.now()) {
+		// Expiry as epoch SECONDS for the app.
+		return jsonResponse({ supporter: true, tier: rec.tier, expiry: Math.floor(rec.expiry / 1000) });
+	}
+	return jsonResponse({ supporter: false });
+}
+
 export default {
 	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
 		const path = url.pathname;
 
-		// Validate env vars are configured
+		// --- KasetPlus support (Ko-fi) — independent of Last.fm config ---
+		if (path === "/kofi/webhook" && request.method === "POST") {
+			return handleKofiWebhook(request, env);
+		}
+		if (path === "/kofi/verify" && request.method === "GET") {
+			return handleKofiVerify(request, env);
+		}
+		if (path === "/kofi/supporters" && request.method === "GET") {
+			return handleKofiSupporters(request, env);
+		}
+
+		// Validate env vars are configured (Last.fm routes only)
 		if (!env.LASTFM_API_KEY || !env.LASTFM_SHARED_SECRET) {
 			return errorResponse("Server misconfigured: missing API credentials", 500);
 		}

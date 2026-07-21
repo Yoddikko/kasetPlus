@@ -66,3 +66,6 @@ TEMP_*
 build/
 .codex/environments/environment.toml
 Build
+
+# Wrangler local state (miniflare cache, kv, account cache)
+.wrangler/
