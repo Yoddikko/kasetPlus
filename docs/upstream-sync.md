@@ -27,9 +27,10 @@ point are tracked individually below.
 
 ## Pending (to sync)
 
-None outstanding as of upstream `9fc8c34` (last sync). Re-check with the commands
-above; cross-check any new `+` result by PR number against the tables below
-before taking it.
+None tractable outstanding as of upstream `c1dae03` (last sync). One large PR is
+parked in "Deliberately skipped" below (#383). Re-check with the commands above;
+cross-check any new `+` result by PR number against the tables below before
+taking it.
 
 ## Already synced
 
@@ -37,6 +38,8 @@ Individually cherry-picked/adapted since the `f180d2e` baseline (newest first).
 
 | PR | Upstream | Our commit | What it is |
 |----|----------|-----------|-----------|
+| [#387](https://github.com/sozercan/kaset/pull/387) | `c1dae03` | `0ef8bbb` | fix(player): claim Now Playing slot so media keys control Kaset when paused — applied clean on top of #374's `NowPlayingManager`. New test file's import renamed `Kaset`→`KasetPlus`. |
+| [#398](https://github.com/sozercan/kaset/pull/398) | `e44cbb1` | `38a5523` | feat(youtube): segment video chapter seek bar — applied clean on top of #368's `PlayerBarProgressLane`. New test file's import renamed. |
 | [#368](https://github.com/sozercan/kaset/pull/368) | `c8e15f9` | `2b1fa21` | feat: YouTube-style segmented seek bar for mixes — new `NowPlayingTracklistProvider`, extended `MixTracklistParser`, rewritten `PlayerBarProgressLane`/`PlayerBar`. Two conflicts resolved (`KasetApp.swift`, `PlayerBarProgressLane.swift`): kept the fork's heatmap "most replayed" curve and `onHoverFractionChange` on-video overlay callback alongside the incoming segmented track + hovered-segment handling. Landed after #374. |
 | [#389](https://github.com/sozercan/kaset/pull/389) | `0eadb78` | `80ff911` | fix(player): de-flake Smart Shuffle tests by reading config per-instance (applied clean once #374 restored the test target). |
 | [#391](https://github.com/sozercan/kaset/pull/391) | `a527853` | `53cda79` | fix(ai): restore discovery commands and macOS 27 compatibility — applied clean (the `musicIntent` `originalQuery` cascade and queue-ownership symbols resolved thanks to #374). New AI test files renamed `@testable import Kaset` → `KasetPlus`. |
@@ -60,9 +63,9 @@ commit for a missed one.
 
 | Upstream | What it is | Why skipped | If we ever need it |
 |----------|-----------|-------------|--------------------|
+| `e0bb015` — fix: scope favorites per account ([#383](https://github.com/sozercan/kaset/pull/383)) | Large account-scoped-favorites rework: **+4398 lines** across `FavoritesManager` (+947), `AccountService` (+663), `AuthService` (+184), `YTMusicClient`/`YouTubeClient`, `LoginSheet`, a legacy-migration claim system, ADR 0030. | Deferred, not rejected. It touches the fork's most-diverged area — account switching, guest mode, brand accounts, the Community hub all live in `AccountService`/`AuthService`/`FavoritesManager`. This is a #374-scale integration that will conflict heavily; not safe to force in a normal sync pass. | Take in a dedicated session like #374 was: cherry-pick, expect deep conflicts in `AccountService`/`FavoritesManager`/`AuthService`, preserve the fork's guest-mode + brand-account + Community behaviour, and gate on the restored test suite (incl. its +740-line `FavoritesManagerLegacyMigrationClaimTests`). |
 
-_None outstanding._ #374 (`356ff92` → `4ee7d62`) and its four dependents #392/#391/#389/#368
-all landed — see "Already synced" above.
+_#374 (`356ff92` → `4ee7d62`) and its four dependents #392/#391/#389/#368 all landed — see "Already synced" above._
 
 Add a row **whenever a cherry-pick drops a hunk or an upstream commit is skipped
 on purpose** — the cost of a stale entry is one line; the cost of a mystery gap
