@@ -27,10 +27,9 @@ point are tracked individually below.
 
 ## Pending (to sync)
 
-None tractable outstanding as of upstream `c1dae03` (last sync). One large PR is
-parked in "Deliberately skipped" below (#383). Re-check with the commands above;
-cross-check any new `+` result by PR number against the tables below before
-taking it.
+None tractable outstanding as of upstream `c1dae03` (last sync). Re-check with the
+commands above; cross-check any new `+` result by PR number against the tables
+below before taking it.
 
 ## Already synced
 
@@ -38,6 +37,7 @@ Individually cherry-picked/adapted since the `f180d2e` baseline (newest first).
 
 | PR | Upstream | Our commit | What it is |
 |----|----------|-----------|-----------|
+| [#383](https://github.com/sozercan/kaset/pull/383) | `e0bb015` | `7a7ca1e` | fix: scope favorites per account — the account-scoped-favorites rework (**+4398 lines**): `FavoritesManager` (+947), `AccountService` (+663), `AuthService` (+184), `YTMusicClient`/`YouTubeClient`, `LoginSheet`, a legacy-migration claim system, ADR 0030, plus a +740-line `FavoritesManagerLegacyMigrationClaimTests`. Nearly all auto-merged; one conflict in `MainWindow.swift` resolved to HEAD — kept the fork's onboarding/What's-New auto-present `.task` AND the login-check `.task` (idempotent; KasetApp's root task already drives startup login/account fetch). New test's import renamed `Kaset`→`KasetPlus`. Fork behaviours confirmed intact: guest mode, brand accounts (`brandId`/`onBehalfOfUser`), Community hub, sidebar pinned favorites. #383's favorites/account/auth suites all pass. |
 | [#387](https://github.com/sozercan/kaset/pull/387) | `c1dae03` | `0ef8bbb` | fix(player): claim Now Playing slot so media keys control Kaset when paused — applied clean on top of #374's `NowPlayingManager`. New test file's import renamed `Kaset`→`KasetPlus`. |
 | [#398](https://github.com/sozercan/kaset/pull/398) | `e44cbb1` | `38a5523` | feat(youtube): segment video chapter seek bar — applied clean on top of #368's `PlayerBarProgressLane`. New test file's import renamed. |
 | [#368](https://github.com/sozercan/kaset/pull/368) | `c8e15f9` | `2b1fa21` | feat: YouTube-style segmented seek bar for mixes — new `NowPlayingTracklistProvider`, extended `MixTracklistParser`, rewritten `PlayerBarProgressLane`/`PlayerBar`. Two conflicts resolved (`KasetApp.swift`, `PlayerBarProgressLane.swift`): kept the fork's heatmap "most replayed" curve and `onHoverFractionChange` on-video overlay callback alongside the incoming segmented track + hovered-segment handling. Landed after #374. |
@@ -63,7 +63,6 @@ commit for a missed one.
 
 | Upstream | What it is | Why skipped | If we ever need it |
 |----------|-----------|-------------|--------------------|
-| `e0bb015` — fix: scope favorites per account ([#383](https://github.com/sozercan/kaset/pull/383)) | Large account-scoped-favorites rework: **+4398 lines** across `FavoritesManager` (+947), `AccountService` (+663), `AuthService` (+184), `YTMusicClient`/`YouTubeClient`, `LoginSheet`, a legacy-migration claim system, ADR 0030. | Deferred, not rejected. It touches the fork's most-diverged area — account switching, guest mode, brand accounts, the Community hub all live in `AccountService`/`AuthService`/`FavoritesManager`. This is a #374-scale integration that will conflict heavily; not safe to force in a normal sync pass. | Take in a dedicated session like #374 was: cherry-pick, expect deep conflicts in `AccountService`/`FavoritesManager`/`AuthService`, preserve the fork's guest-mode + brand-account + Community behaviour, and gate on the restored test suite (incl. its +740-line `FavoritesManagerLegacyMigrationClaimTests`). |
 
 _#374 (`356ff92` → `4ee7d62`) and its four dependents #392/#391/#389/#368 all landed — see "Already synced" above._
 
