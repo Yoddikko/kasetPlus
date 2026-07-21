@@ -42,6 +42,7 @@ struct YouTubeWatchView: View {
     // AI video summary (on-device, macOS 26+). Stored as plain values so the
     // view doesn't reference the macOS-26-only VideoSummary type outside a guard.
     @State private var showsSummary = false
+    @State private var showsDescription = false
     @State private var summaryTldr: String?
     @State private var summaryPoints: [String] = []
     @State private var summaryAudience: String?
@@ -73,6 +74,11 @@ struct YouTubeWatchView: View {
                 HStack(alignment: .top, spacing: 24) {
                     VStack(alignment: .leading, spacing: 16) {
                         self.metadataSection
+
+                        if self.showsDescription, let description = self.descriptionText {
+                            Divider()
+                            self.descriptionSection(description)
+                        }
 
                         if self.showsSummary, !self.isLiveStream {
                             Divider()
@@ -432,6 +438,26 @@ struct YouTubeWatchView: View {
                 }
                 Spacer(minLength: 12)
 
+                if self.descriptionText != nil {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            self.showsDescription.toggle()
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "text.alignleft")
+                                .font(.system(size: 13))
+                            Text("Description", comment: "Toggle video description in YouTube watch view")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Capsule().fill(self.showsDescription ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(self.showsDescription ? Color.accentColor : .secondary)
+                }
+
                 if self.aiSummaryAvailable, !self.isLiveStream {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
@@ -568,6 +594,98 @@ struct YouTubeWatchView: View {
             .buttonStyle(.plain)
             .foregroundStyle(self.youtubePlayer.currentRating == .dislike ? Self.brandAccent : .secondary)
         }
+    }
+
+    // MARK: - Description
+
+    /// The video's description text from the watch page, if any (non-empty).
+    private var descriptionText: String? {
+        guard let text = self.viewModel.data.descriptionText?
+            .trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty
+        else {
+            return nil
+        }
+        return text
+    }
+
+    private func descriptionSection(_ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Description", systemImage: "text.alignleft")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
+            Text(Self.makeDescriptionAttributed(text))
+                .font(.system(size: 13))
+                .foregroundStyle(.primary)
+                .tint(.accentColor)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                // Timestamps seek in-place; real links open in the browser.
+                .environment(\.openURL, OpenURLAction { url in self.handleDescriptionLink(url) })
+        }
+    }
+
+    private func handleDescriptionLink(_ url: URL) -> OpenURLAction.Result {
+        if url.scheme == Self.seekLinkScheme, let seconds = Double(url.host() ?? "") {
+            self.youtubePlayer.seek(to: seconds)
+            return .handled
+        }
+        return .systemAction
+    }
+
+    private static let seekLinkScheme = "kaset-seek"
+
+    /// Builds an attributed description: real URLs become browser links, and
+    /// `mm:ss` / `h:mm:ss` timestamps become `kaset-seek://<seconds>` links that
+    /// seek the player. Segment-by-segment so NSString (UTF-16) ranges from the
+    /// detectors line up with the produced `AttributedString`.
+    private static func makeDescriptionAttributed(_ text: String) -> AttributedString {
+        struct Hit { let range: NSRange; let url: URL }
+        let ns = text as NSString
+        let full = NSRange(location: 0, length: ns.length)
+        var hits: [Hit] = []
+
+        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) {
+            for match in detector.matches(in: text, range: full) {
+                if let url = match.url {
+                    hits.append(Hit(range: match.range, url: url))
+                }
+            }
+        }
+
+        if let regex = try? NSRegularExpression(pattern: #"(?<![\d:])(?:(\d{1,2}):)?(\d{1,2}):(\d{2})(?![\d:])"#) {
+            for match in regex.matches(in: text, range: full) {
+                // Don't turn a timestamp inside a matched URL into a seek link.
+                guard !hits.contains(where: { NSIntersectionRange($0.range, match.range).length > 0 }) else { continue }
+                func group(_ index: Int) -> Int {
+                    let range = match.range(at: index)
+                    return range.location == NSNotFound ? 0 : (Int(ns.substring(with: range)) ?? 0)
+                }
+                let seconds = group(1) * 3600 + group(2) * 60 + group(3)
+                if let url = URL(string: "\(Self.seekLinkScheme)://\(seconds)") {
+                    hits.append(Hit(range: match.range, url: url))
+                }
+            }
+        }
+
+        hits.sort { $0.range.location < $1.range.location }
+
+        var result = AttributedString()
+        var cursor = 0
+        for hit in hits where hit.range.location >= cursor {
+            if hit.range.location > cursor {
+                result += AttributedString(ns.substring(with: NSRange(location: cursor, length: hit.range.location - cursor)))
+            }
+            var segment = AttributedString(ns.substring(with: hit.range))
+            segment.link = hit.url
+            result += segment
+            cursor = hit.range.location + hit.range.length
+        }
+        if cursor < ns.length {
+            result += AttributedString(ns.substring(from: cursor))
+        }
+        return result
     }
 
     // MARK: - AI Summary
