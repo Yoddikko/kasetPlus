@@ -14,6 +14,7 @@ final class SettingsManager {
         static let showNowPlayingNotifications = "settings.showNowPlayingNotifications"
         static let defaultLaunchPage = "settings.defaultLaunchPage"
         static let hapticFeedbackEnabled = "settings.hapticFeedbackEnabled"
+        static let telemetryEnabled = "settings.telemetryEnabled"
         static let rememberPlaybackSettings = "settings.rememberPlaybackSettings"
         static let lastFMEnabled = "settings.lastFMEnabled"
         static let enabledServices = "settings.enabledServices"
@@ -244,6 +245,13 @@ final class SettingsManager {
     var hapticFeedbackEnabled: Bool {
         didSet {
             UserDefaults.standard.set(self.hapticFeedbackEnabled, forKey: Keys.hapticFeedbackEnabled)
+        }
+    }
+
+    /// Whether anonymous breakage telemetry is sent (see `Telemetry`). Opt-out.
+    var telemetryEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.telemetryEnabled, forKey: Keys.telemetryEnabled)
         }
     }
 
@@ -528,6 +536,7 @@ final class SettingsManager {
         // Load persisted settings or use defaults
         self.showNowPlayingNotifications = UserDefaults.standard.object(forKey: Keys.showNowPlayingNotifications) as? Bool ?? true
         self.hapticFeedbackEnabled = UserDefaults.standard.object(forKey: Keys.hapticFeedbackEnabled) as? Bool ?? true
+        self.telemetryEnabled = UserDefaults.standard.object(forKey: Keys.telemetryEnabled) as? Bool ?? true
         self.rememberPlaybackSettings = UserDefaults.standard.object(forKey: Keys.rememberPlaybackSettings) as? Bool ?? false
 
         // Load per-service enabled flags, migrating from legacy lastFMEnabled if needed

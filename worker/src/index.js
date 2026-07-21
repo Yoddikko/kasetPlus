@@ -203,6 +203,47 @@ async function handleKofiVerify(request, env) {
 	return jsonResponse({ supporter: false });
 }
 
+/**
+ * Anonymous breakage telemetry from the app. No PII — just an event name, a
+ * small string detail, app/OS version, and a random install id. We only log it
+ * (observability is enabled in wrangler.toml) so it shows up in Workers Logs /
+ * `wrangler tail`. Filter with: `wrangler tail --format=pretty` and grep
+ * `"kind":"telemetry"`.
+ */
+async function handleTelemetry(request, env) {
+	// ponytail: log-only via observability; add KV/alerting if you outgrow the
+	// dashboard's log retention.
+	if (request.headers.get("X-Kaset-Telemetry") !== "1") {
+		return errorResponse("bad request", 400);
+	}
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		return errorResponse("bad json", 400);
+	}
+	const event = String(body.event || "").slice(0, 64);
+	if (!event) return errorResponse("missing event", 400);
+
+	const detail =
+		body.detail && typeof body.detail === "object" ? body.detail : {};
+	console.log(
+		JSON.stringify({
+			kind: "telemetry",
+			ts: new Date().toISOString(),
+			event,
+			detail,
+			app: String(body.app || "?").slice(0, 32),
+			os: String(body.os || "?").slice(0, 64),
+			id: String(body.id || "?").slice(0, 40),
+		}),
+	);
+	return new Response(JSON.stringify({ ok: true }), {
+		status: 200,
+		headers: { "Content-Type": "application/json" },
+	});
+}
+
 export default {
 	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
@@ -217,6 +258,9 @@ export default {
 		}
 		if (path === "/kofi/supporters" && request.method === "GET") {
 			return handleKofiSupporters(request, env);
+		}
+		if (path === "/telemetry" && request.method === "POST") {
+			return handleTelemetry(request, env);
 		}
 
 		// Validate env vars are configured (Last.fm routes only)

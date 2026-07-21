@@ -1983,6 +1983,7 @@ final class YTMusicClient: YTMusicClientProtocol {
             // The actual response parsing (in Parsers/) is more expensive
             // but must happen on MainActor anyway for @Observable updates.
             guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                Telemetry.report("ytm.parse_fail", ["endpoint": endpoint])
                 throw YTMusicError.parseError(message: "Response is not a JSON object")
             }
             return json
@@ -1997,6 +1998,7 @@ final class YTMusicClient: YTMusicClientProtocol {
             throw YTMusicError.notAuthenticated
         case let .httpError(statusCode):
             self.logger.error("API error: HTTP \(statusCode)")
+            Telemetry.report("ytm.http_error", ["endpoint": endpoint, "code": "\(statusCode)"])
             throw YTMusicError.apiError(
                 message: "HTTP \(statusCode)",
                 code: statusCode

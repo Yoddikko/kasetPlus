@@ -57,6 +57,15 @@ struct GeneralSettingsView: View {
                 Text(String(localized: "Behavior"))
             }
 
+            // MARK: - Privacy Section
+
+            Section {
+                Toggle(String(localized: "Share anonymous diagnostics"), isOn: self.$settings.telemetryEnabled)
+                    .help(String(localized: "Sends an anonymous ping when the app fails to load data from YouTube, so breakages can be fixed quickly. No account, no personal data, no listening history."))
+            } header: {
+                Text(String(localized: "Privacy"))
+            }
+
             // MARK: - Language Section
 
             Section {
