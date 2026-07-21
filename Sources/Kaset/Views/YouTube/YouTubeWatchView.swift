@@ -74,12 +74,12 @@ struct YouTubeWatchView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         self.metadataSection
 
-                        if self.showsSummary {
+                        if self.showsSummary, !self.isLiveStream {
                             Divider()
                             self.summarySection
                         }
 
-                        if self.youtubePlayer.showsLyrics {
+                        if self.youtubePlayer.showsLyrics, !self.isLiveStream {
                             Divider()
                             self.lyricsSection
                         }
@@ -432,7 +432,7 @@ struct YouTubeWatchView: View {
                 }
                 Spacer(minLength: 12)
 
-                if self.aiSummaryAvailable {
+                if self.aiSummaryAvailable, !self.isLiveStream {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             self.showsSummary.toggle()
@@ -455,23 +455,25 @@ struct YouTubeWatchView: View {
                     .foregroundStyle(self.showsSummary ? Color.accentColor : .secondary)
                 }
 
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        self.youtubePlayer.showsLyrics.toggle()
+                if !self.isLiveStream {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            self.youtubePlayer.showsLyrics.toggle()
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: self.youtubePlayer.showsLyrics ? "music.quarternote.3" : "music.note.list")
+                                .font(.system(size: 13))
+                            Text("Lyrics", comment: "Toggle lyrics section in YouTube watch view")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Capsule().fill(self.youtubePlayer.showsLyrics ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
                     }
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: self.youtubePlayer.showsLyrics ? "music.quarternote.3" : "music.note.list")
-                            .font(.system(size: 13))
-                        Text("Lyrics", comment: "Toggle lyrics section in YouTube watch view")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(Capsule().fill(self.youtubePlayer.showsLyrics ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(self.youtubePlayer.showsLyrics ? Color.accentColor : .secondary)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(self.youtubePlayer.showsLyrics ? Color.accentColor : .secondary)
 
                 if self.hasPersonalAccount {
                     self.likeDislikeButtons
@@ -574,6 +576,14 @@ struct YouTubeWatchView: View {
     private var aiSummaryAvailable: Bool {
         guard #available(macOS 26.0, *) else { return false }
         return FoundationModelsService.shared.isAvailable
+    }
+
+    /// A live broadcast has no transcript to summarize and no lyrics, so both
+    /// toggles (and their panels) are hidden. Combines the fetched metadata flag
+    /// with the player's live state so it still holds when the video was opened
+    /// without live metadata (e.g. from a notification).
+    private var isLiveStream: Bool {
+        self.youtubePlayer.isLive || self.video.isLive
     }
 
     private var summarySection: some View {
