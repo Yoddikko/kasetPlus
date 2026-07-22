@@ -25,11 +25,16 @@ struct SidebarProfileView: View {
     /// idle, filled/gradient once the user is a supporter).
     private static let supportColor = Color(red: 1.0, green: 0.30, blue: 0.45)
 
+    /// Crowdin project where the community translates the app (opens in the browser).
+    private static let localizeURL = URL(string: "https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431")!
+
     var body: some View {
         VStack(spacing: 6) {
             self.supportButton
 
             self.communityButton
+
+            self.localizeButton
 
             Group {
                 if self.authService.hasPersonalAccount {
@@ -116,6 +121,34 @@ struct SidebarProfileView: View {
         }
         .buttonStyle(.plain)
         .help(String(localized: "Report an issue or join the KasetPlus community"))
+    }
+
+    /// "Help translate the app" — opens the Crowdin project in the browser so
+    /// anyone can contribute localizations. Mirrors the Community button's style.
+    private var localizeButton: some View {
+        Button {
+            NSWorkspace.shared.open(Self.localizeURL)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "globe")
+                    .font(.system(size: 12))
+                Text("Help translate the app", comment: "Sidebar localization entry point")
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 0)
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(String(localized: "Help translate KasetPlus on Crowdin"))
     }
 
     // MARK: - Logged In Content
