@@ -355,6 +355,90 @@ async function handleCrowdinBadge(lang, env, ctx) {
 	});
 }
 
+// --- Crowdin translators (live SVG credit list for the README) ---
+const TRANSLATOR_ROLES = {
+	// role id -> [label, color] (color readable on light + dark)
+	proofreader: ["Proofreader", "#2da44f"],
+	language_coordinator: ["Coordinator", "#8250df"],
+	translator: ["Translator", "#0969da"],
+};
+const TRANSLATOR_ROLE_ORDER = ["proofreader", "language_coordinator", "translator"];
+
+async function getCrowdinMembers(env, ctx) {
+	const cache = caches.default;
+	const key = new Request("https://internal.cache/crowdin-members-v1");
+	const cached = await cache.match(key);
+	if (cached) return cached.json();
+	const res = await fetch(
+		`https://api.crowdin.com/api/v2/projects/${CROWDIN_PROJECT_ID}/members?limit=100`,
+		{ headers: { Authorization: `Bearer ${env.CROWDIN_TOKEN}` } },
+	);
+	if (!res.ok) throw new Error(`crowdin ${res.status}`);
+	const json = await res.json();
+	const members = (json.data || []).map((m) => ({
+		name: m.data.fullName || m.data.username || "?",
+		roles: (m.data.roles || []).map((r) => r.name || r).filter(Boolean),
+	}));
+	const store = new Response(JSON.stringify(members), {
+		headers: { "content-type": "application/json", "cache-control": "public, max-age=1800" },
+	});
+	if (ctx) ctx.waitUntil(cache.put(key, store.clone()));
+	return members;
+}
+
+function xmlEscape(s) {
+	return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function translatorsSVG(members) {
+	const rows = members
+		.map((m) => ({ name: m.name, role: TRANSLATOR_ROLE_ORDER.find((r) => m.roles.includes(r)) }))
+		.filter((m) => m.role)
+		.sort((a, b) =>
+			TRANSLATOR_ROLE_ORDER.indexOf(a.role) - TRANSLATOR_ROLE_ORDER.indexOf(b.role) ||
+			a.name.localeCompare(b.name),
+		);
+	const W = 460, rowH = 30, padX = 18, padY = 14;
+	const H = padY * 2 + Math.max(rows.length, 1) * rowH;
+	let body;
+	if (rows.length === 0) {
+		body = `<text x="${padX}" y="${padY + 20}" class="role">No translators yet — be the first!</text>`;
+	} else {
+		body = rows
+			.map((m, i) => {
+				const y = padY + i * rowH + 20;
+				const [label, color] = TRANSLATOR_ROLES[m.role];
+				return (
+					`<circle cx="${padX + 4}" cy="${y - 5}" r="4" fill="${color}"/>` +
+					`<text x="${padX + 18}" y="${y}" class="name">${xmlEscape(m.name)}</text>` +
+					`<text x="${W - padX}" y="${y}" text-anchor="end" font-size="12" fill="${color}">${label}</text>`
+				);
+			})
+			.join("");
+	}
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="14">` +
+		`<style>.name{fill:#24292f;font-weight:600}.role{fill:#57606a}@media(prefers-color-scheme:dark){.name{fill:#e6edf3}.role{fill:#8b949e}}</style>` +
+		body +
+		`</svg>`;
+}
+
+async function handleCrowdinTranslators(env, ctx) {
+	if (!env.CROWDIN_TOKEN) return errorResponse("Crowdin token not set", 500);
+	let svg;
+	try {
+		svg = translatorsSVG(await getCrowdinMembers(env, ctx));
+	} catch {
+		svg = translatorsSVG([]);
+	}
+	return new Response(svg, {
+		headers: {
+			"content-type": "image/svg+xml; charset=utf-8",
+			"access-control-allow-origin": "*",
+			"cache-control": "public, max-age=1800",
+		},
+	});
+}
+
 export default {
 	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
@@ -378,6 +462,9 @@ export default {
 		}
 		if (path === "/crowdin/progress" && request.method === "GET") {
 			return handleCrowdinProgress(env, ctx);
+		}
+		if (path === "/crowdin/translators.svg" && request.method === "GET") {
+			return handleCrowdinTranslators(env, ctx);
 		}
 		if (path.startsWith("/crowdin/badge/") && request.method === "GET") {
 			return handleCrowdinBadge(decodeURIComponent(path.slice(15)), env, ctx);

@@ -275,6 +275,14 @@ Help make KasetPlus available in more languages. Translation happens entirely th
   </a>
 </p>
 
+<p align="center">
+  <sub><strong>Our translators</strong> — updates automatically as people contribute on Crowdin</sub>
+</p>
+
+<p align="center">
+  <img src="https://kaset-lastfm.alessioiodiceuni.workers.dev/crowdin/translators.svg" alt="KasetPlus translators">
+</p>
+
 <details>
 <summary><strong>View live translation progress</strong></summary>
 
