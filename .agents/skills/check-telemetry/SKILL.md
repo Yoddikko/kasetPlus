@@ -18,11 +18,17 @@ KV with a 7-day TTL.
 
 ## How to run
 
-Fetch the recent events (public GET, no auth):
+The endpoint is **maintainer-only**: it requires the `KASET_TELEMETRY_TOKEN`
+(kept in your shell env / a local dotfile — **never committed**). If the variable
+isn't set, ask the user to `export KASET_TELEMETRY_TOKEN=…` first (the value is
+the Worker's `TELEMETRY_TOKEN` secret).
 
 ```bash
-curl -s "https://kaset-lastfm.alessioiodiceuni.workers.dev/telemetry/recent"
+curl -s -H "X-Telemetry-Token: $KASET_TELEMETRY_TOKEN" \
+  "https://kaset-lastfm.alessioiodiceuni.workers.dev/telemetry/recent"
 ```
+
+A `401` means the token is missing or wrong.
 
 Response shape:
 

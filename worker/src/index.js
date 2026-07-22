@@ -261,8 +261,13 @@ async function handleTelemetry(request, env) {
  * Returns recently stored telemetry events (newest first) for the
  * `check-telemetry` skill / a quick browser check. No PII; anonymized already.
  */
-async function handleTelemetryRecent(env) {
+async function handleTelemetryRecent(request, env) {
 	if (!env.SUPPORTERS) return errorResponse("KV not bound", 500);
+	// Maintainer-only: requires the TELEMETRY_TOKEN secret. Fails closed if the
+	// secret isn't set, so the endpoint is never accidentally public.
+	if (!env.TELEMETRY_TOKEN || request.headers.get("X-Telemetry-Token") !== env.TELEMETRY_TOKEN) {
+		return errorResponse("unauthorized", 401);
+	}
 	const { keys } = await env.SUPPORTERS.list({ prefix: "tel:", limit: 1000 });
 	const events = keys
 		.map((k) => k.metadata)
@@ -290,7 +295,7 @@ export default {
 			return handleTelemetry(request, env);
 		}
 		if (path === "/telemetry/recent" && request.method === "GET") {
-			return handleTelemetryRecent(env);
+			return handleTelemetryRecent(request, env);
 		}
 
 		// Validate env vars are configured (Last.fm routes only)
