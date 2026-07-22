@@ -375,36 +375,41 @@ enum PlaylistParser {
     }
 
     /// Extracts token from singleColumnBrowseResultsRenderer.
+    /// Iterates all tabs so multi-tab responses (e.g. uploaded songs) are handled
+    /// — the actual playlist shelf can live in a later tab (typically "Uploads").
     private static func extractTokenFromSingleColumnRenderer(_ contents: [String: Any]) -> String? {
         guard let singleColumnBrowseResults = contents["singleColumnBrowseResultsRenderer"] as? [String: Any],
-              let tabs = singleColumnBrowseResults["tabs"] as? [[String: Any]],
-              let firstTab = tabs.first,
-              let tabRenderer = firstTab["tabRenderer"] as? [String: Any],
-              let tabContent = tabRenderer["content"] as? [String: Any],
-              let sectionListRenderer = tabContent["sectionListRenderer"] as? [String: Any]
+              let tabs = singleColumnBrowseResults["tabs"] as? [[String: Any]]
         else {
             return nil
         }
 
-        // Check section contents first so track-level continuation tokens win over
-        // section-level suggestion continuations.
-        if let sectionContents = sectionListRenderer["contents"] as? [[String: Any]] {
-            if let token = Self.extractTokenFromSectionContents(sectionContents) {
+        for tabData in tabs {
+            guard let tabRenderer = tabData["tabRenderer"] as? [String: Any],
+                  let tabContent = tabRenderer["content"] as? [String: Any],
+                  let sectionListRenderer = tabContent["sectionListRenderer"] as? [String: Any]
+            else { continue }
+
+            // Check section contents first so track-level continuation tokens win over
+            // section-level suggestion continuations.
+            if let sectionContents = sectionListRenderer["contents"] as? [[String: Any]] {
+                if let token = Self.extractTokenFromSectionContents(sectionContents) {
+                    return token
+                }
+
+                // Do not follow the section-level continuation once actual playlist
+                // shelves are exhausted; YouTube Music uses that token for Suggestions.
+                if Self.containsPlaylistShelf(sectionContents) {
+                    return nil
+                }
+            }
+
+            // Fall back to sectionListRenderer-level tokens only for formats that do
+            // not expose a playlist shelf in the section contents.
+            if let token = Self.extractTokenFromRenderer(sectionListRenderer) {
+                Self.logger.debug("Found continuation token at sectionListRenderer level")
                 return token
             }
-
-            // Do not follow the section-level continuation once actual playlist
-            // shelves are exhausted; YouTube Music uses that token for Suggestions.
-            if Self.containsPlaylistShelf(sectionContents) {
-                return nil
-            }
-        }
-
-        // Fall back to sectionListRenderer-level tokens only for formats that do
-        // not expose a playlist shelf in the section contents.
-        if let token = Self.extractTokenFromRenderer(sectionListRenderer) {
-            Self.logger.debug("Found continuation token at sectionListRenderer level")
-            return token
         }
 
         return nil

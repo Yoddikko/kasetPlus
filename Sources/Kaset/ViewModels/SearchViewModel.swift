@@ -92,13 +92,13 @@ final class SearchViewModel {
 
     /// Whether more results are available to load.
     var hasMoreResults: Bool {
-        // For "All" filter, we don't support pagination (mixed results)
-        guard self.selectedFilter != .all else { return false }
+        // For "All" and "Library" filters, we don't support pagination (mixed results)
+        guard self.selectedFilter != .all, self.selectedFilter != .library, self.selectedFilter != .uploads else { return false }
         return self.client.hasMoreSearchResults
     }
 
     /// Available filters.
-    enum SearchFilter: String, CaseIterable, Identifiable {
+    enum SearchFilter: String, CaseIterable, Identifiable, Hashable, FilterOption {
         case all = "All"
         case songs = "Songs"
         case albums = "Albums"
@@ -106,6 +106,8 @@ final class SearchViewModel {
         case featuredPlaylists = "Featured playlists"
         case communityPlaylists = "Community playlists"
         case podcasts = "Podcasts"
+        case library = "My Library"
+        case uploads = "My Uploads"
 
         var id: String {
             rawValue
@@ -127,6 +129,10 @@ final class SearchViewModel {
                 String(localized: "Community playlists")
             case .podcasts:
                 String(localized: "Podcasts")
+            case .library:
+                String(localized: "My Library")
+            case .uploads:
+                String(localized: "My Uploads")
             }
         }
     }
@@ -134,9 +140,9 @@ final class SearchViewModel {
     /// Filtered results based on selected filter.
     var filteredItems: [SearchResultItem] {
         switch self.selectedFilter {
-        case .all:
+        case .all, .library:
             self.results.allItems
-        case .songs:
+        case .songs, .uploads:
             self.results.songs.map { .song($0) }
         case .albums:
             self.results.albums.map { .album($0) }
@@ -332,6 +338,10 @@ final class SearchViewModel {
                 try await self.client.searchCommunityPlaylists(query: currentQuery)
             case .podcasts:
                 try await self.client.searchPodcasts(query: currentQuery)
+            case .library:
+                try await self.client.searchInLibrary(query: currentQuery)
+            case .uploads:
+                try await self.client.searchUploads(query: currentQuery)
             }
 
             // Check cancellation and query change before updating results
@@ -502,7 +512,7 @@ final class SearchViewModel {
     /// Loads more search results via continuation.
     func loadMore() async {
         // Only load more for filtered searches
-        guard self.selectedFilter != .all else { return }
+        guard self.selectedFilter != .all, self.selectedFilter != .library, self.selectedFilter != .uploads else { return }
         guard self.loadingState == .loaded else { return }
         guard self.hasMoreResults else { return }
 

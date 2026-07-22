@@ -522,8 +522,13 @@ let body = ["query": "never gonna give you up"]
 | Featured Playlists | `EgeKAQQoADgBagwQDhAKEAMQBBAJEAU=` | YouTube Music curated playlists |
 | Community Playlists | `EgeKAQQoAEABagwQDhAKEAMQBBAJEAU=` | User-created playlists |
 | Podcasts | `EgWKAQJQAWoQEBAQCRAEEAMQBRAKEBUQEQ%3D%3D` | Filter to podcast shows only |
+| Library (all) | `agIYBA==` | Search within user's library (all types, requires auth) |
+| Library Songs | `EgWKAQIIAWoIEAUQCRADGAQ=` | Filter to library songs only (requires auth) |
+| Library Albums | `EgWKAQIYAWoIEAUQCRADGAQ=` | Filter to library albums only (requires auth) |
+| Library Artists | `EgWKAQIgAWoIEAUQCRADGAQ=` | Filter to library artists only (requires auth) |
+| Library Uploads | `agIYAw==` | Filter to user uploads only (requires auth) |
 
-> **Filter Pattern**: `EgWKAQ` (base) + filter code + `AWoMEA4QChADEAQQCRAF` (no spelling correction suffix). The filter code encodes the content type (songs=II, albums=IY, artists=Ig, playlists=Io, podcasts=JQ).
+> **Filter Pattern**: `EgWKAQ` (base) + filter code + `AWoMEA4QChADEAQQCRAF` (no spelling correction suffix). The filter code encodes the content type (songs=II, albums=IY, artists=Ig, playlists=Io, podcasts=JQ). Library-scoped filter params use the same base with a different suffix: `AWoIEAUQCRADGAQ=` instead of `AWoMEA4QChADEAQQCRAF`. Library "all" and uploads use a separate structure starting with `agIY`.
 
 **Usage Example** (podcasts):
 ```swift

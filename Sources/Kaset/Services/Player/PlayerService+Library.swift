@@ -282,7 +282,8 @@ extension PlayerService {
                     artists: artists,
                     album: songData.album ?? self.currentTrack?.album,
                     duration: songData.duration ?? self.currentTrack?.duration,
-                    thumbnailURL: songData.thumbnailURL ?? self.currentTrack?.thumbnailURL,
+                    // Prefer the track-list thumbnail (album art) over the API-fetched one
+                    thumbnailURL: self.currentTrack?.thumbnailURL ?? songData.thumbnailURL,
                     videoId: videoId,
                     musicVideoType: songData.musicVideoType,
                     likeStatus: resolvedLikeStatus,

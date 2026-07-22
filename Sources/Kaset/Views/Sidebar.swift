@@ -55,6 +55,9 @@ struct Sidebar: View {
                     self.navigationRow(.library)
                         .accessibilityIdentifier(AccessibilityID.Sidebar.libraryItem)
 
+                    self.navigationRow(.uploads)
+                        .accessibilityIdentifier(AccessibilityID.Sidebar.uploadsItem)
+
                     self.navigationRow(.likedMusic)
                         .accessibilityIdentifier(AccessibilityID.Sidebar.likedMusicItem)
 

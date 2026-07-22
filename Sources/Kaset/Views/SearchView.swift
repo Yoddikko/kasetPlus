@@ -207,30 +207,10 @@ struct SearchView: View {
     }
 
     private var filterChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(SearchViewModel.SearchFilter.allCases) { filter in
-                    self.filterChip(filter)
-                }
-            }
-        }
-    }
-
-    private func filterChip(_ filter: SearchViewModel.SearchFilter) -> some View {
-        Button {
-            withAnimation(AppAnimation.spring) {
-                self.viewModel.selectedFilter = filter
-            }
-        } label: {
-            Text(filter.displayName)
-                .font(.system(size: 12, weight: .medium))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(self.viewModel.selectedFilter == filter ? Color.accentColor : Color.secondary.opacity(0.2))
-                .foregroundStyle(self.viewModel.selectedFilter == filter ? .white : .primary)
-                .clipShape(.capsule)
-        }
-        .buttonStyle(.chip(isSelected: self.viewModel.selectedFilter == filter))
+        FilterChipBar(
+            filters: SearchViewModel.SearchFilter.allCases,
+            selection: self.$viewModel.selectedFilter
+        )
     }
 
     // MARK: - Content

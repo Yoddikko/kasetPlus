@@ -76,6 +76,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     @State private var likedMusicViewModel: PlaylistDetailViewModel?
     @State private var libraryViewModel: LibraryViewModel?
     @State private var historyViewModel: HistoryViewModel?
+    @State private var uploadsViewModel: UploadsViewModel?
 
     /// Navigation path for the Liked Music route.
     @State private var likedMusicNavigationPath = NavigationPath()
@@ -114,6 +115,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         )
         _libraryViewModel = State(initialValue: LibraryViewModel(client: client))
         _historyViewModel = State(initialValue: HistoryViewModel(client: client))
+        _uploadsViewModel = State(initialValue: UploadsViewModel(client: client))
     }
 
     /// Access to the app delegate for persistent WebView.
@@ -664,6 +666,12 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 } else if let vm = historyViewModel {
                     HistoryView(viewModel: vm)
                 }
+            case .uploads:
+                if self.requiresSignIn(item) {
+                    self.signInRequiredView(for: item)
+                } else if let vm = uploadsViewModel {
+                    UploadsView(viewModel: vm)
+                }
             }
         }
         .environment(self.libraryViewModel)
@@ -1003,6 +1011,7 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
     case podcasts = "Podcasts"
     case likedMusic = "Liked Music"
     case library = "Library"
+    case uploads = "Uploads"
     case history = "History"
 
     var id: String {
@@ -1029,6 +1038,8 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
             String(localized: "Liked Music")
         case .library:
             String(localized: "Library")
+        case .uploads:
+            String(localized: "Uploads")
         case .history:
             String(localized: "History")
         }
@@ -1054,6 +1065,8 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
             "heart.fill"
         case .library:
             "square.stack.fill"
+        case .uploads:
+            "tray.and.arrow.up.fill"
         case .history:
             "clock.arrow.circlepath"
         }
@@ -1063,7 +1076,7 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
         switch self {
         case .home, .explore, .search, .charts, .moodsAndGenres, .newReleases, .podcasts:
             false
-        case .likedMusic, .library, .history:
+        case .likedMusic, .library, .uploads, .history:
             true
         }
     }

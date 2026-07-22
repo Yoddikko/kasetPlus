@@ -103,7 +103,8 @@ extension PlayerService {
     }
 
     private func keepQueueSongVisible(_ song: Song, thumbnailUrl: String) {
-        let intendedThumbnailURL = URL(string: thumbnailUrl) ?? song.thumbnailURL
+        // Prefer the track-list thumbnail (album art) over WebView's thumbnail URL
+        let intendedThumbnailURL = song.thumbnailURL ?? URL(string: thumbnailUrl)
         self.currentTrack = Song(
             id: song.id,
             title: song.title,
@@ -541,13 +542,17 @@ extension PlayerService {
             return
         }
 
+        // Preserve the existing track-list thumbnail (album art) over the WebView-provided URL,
+        // which is often the YouTube Music base URL (https://music.youtube.com/) rather than a real image.
+        let resolvedThumbnail = self.currentTrack?.thumbnailURL ?? thumbnailURL
+
         self.currentTrack = Song(
             id: resolvedVideoId,
             title: title,
             artists: [artistObj],
             album: nil,
             duration: self.duration > 0 ? self.duration : nil,
-            thumbnailURL: thumbnailURL,
+            thumbnailURL: resolvedThumbnail,
             videoId: resolvedVideoId
         )
 

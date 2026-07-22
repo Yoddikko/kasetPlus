@@ -652,6 +652,75 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
         )
     }
 
+    func searchInLibrary(query: String) async throws -> SearchResponse {
+        self.searchCalled = true
+        self.searchQueries.append(query)
+        self._searchContinuationIndex = 0
+        await self.waitBeforeSearchReturn(query: query, endpoint: .mixed)
+        defer { self.completedSearchEndpoints.append(.mixed) }
+        if let error = shouldThrowError {
+            throw error
+        }
+        let hasMore = !self.searchContinuationResponses.isEmpty
+        return SearchResponse(
+            songs: self.searchResponse.songs,
+            albums: self.searchResponse.albums,
+            artists: self.searchResponse.artists,
+            playlists: self.searchResponse.playlists,
+            continuationToken: hasMore ? "mock-token" : nil
+        )
+    }
+
+    func searchUploads(query: String) async throws -> SearchResponse {
+        self.searchCalled = true
+        self.searchQueries.append(query)
+        self._searchContinuationIndex = 0
+        await self.waitBeforeSearchReturn(query: query, endpoint: .mixed)
+        defer { self.completedSearchEndpoints.append(.mixed) }
+        if let error = shouldThrowError {
+            throw error
+        }
+        let hasMore = !self.searchContinuationResponses.isEmpty
+        return SearchResponse(
+            songs: self.searchResponse.songs,
+            albums: [],
+            artists: [],
+            playlists: [],
+            continuationToken: hasMore ? "mock-token" : nil
+        )
+    }
+
+    func getAllUploadedSongs() async throws -> [Song] {
+        self.searchCalled = true
+        if let error = shouldThrowError {
+            throw error
+        }
+        return self.searchResponse.songs
+    }
+
+    func getUploadedPlaylists() async throws -> [Playlist] {
+        []
+    }
+
+    func getUploadedReleasesContinuation() async throws -> ([Album], String?) {
+        ([], nil)
+    }
+
+    func getUploadedReleasesContinuation(token: String) async throws -> ([Album], String?) {
+        ([], nil)
+    }
+
+    func getUploadedArtists() async throws -> [Artist] {
+        []
+    }
+
+    func getUploadsLandingContent() async throws -> LibraryContentParser.LibraryContent {
+        if let error = shouldThrowError {
+            throw error
+        }
+        return LibraryContentParser.LibraryContent(playlists: [], artists: [], podcastShows: [])
+    }
+
     func getSearchContinuation() async throws -> SearchResponse? {
         if let error = shouldThrowError {
             throw error

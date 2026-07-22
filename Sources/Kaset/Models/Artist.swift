@@ -78,7 +78,12 @@ extension Artist {
     }
 
     static func isNavigableId(_ id: String) -> Bool {
-        self.isChannelId(id) || self.isLibraryArtistBrowseId(id)
+        self.isChannelId(id) || self.isLibraryArtistBrowseId(id) || self.isUploadedArtistBrowseId(id)
+    }
+
+    /// Whether this ID is an uploaded artist detail page.
+    static func isUploadedArtistBrowseId(_ id: String) -> Bool {
+        id.hasPrefix("FEmusic_library_privately_owned_artist_detail")
     }
 
     /// Converts a navigable artist ID into the public artist channel ID used by share URLs and subscriptions.

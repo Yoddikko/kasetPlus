@@ -92,9 +92,6 @@ final class LibraryViewModel {
     /// User's subscribed podcast shows.
     private(set) var podcastShows: [PodcastShow] = []
 
-    /// Virtual playlist entry for user-uploaded songs, when available.
-    private(set) var uploadedSongsPlaylist: Playlist?
-
     /// Set of playlist IDs that are in the user's library (for quick lookup).
     private(set) var libraryPlaylistIds: Set<String> = []
 
@@ -143,7 +140,6 @@ final class LibraryViewModel {
                 playlists: self.playlists,
                 artists: self.artists,
                 podcastShows: self.podcastShows,
-                uploadedSongsPlaylist: self.uploadedSongsPlaylist,
                 playlistIds: self.libraryPlaylistIds,
                 artistIds: self.libraryArtistIds,
                 podcastIds: self.libraryPodcastIds
@@ -153,7 +149,6 @@ final class LibraryViewModel {
             self.playlists = newValue.playlists
             self.artists = newValue.artists
             self.podcastShows = newValue.podcastShows
-            self.uploadedSongsPlaylist = newValue.uploadedSongsPlaylist
             self.libraryPlaylistIds = newValue.playlistIds
             self.libraryArtistIds = newValue.artistIds
             self.libraryPodcastIds = newValue.podcastIds

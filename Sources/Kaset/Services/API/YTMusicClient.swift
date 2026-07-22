@@ -464,6 +464,16 @@ final class YTMusicClient: YTMusicClientProtocol {
         static let communityPlaylists = "EgeKAQQoAEABagwQDhAKEAMQBBAJEAU="
         /// Podcasts (podcast shows)
         static let podcasts = "EgWKAQJQAWoQEBAQCRAEEAMQBRAKEBUQEQ%3D%3D"
+        /// Library (all types, scoped to user's library)
+        static let libraryAll = "agIYBA=="
+        /// Library songs only
+        static let librarySongs = "EgWKAQIIAWoIEAUQCRADGAQ="
+        /// Library albums only
+        static let libraryAlbums = "EgWKAQIYAWoIEAUQCRADGAQ="
+        /// Library artists only
+        static let libraryArtists = "EgWKAQIgAWoIEAUQCRADGAQ="
+        /// Library uploads only
+        static let libraryUploads = "agIYAw=="
     }
 
     /// Continuation token for filtered search pagination.
@@ -599,6 +609,46 @@ final class YTMusicClient: YTMusicClientProtocol {
             podcastShows: podcastShows,
             continuationToken: token
         )
+    }
+
+    /// Searches within the user's library (all content types).
+    func searchInLibrary(query: String) async throws -> SearchResponse {
+        self.logger.info("Searching library for: \(query)")
+
+        let body: [String: Any] = [
+            "query": query,
+            "params": SearchFilterParams.libraryAll,
+        ]
+
+        let generation = self.continuationGeneration
+        let data = try await self.request("search", body: body, ttl: APICache.TTL.search)
+        let response = SearchResponseParser.parse(data)
+        if generation == self.continuationGeneration {
+            self.searchContinuationToken = response.continuationToken
+        }
+
+        self.logger.info("Library search found \(response.allItems.count) items")
+        return response
+    }
+
+    /// Searches within user uploads only.
+    func searchUploads(query: String) async throws -> SearchResponse {
+        self.logger.info("Searching uploads for: \(query)")
+
+        let body: [String: Any] = [
+            "query": query,
+            "params": SearchFilterParams.libraryUploads,
+        ]
+
+        let generation = self.continuationGeneration
+        let data = try await self.request("search", body: body, ttl: APICache.TTL.search)
+        let response = SearchResponseParser.parse(data)
+        if generation == self.continuationGeneration {
+            self.searchContinuationToken = response.continuationToken
+        }
+
+        self.logger.info("Uploads search found \(response.allItems.count) items")
+        return response
     }
 
     /// Searches for songs only with pagination support.
@@ -893,6 +943,8 @@ final class YTMusicClient: YTMusicClientProtocol {
             || id.hasPrefix("OLAK")
             || id.hasPrefix("MPRE")
             || id.hasPrefix("UC")
+            || id.hasPrefix("FEmusic_library_privately_owned_release_detail")
+            || id.hasPrefix("FEmusic_library_privately_owned_artist_detail")
         {
             id
         } else if id.hasPrefix("PL") {
@@ -939,6 +991,127 @@ final class YTMusicClient: YTMusicClientProtocol {
         self.logger.info("Fetched \(tracks.count) tracks from queue endpoint")
 
         return tracks
+    }
+
+    /// Fetches the uploads landing page content (albums, playlists from uploads).
+    func getUploadsLandingContent() async throws -> LibraryContentParser.LibraryContent {
+        self.logger.info("Fetching uploads landing content")
+
+        let body: [String: Any] = [
+            "browseId": "FEmusic_library_privately_owned_landing",
+        ]
+
+        let data = try await self.request("browse", body: body, ttl: APICache.TTL.library)
+        let content = LibraryContentParser.parseUploadsLandingContent(data)
+        self.logger.info("Uploads landing: \(content.playlists.count) items")
+        return content
+    }
+
+    /// Fetches uploaded playlists (from liked playlists filtered to uploads only).
+    /// Fetches uploaded albums/releases.
+    /// Fetches the first page of uploaded releases and returns albums + continuation token.
+    func getUploadedReleasesContinuation() async throws -> ([Album], String?) {
+        self.logger.info("Fetching uploaded releases")
+
+        let body: [String: Any] = [
+            "browseId": "FEmusic_library_privately_owned_releases",
+        ]
+
+        do {
+            let data = try await self.request("browse", body: body, ttl: nil)
+            let albums = LibraryContentParser.parseUploadedAlbums(data)
+            let token = LibraryContentParser.extractUploadsContinuation(from: data)
+            self.logger.info("Uploaded releases: \(albums.count) albums, hasMore=\(token != nil)")
+            return (albums, token)
+        } catch {
+            self.logger.warning("Uploaded releases failed: \(error.localizedDescription)")
+            return ([], nil)
+        }
+    }
+
+    /// Fetches the next page of uploaded releases via continuation token.
+    func getUploadedReleasesContinuation(token: String) async throws -> ([Album], String?) {
+        self.logger.info("Fetching uploaded releases continuation")
+
+        do {
+            let data = try await self.requestContinuation(token, authPolicy: .required)
+            let albums = LibraryContentParser.parseUploadedAlbums(data)
+            let nextToken = LibraryContentParser.extractUploadsContinuation(from: data)
+            self.logger.info("Uploaded releases continuation: \(albums.count) albums, hasMore=\(nextToken != nil)")
+            return (albums, nextToken)
+        } catch {
+            self.logger.warning("Uploaded releases continuation failed: \(error.localizedDescription)")
+            return ([], nil)
+        }
+    }
+
+    func getUploadedPlaylists() async throws -> [Playlist] {
+        self.logger.info("Fetching uploaded playlists")
+
+        let body: [String: Any] = [
+            "browseId": "FEmusic_liked_playlists",
+            "params": "ggMCCAM=",
+        ]
+
+        do {
+            let data = try await self.request("browse", body: body, ttl: nil)
+            let content = LibraryContentParser.parseUploadsLandingContent(data)
+            self.logger.info("Uploaded playlists: \(content.playlists.count) playlists")
+            return content.playlists
+        } catch {
+            self.logger.warning("Uploaded playlists failed: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    /// Fetches uploaded artists.
+    func getUploadedArtists() async throws -> [Artist] {
+        self.logger.info("Fetching uploaded artists")
+
+        let body: [String: Any] = [
+            "browseId": "FEmusic_library_privately_owned_artists",
+        ]
+
+        do {
+            let data = try await self.request("browse", body: body, ttl: nil)
+            let artists = LibraryContentParser.parseUploadedArtists(data)
+            self.logger.info("Uploaded artists: \(artists.count) artists")
+            return artists
+        } catch {
+            self.logger.warning("Uploaded artists failed: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    /// Fetches all uploaded songs by draining every continuation page.
+    func getAllUploadedSongs() async throws -> [Song] {
+        self.logger.info("Fetching all uploaded songs")
+
+        let body: [String: Any] = [
+            "browseId": Playlist.uploadedSongsBrowseID,
+        ]
+
+        let data = try await self.request("browse", body: body, ttl: nil)
+        let initialResponse = PlaylistParser.parsePlaylistWithContinuation(data, playlistId: Playlist.uploadedSongsBrowseID)
+        var allTracks = initialResponse.detail.tracks
+        var nextToken = initialResponse.continuationToken
+
+        var consecutiveStalls = 0
+        while let token = nextToken, consecutiveStalls < 8 {
+            let continuationData = try await self.requestContinuation(token, authPolicy: .required)
+            let continuationResponse = PlaylistParser.parsePlaylistContinuation(continuationData)
+            let before = allTracks.count
+            allTracks.append(contentsOf: continuationResponse.tracks)
+            nextToken = continuationResponse.continuationToken
+            if allTracks.count > before {
+                consecutiveStalls = 0
+            } else {
+                consecutiveStalls += 1
+            }
+        }
+
+        self.logger.info("Fetched \(allTracks.count) total uploaded songs")
+        return allTracks
     }
 
     /// Fetches a batch of playlist tracks using the provided continuation token.
@@ -1751,6 +1924,7 @@ final class YTMusicClient: YTMusicClientProtocol {
         "FEmusic_library_privately_owned_landing",
         "FEmusic_library_privately_owned_tracks",
         "FEmusic_library_privately_owned_albums",
+        "FEmusic_library_privately_owned_releases",
         "FEmusic_library_privately_owned_artists",
     ]
 

@@ -153,6 +153,30 @@ protocol YTMusicClientProtocol: Sendable {
     /// Searches for podcasts only (podcast shows).
     func searchPodcasts(query: String) async throws -> SearchResponse
 
+    /// Searches within the user's library (all content types).
+    func searchInLibrary(query: String) async throws -> SearchResponse
+
+    /// Searches within user uploads only.
+    func searchUploads(query: String) async throws -> SearchResponse
+
+    /// Fetches the uploads landing page content (albums, playlists from uploads).
+    func getUploadsLandingContent() async throws -> LibraryContentParser.LibraryContent
+
+    /// Fetches uploaded playlists.
+    func getUploadedPlaylists() async throws -> [Playlist]
+
+    /// Fetches uploaded albums/releases and returns them along with an optional continuation token.
+    func getUploadedReleasesContinuation() async throws -> ([Album], String?)
+
+    /// Fetches the next page of uploaded releases via continuation token.
+    func getUploadedReleasesContinuation(token: String) async throws -> ([Album], String?)
+
+    /// Fetches uploaded artists.
+    func getUploadedArtists() async throws -> [Artist]
+
+    /// Fetches all uploaded songs by draining every continuation page.
+    func getAllUploadedSongs() async throws -> [Song]
+
     /// Fetches the next batch of search results via continuation.
     /// Returns nil if no more results are available.
     func getSearchContinuation() async throws -> SearchResponse?

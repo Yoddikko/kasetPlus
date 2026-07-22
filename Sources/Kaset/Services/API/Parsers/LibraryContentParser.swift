@@ -100,6 +100,212 @@ enum LibraryContentParser {
     }
 
     /// Parses the uploaded songs browse endpoint into a virtual playlist tile for Library.
+    /// Parses uploads landing content from Tab 2 ("Uploads") of the uploads landing page.
+    /// Returns albums/playlists from the uploads grid.
+    static func parseUploadsLandingContent(_ data: [String: Any]) -> LibraryContent {
+        var playlists: [Playlist] = []
+        var artists: [Artist] = []
+        var podcastShows: [PodcastShow] = []
+
+        let sections = Self.extractUploadsLandingSections(from: data)
+        for sectionData in sections {
+            Self.appendLibraryItems(
+                from: sectionData,
+                playlists: &playlists,
+                artists: &artists,
+                podcastShows: &podcastShows
+            )
+        }
+
+        return LibraryContent(playlists: playlists, artists: artists, podcastShows: podcastShows)
+    }
+
+    private static func extractUploadsLandingSections(from data: [String: Any]) -> [[String: Any]] {
+        guard let contents = data["contents"] as? [String: Any],
+              let singleColumnBrowseResults = contents["singleColumnBrowseResultsRenderer"] as? [String: Any],
+              let tabs = singleColumnBrowseResults["tabs"] as? [[String: Any]]
+        else { return [] }
+
+        // Find the tab with actual content (grid or music shelf).
+        // Tab title comparison is locale-dependent, so iterate by content.
+        for tabData in tabs {
+            guard let tabRenderer = tabData["tabRenderer"] as? [String: Any],
+                  let tabContent = tabRenderer["content"] as? [String: Any],
+                  let sectionListRenderer = tabContent["sectionListRenderer"] as? [String: Any],
+                  let sectionContents = sectionListRenderer["contents"] as? [[String: Any]],
+                  !sectionContents.isEmpty
+            else { continue }
+
+            // Skip tabs that only contain a messageRenderer (empty/placeholder)
+            let hasActualContent = sectionContents.contains { section in
+                section["gridRenderer"] != nil || section["musicShelfRenderer"] != nil
+            }
+            if hasActualContent {
+                return sectionContents
+            }
+        }
+
+        // Fallback: third tab (index 2) is typically "Uploads"
+        if tabs.count > 2 {
+            let tabData = tabs[2]
+            guard let tabRenderer = tabData["tabRenderer"] as? [String: Any],
+                  let tabContent = tabRenderer["content"] as? [String: Any],
+                  let sectionListRenderer = tabContent["sectionListRenderer"] as? [String: Any],
+                  let sectionContents = sectionListRenderer["contents"] as? [[String: Any]]
+            else { return [] }
+            return sectionContents
+        }
+
+        return []
+    }
+
+    /// Parses uploaded albums/releases from their browse endpoint.
+    /// The response has 3 tabs (Library, Downloads, Uploads); albums are in Uploads tab.
+    /// Handles both initial pages (tabs → gridRenderer) and continuation pages
+    /// (continuationContents → gridContinuation).
+    static func parseUploadedAlbums(_ data: [String: Any]) -> [Album] {
+        var albums: [Album] = []
+
+        // Continuation pages
+        if let contContents = data["continuationContents"] as? [String: Any],
+           let gridCont = contContents["gridContinuation"] as? [String: Any],
+           let items = (gridCont["items"] ?? gridCont["contents"]) as? [[String: Any]]
+        {
+            for itemData in items {
+                guard let twoRow = itemData["musicTwoRowItemRenderer"] as? [String: Any],
+                      let nav = twoRow["navigationEndpoint"] as? [String: Any],
+                      let be = nav["browseEndpoint"] as? [String: Any],
+                      let browseId = be["browseId"] as? String
+                else { continue }
+                let title = ParsingHelpers.extractTitle(from: twoRow) ?? "Unknown"
+                let thumb = ParsingHelpers.extractThumbnailURL(from: twoRow)
+                albums.append(Album(
+                    id: browseId,
+                    title: title,
+                    artists: nil,
+                    thumbnailURL: thumb,
+                    year: nil,
+                    trackCount: nil
+                ))
+            }
+            return albums
+        }
+
+        // Initial pages — use extractUploadsLandingSections
+        let sections = Self.extractUploadsLandingSections(from: data)
+        for sectionData in sections {
+            // gridRenderer with musicTwoRowItemRenderer
+            if let gridRenderer = sectionData["gridRenderer"] as? [String: Any],
+               let items = gridRenderer["items"] as? [[String: Any]]
+            {
+                for itemData in items {
+                    guard let twoRow = itemData["musicTwoRowItemRenderer"] as? [String: Any],
+                          let nav = twoRow["navigationEndpoint"] as? [String: Any],
+                          let be = nav["browseEndpoint"] as? [String: Any],
+                          let browseId = be["browseId"] as? String
+                    else { continue }
+                    let title = ParsingHelpers.extractTitle(from: twoRow) ?? "Unknown"
+                    let thumb = ParsingHelpers.extractThumbnailURL(from: twoRow)
+                    albums.append(Album(
+                        id: browseId,
+                        title: title,
+                        artists: nil,
+                        thumbnailURL: thumb,
+                        year: nil,
+                        trackCount: nil
+                    ))
+                }
+            }
+
+            // musicShelfRenderer with musicResponsiveListItemRenderer
+            if let shelfRenderer = sectionData["musicShelfRenderer"] as? [String: Any],
+               let shelfContents = shelfRenderer["contents"] as? [[String: Any]]
+            {
+                for itemData in shelfContents {
+                    guard let rr = itemData["musicResponsiveListItemRenderer"] as? [String: Any],
+                          let nav = rr["navigationEndpoint"] as? [String: Any],
+                          let be = nav["browseEndpoint"] as? [String: Any],
+                          let browseId = be["browseId"] as? String,
+                          browseId.hasPrefix("MPRE") || browseId.hasPrefix("OLAK")
+                    else { continue }
+                    let title = ParsingHelpers.extractTitleFromFlexColumns(rr) ?? "Unknown"
+                    let thumb = ParsingHelpers.extractThumbnailURL(from: rr)
+                    albums.append(Album(
+                        id: browseId,
+                        title: title,
+                        artists: nil,
+                        thumbnailURL: thumb,
+                        year: nil,
+                        trackCount: nil
+                    ))
+                }
+            }
+        }
+
+        return albums
+    }
+
+    /// Parses uploaded artists from their browse endpoint (Tab 2 "Uploads").
+    static func parseUploadedArtists(_ data: [String: Any]) -> [Artist] {
+        var artists: [Artist] = []
+
+        let sections = Self.extractUploadsLandingSections(from: data)
+        for sectionData in sections {
+            if let shelfRenderer = sectionData["musicShelfRenderer"] as? [String: Any],
+               let shelfContents = shelfRenderer["contents"] as? [[String: Any]]
+            {
+                for itemData in shelfContents {
+                    guard let rr = itemData["musicResponsiveListItemRenderer"] as? [String: Any],
+                          let nav = rr["navigationEndpoint"] as? [String: Any],
+                          let be = nav["browseEndpoint"] as? [String: Any],
+                          let browseId = be["browseId"] as? String,
+                          Artist.isNavigableId(browseId)
+                    else { continue }
+                    let name = ParsingHelpers.extractTitleFromFlexColumns(rr) ?? "Unknown"
+                    let thumb = ParsingHelpers.extractThumbnailURL(from: rr)
+                    artists.append(Artist(
+                        id: browseId,
+                        name: name,
+                        thumbnailURL: thumb,
+                        profileKind: Artist.profileKind(forPageType: ParsingHelpers.extractPageType(from: be))
+                    ))
+                }
+            }
+        }
+
+        return artists
+    }
+
+    /// Extracts the next-continuation token from an uploads grid response.
+    /// Handles both initial pages (tabs → gridRenderer.continuations) and
+    /// continuation pages (continuationContents → gridContinuation.continuations).
+    static func extractUploadsContinuation(from data: [String: Any]) -> String? {
+        // Continuation pages use continuationContents
+        if let contContents = data["continuationContents"] as? [String: Any],
+           let gridCont = contContents["gridContinuation"] as? [String: Any],
+           let continuations = gridCont["continuations"] as? [[String: Any]],
+           let first = continuations.first,
+           let nextData = first["nextContinuationData"] as? [String: Any],
+           let token = nextData["continuation"] as? String
+        {
+            return token
+        }
+
+        // Initial pages use tabs → gridRenderer
+        let sections = Self.extractUploadsLandingSections(from: data)
+        for sectionData in sections {
+            if let gridRenderer = sectionData["gridRenderer"] as? [String: Any],
+               let continuations = gridRenderer["continuations"] as? [[String: Any]],
+               let first = continuations.first,
+               let nextData = first["nextContinuationData"] as? [String: Any],
+               let token = nextData["continuation"] as? String
+            {
+                return token
+            }
+        }
+        return nil
+    }
+
     static func parseUploadedSongsPlaylist(_ data: [String: Any]) -> Playlist? {
         let detail = PlaylistParser.parsePlaylistWithContinuation(data, playlistId: Playlist.uploadedSongsBrowseID).detail
         guard !detail.tracks.isEmpty || (detail.trackCount ?? 0) > 0 else {
@@ -303,6 +509,6 @@ enum LibraryContentParser {
     }
 
     private static func isPlaylistBrowseID(_ browseID: String, allowsRadioPlaylist: Bool) -> Bool {
-        browseID.hasPrefix("VL") || browseID.hasPrefix("PL") || (allowsRadioPlaylist && browseID.hasPrefix("RDCLAK"))
+        browseID.hasPrefix("VL") || browseID.hasPrefix("PL") || browseID.hasPrefix("FEmusic_library_privately_owned_release_detail") || (allowsRadioPlaylist && browseID.hasPrefix("RDCLAK"))
     }
 }

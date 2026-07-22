@@ -5,6 +5,7 @@ enum SearchResponseParser {
     private static let logger = DiagnosticsLogger.api
 
     /// Parses a search response.
+    /// Handles both single-tab (regular search) and multi-tab (library search) responses.
     static func parse(_ data: [String: Any]) -> SearchResponse {
         var songs: [Song] = []
         var albums: [Album] = []
@@ -14,39 +15,59 @@ enum SearchResponseParser {
         // Navigate to contents
         guard let contents = data["contents"] as? [String: Any],
               let tabbedSearchResults = contents["tabbedSearchResultsRenderer"] as? [String: Any],
-              let tabs = tabbedSearchResults["tabs"] as? [[String: Any]],
-              let firstTab = tabs.first,
-              let tabRenderer = firstTab["tabRenderer"] as? [String: Any],
-              let tabContent = tabRenderer["content"] as? [String: Any],
-              let sectionListRenderer = tabContent["sectionListRenderer"] as? [String: Any],
-              let sectionContents = sectionListRenderer["contents"] as? [[String: Any]]
+              let tabs = tabbedSearchResults["tabs"] as? [[String: Any]]
         else {
             Self.logger.debug("SearchResponseParser: Failed to parse response structure. Top keys: \(data.keys.sorted())")
             return SearchResponse.empty
         }
 
-        for sectionData in sectionContents {
-            // Parse musicCardShelfRenderer (Top Result section)
-            if let cardShelfRenderer = sectionData["musicCardShelfRenderer"] as? [String: Any] {
-                if let item = parseCardShelfRenderer(cardShelfRenderer) {
-                    Self.appendItem(item, songs: &songs, albums: &albums, artists: &artists, playlists: &playlists)
-                }
+        // Iterate all tabs — library search has multiple tabs with results
+        // in the "Library" tab (not the first one), while regular search
+        // puts everything in the single first tab.
+        for tabData in tabs {
+            guard let tabRenderer = tabData["tabRenderer"] as? [String: Any],
+                  let tabContent = tabRenderer["content"] as? [String: Any],
+                  let sectionListRenderer = tabContent["sectionListRenderer"] as? [String: Any],
+                  let sectionContents = sectionListRenderer["contents"] as? [[String: Any]]
+            else {
+                continue
             }
 
-            // Parse musicShelfRenderer (regular results)
-            if let shelfRenderer = sectionData["musicShelfRenderer"] as? [String: Any],
-               let shelfContents = shelfRenderer["contents"] as? [[String: Any]]
-            {
-                songs.reserveCapacity(songs.count + shelfContents.count)
-                for itemData in shelfContents {
-                    if let item = parseSearchResultItem(itemData) {
-                        Self.appendItem(item, songs: &songs, albums: &albums, artists: &artists, playlists: &playlists)
-                    }
-                }
+            for sectionData in sectionContents {
+                Self.parseSection(sectionData, songs: &songs, albums: &albums, artists: &artists, playlists: &playlists)
             }
         }
 
         return SearchResponse(songs: songs, albums: albums, artists: artists, playlists: playlists)
+    }
+
+    /// Parses a single section from a search response, extracting items from
+    /// musicCardShelfRenderer and musicShelfRenderer.
+    private static func parseSection(
+        _ sectionData: [String: Any],
+        songs: inout [Song],
+        albums: inout [Album],
+        artists: inout [Artist],
+        playlists: inout [Playlist]
+    ) {
+        // Parse musicCardShelfRenderer (Top Result section)
+        if let cardShelfRenderer = sectionData["musicCardShelfRenderer"] as? [String: Any] {
+            if let item = parseCardShelfRenderer(cardShelfRenderer) {
+                Self.appendItem(item, songs: &songs, albums: &albums, artists: &artists, playlists: &playlists)
+            }
+        }
+
+        // Parse musicShelfRenderer (regular results)
+        if let shelfRenderer = sectionData["musicShelfRenderer"] as? [String: Any],
+           let shelfContents = shelfRenderer["contents"] as? [[String: Any]]
+        {
+            songs.reserveCapacity(songs.count + shelfContents.count)
+            for itemData in shelfContents {
+                if let item = parseSearchResultItem(itemData) {
+                    Self.appendItem(item, songs: &songs, albums: &albums, artists: &artists, playlists: &playlists)
+                }
+            }
+        }
     }
 
     /// Helper to append a search result item to the appropriate array.

@@ -62,9 +62,9 @@ struct Playlist: Identifiable, Codable, Hashable {
     }
 
     /// Whether this is an album (vs a playlist).
-    /// Albums have IDs starting with "OLAK" or "MPRE".
+    /// Albums have IDs starting with "OLAK" or "MPRE" or "FEmusic_library_privately_owned_release_detail".
     var isAlbum: Bool {
-        self.id.hasPrefix("OLAK") || self.id.hasPrefix("MPRE")
+        self.id.hasPrefix("OLAK") || self.id.hasPrefix("MPRE") || self.id.hasPrefix("FEmusic_library_privately_owned_release_detail")
     }
 
     /// Whether this playlist value represents the user's uploaded songs browse surface.
@@ -186,9 +186,9 @@ struct PlaylistDetail: Identifiable {
     let duration: String?
 
     /// Whether this is an album (vs a playlist).
-    /// Albums have IDs starting with "OLAK" or "MPRE".
+    /// Albums have IDs starting with "OLAK" or "MPRE" or "FEmusic_library_privately_owned_release_detail".
     var isAlbum: Bool {
-        self.id.hasPrefix("OLAK") || self.id.hasPrefix("MPRE")
+        self.id.hasPrefix("OLAK") || self.id.hasPrefix("MPRE") || self.id.hasPrefix("FEmusic_library_privately_owned_release_detail")
     }
 
     /// Whether this detail represents the user's uploaded songs browse surface.

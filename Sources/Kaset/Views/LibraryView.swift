@@ -3,25 +3,15 @@ import SwiftUI
 // MARK: - LibraryFilter
 
 /// Filter options for the Library view.
-enum LibraryFilter: String, CaseIterable, Identifiable {
+enum LibraryFilter: String, CaseIterable, Identifiable, Hashable, FilterOption {
     case all = "All"
     case playlists = "Playlists"
-    case uploads = "Uploads"
+    case albums = "Albums"
     case artists = "Artists"
     case podcasts = "Podcasts"
 
     var id: String {
         self.rawValue
-    }
-
-    var icon: String {
-        switch self {
-        case .all: "square.grid.2x2"
-        case .playlists: "music.note.list"
-        case .uploads: "tray.and.arrow.up.fill"
-        case .artists: "person.fill"
-        case .podcasts: "mic.fill"
-        }
     }
 
     var displayName: String {
@@ -30,8 +20,8 @@ enum LibraryFilter: String, CaseIterable, Identifiable {
             String(localized: "All")
         case .playlists:
             String(localized: "Playlists")
-        case .uploads:
-            String(localized: "Uploads")
+        case .albums:
+            String(localized: "Albums")
         case .artists:
             String(localized: "Artists")
         case .podcasts:
@@ -59,28 +49,36 @@ struct LibraryView: View {
 
     var body: some View {
         NavigationStack(path: self.$navigationPath) {
-            Group {
-                if !self.networkMonitor.isConnected {
-                    ErrorView(
-                        title: String(localized: "No Connection"),
-                        message: String(localized: "Please check your internet connection and try again.")
-                    ) {
-                        Task { await self.viewModel.refresh() }
-                    }
-                } else {
-                    switch self.viewModel.loadingState {
-                    case .idle, .loading:
-                        LoadingView(String(localized: "Loading your library..."))
-                    case .loaded, .loadingMore:
-                        self.contentView
-                    case let .error(error):
-                        ErrorView(error: error) {
+            VStack(spacing: 0) {
+                self.filterChips
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+
+                Divider()
+
+                Group {
+                    if !self.networkMonitor.isConnected {
+                        ErrorView(
+                            title: String(localized: "No Connection"),
+                            message: String(localized: "Please check your internet connection and try again.")
+                        ) {
                             Task { await self.viewModel.refresh() }
+                        }
+                    } else {
+                        switch self.viewModel.loadingState {
+                        case .idle, .loading:
+                            LoadingView(String(localized: "Loading your library..."))
+                        case .loaded, .loadingMore:
+                            self.contentView
+                        case let .error(error):
+                            ErrorView(error: error) {
+                                Task { await self.viewModel.refresh() }
+                            }
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .localizedNavigationTitle("Library")
             .navigationDestination(for: Playlist.self) { playlist in
                 if !self.usesLegacyMacOS15UI, #available(macOS 26.0, *) {
@@ -160,48 +158,17 @@ struct LibraryView: View {
 
     private var contentView: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
-                // Filter chips
-                self.filterChips
-
-                // Combined grid with filtered content
-                self.libraryGrid
-            }
-            .padding(.vertical, 20)
+            self.libraryGrid
+                .padding(.vertical, 20)
         }
-        // Inset the resting content while the scroll view stays edge-to-edge,
-        // so the grid extends under the floating glass sidebar.
         .contentMargins(.horizontal, DetailContentLayout.horizontalInset, for: .scrollContent)
     }
 
     private var filterChips: some View {
-        HStack(spacing: 8) {
-            ForEach(LibraryFilter.allCases) { filter in
-                self.filterChip(filter)
-            }
-            Spacer()
-        }
-    }
-
-    private func filterChip(_ filter: LibraryFilter) -> some View {
-        let isSelected = self.selectedFilter == filter
-
-        return Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                self.selectedFilter = filter
-            }
-        } label: {
-            Text(filter.displayName)
-                .font(.system(size: 13, weight: .medium))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background {
-                    Capsule()
-                        .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.15))
-                }
-                .foregroundStyle(isSelected ? .white : .primary)
-        }
-        .buttonStyle(.plain)
+        FilterChipBar(
+            filters: LibraryFilter.allCases,
+            selection: self.$selectedFilter
+        )
     }
 
     /// All library items combined and filtered.
@@ -210,14 +177,13 @@ struct LibraryView: View {
 
         switch self.selectedFilter {
         case .all:
-            items = self.uploadItems
-                + self.viewModel.playlists.map { .playlist($0) }
+            items = self.viewModel.playlists.map { .playlist($0) }
                 + self.viewModel.artists.map { .artist($0) }
                 + self.viewModel.podcastShows.map { .podcast($0) }
         case .playlists:
             items = self.viewModel.playlists.map { .playlist($0) }
-        case .uploads:
-            items = self.uploadItems
+        case .albums:
+            items = self.viewModel.playlists.filter { $0.id.hasPrefix("MPRE") || $0.id.hasPrefix("OLAK") }.map { .playlist($0) }
         case .artists:
             items = self.viewModel.artists.map { .artist($0) }
         case .podcasts:
@@ -225,13 +191,6 @@ struct LibraryView: View {
         }
 
         return items
-    }
-
-    private var uploadItems: [LibraryItem] {
-        guard let uploadedSongsPlaylist = self.viewModel.uploadedSongsPlaylist else {
-            return []
-        }
-        return [.uploadedSongs(uploadedSongsPlaylist)]
     }
 
     @ViewBuilder
@@ -246,8 +205,6 @@ struct LibraryView: View {
                     switch item {
                     case let .playlist(playlist):
                         self.playlistCard(playlist)
-                    case let .uploadedSongs(playlist):
-                        self.uploadedSongsCard(playlist)
                     case let .artist(artist):
                         self.artistCard(artist)
                     case let .podcast(show):
@@ -261,7 +218,7 @@ struct LibraryView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: 12) {
-            Image(systemName: self.selectedFilter.icon)
+            Image(systemName: "square.grid.2x2")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
 
@@ -284,8 +241,8 @@ struct LibraryView: View {
             String(localized: "Your library is empty")
         case .playlists:
             String(localized: "No playlists yet")
-        case .uploads:
-            String(localized: "No uploaded songs yet")
+        case .albums:
+            String(localized: "No albums yet")
         case .artists:
             String(localized: "No artists yet")
         case .podcasts:
@@ -299,8 +256,8 @@ struct LibraryView: View {
             String(localized: "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here.")
         case .playlists:
             String(localized: "Create or save playlists on YouTube Music to see them here.")
-        case .uploads:
-            String(localized: "Upload songs to YouTube Music to browse them here.")
+        case .albums:
+            String(localized: "Save albums on YouTube Music to see them here.")
         case .artists:
             String(localized: "Follow artists on YouTube Music to see them here.")
         case .podcasts:
@@ -361,50 +318,6 @@ struct LibraryView: View {
                 }
             }
         }
-    }
-
-    private func uploadedSongsCard(_ playlist: Playlist) -> some View {
-        Button {
-            self.navigationPath.append(playlist)
-        } label: {
-            VStack(alignment: .leading, spacing: 8) {
-                CachedAsyncImage(url: playlist.thumbnailURL?.highQualityThumbnailURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Rectangle()
-                        .fill(.quaternary)
-                        .overlay {
-                            Image(systemName: "tray.and.arrow.up.fill")
-                                .font(.largeTitle)
-                                .foregroundStyle(.secondary)
-                        }
-                }
-                .frame(width: self.libraryItemSize, height: self.libraryItemSize)
-                .clipShape(.rect(cornerRadius: 8))
-
-                Text(playlist.title)
-                    .font(.system(size: 13, weight: .medium))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .frame(width: self.libraryItemSize, alignment: .topLeading)
-
-                if let count = playlist.trackCount {
-                    Text("\(count) songs", comment: "Uploaded songs count")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .frame(width: self.libraryItemSize, alignment: .leading)
-                } else {
-                    Text(String(localized: "Uploads"))
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .frame(width: self.libraryItemSize, alignment: .leading)
-                }
-            }
-            .frame(width: self.libraryItemSize, height: self.libraryItemCardHeight, alignment: .topLeading)
-        }
-        .buttonStyle(.plain)
     }
 
     private func podcastCard(_ show: PodcastShow) -> some View {
@@ -500,7 +413,6 @@ struct LibraryView: View {
 /// Represents a library item that can be a playlist, artist, or podcast show.
 enum LibraryItem: Identifiable {
     case playlist(Playlist)
-    case uploadedSongs(Playlist)
     case artist(Artist)
     case podcast(PodcastShow)
 
@@ -508,8 +420,6 @@ enum LibraryItem: Identifiable {
         switch self {
         case let .playlist(playlist):
             "playlist-\(playlist.id)"
-        case let .uploadedSongs(playlist):
-            "uploads-\(playlist.id)"
         case let .artist(artist):
             "artist-\(artist.id)"
         case let .podcast(show):

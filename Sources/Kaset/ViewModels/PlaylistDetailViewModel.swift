@@ -233,6 +233,38 @@ final class PlaylistDetailViewModel {
                 }
             }
 
+            // For uploaded songs, drain every continuation to show all tracks
+            let isUploadedSongs = self.playlist.isUploadedSongs
+            if isUploadedSongs {
+                self.logger.info("Uploaded songs, fetching all tracks via drain")
+                do {
+                    let allTracks = try await client.getAllUploadedSongs()
+                    guard self.isCurrentLoadGeneration(generation) else { return }
+
+                    if allTracks.count > detail.tracks.count {
+                        self.logger.info("Drain returned \(allTracks.count) tracks (vs \(detail.tracks.count) from browse)")
+                        let updatedPlaylist = Playlist(
+                            id: detail.id,
+                            title: detail.title,
+                            description: detail.description,
+                            thumbnailURL: detail.thumbnailURL,
+                            trackCount: allTracks.count,
+                            author: detail.author,
+                            canDelete: detail.canDelete || self.playlist.canDelete
+                        )
+                        detail = PlaylistDetail(
+                            playlist: updatedPlaylist,
+                            tracks: allTracks,
+                            duration: detail.duration
+                        )
+                        self.hasMore = false
+                        nextContinuationToken = nil
+                    }
+                } catch {
+                    self.logger.warning("Uploaded songs drain failed, using browse results: \(error.localizedDescription)")
+                }
+            }
+
             // Determine the best thumbnail to use:
             // 1. API response header thumbnail
             // 2. Original playlist thumbnail (from navigation)

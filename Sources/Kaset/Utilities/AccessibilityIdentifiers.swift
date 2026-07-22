@@ -20,6 +20,7 @@ enum AccessibilityID {
         static let podcastsItem = "sidebar.podcasts"
         static let likedMusicItem = "sidebar.likedMusic"
         static let libraryItem = "sidebar.library"
+        static let uploadsItem = "sidebar.uploads"
         static let historyItem = "sidebar.history"
     }
 
