@@ -759,7 +759,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     private func signInRequiredView(for item: NavigationItem) -> some View {
         SignInRequiredView(
             title: String(localized: "Sign in to use \(item.displayName)"),
-            message: String(localized: "Kaset works without login for public browsing, search, and playback. Sign in to access personal music collections.")
+            message: String(localized: "KasetPlus works without login for public browsing, search, and playback. Sign in to access personal music collections.")
         )
     }
 

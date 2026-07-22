@@ -480,15 +480,15 @@ final class EqualizerAudioEngine: EqualizerAudioEngineProtocol {
             case .tap(.noAudioSource):
                 String(localized: "The equalizer activates as soon as you start playback.")
             case let .tap(.tapCreation(status)):
-                String(localized: "Couldn't capture Kaset's audio (status \(status)). Check Screen & System Audio Recording permission in System Settings.")
+                String(localized: "Couldn't capture KasetPlus's audio (status \(status)). Check Screen & System Audio Recording permission in System Settings.")
             case .tap(.permissionDenied):
-                String(localized: "Open System Settings → Privacy & Security → Screen & System Audio Recording and enable Kaset, then toggle the equalizer on again.")
+                String(localized: "Open System Settings → Privacy & Security → Screen & System Audio Recording and enable KasetPlus, then toggle the equalizer on again.")
             case .tap(.aggregateDeviceCreation):
-                String(localized: "Couldn't create the equalizer audio device. Restarting Kaset usually fixes this.")
+                String(localized: "Couldn't create the equalizer audio device. Restarting KasetPlus usually fixes this.")
             case .tap(.unsupportedOS):
                 String(localized: "The equalizer requires macOS 14.2 or later.")
             case .invalidTapFormat:
-                String(localized: "The system didn't report a valid audio format for Kaset's output. Try disabling the equalizer, starting playback, then enabling it again.")
+                String(localized: "The system didn't report a valid audio format for KasetPlus's output. Try disabling the equalizer, starting playback, then enabling it again.")
             case let .ioProcInstall(status):
                 String(localized: "Couldn't install the audio I/O proc (\(status)).")
             case let .engineStart(detail):

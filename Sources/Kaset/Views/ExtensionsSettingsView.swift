@@ -71,7 +71,7 @@ struct ExtensionsSettingsView: View {
                         .font(.headline)
                         .padding(.bottom, 2)
 
-                    Text(String(localized: "Extensions are loaded at launch via the native WebKit extension API. Changes take effect after restarting Kaset."))
+                    Text(String(localized: "Extensions are loaded at launch via the native WebKit extension API. Changes take effect after restarting KasetPlus."))
                         .foregroundStyle(.secondary)
 
                     HStack(spacing: 4) {
@@ -97,7 +97,7 @@ struct ExtensionsSettingsView: View {
             }
             .keyboardShortcut(.defaultAction)
         } message: {
-            Text("\(self.pendingChangeDescription) will take effect after restarting Kaset.")
+            Text("\(self.pendingChangeDescription) will take effect after restarting KasetPlus.")
         }
         .sheet(item: self.$configuringExtensionPage) { extensionPage in
             NavigationStack {

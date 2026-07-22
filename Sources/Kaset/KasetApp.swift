@@ -185,7 +185,7 @@ struct KasetApp: App {
     }
 
     var body: some Scene {
-        Window("Kaset", id: "main") {
+        Window("KasetPlus", id: "main") {
             // Skip UI during unit tests to prevent window spam
             if UITestConfig.isRunningUnitTests, !UITestConfig.isUITestMode {
                 Color.clear
@@ -508,7 +508,7 @@ struct KasetApp: App {
 
                 Divider()
 
-                Button(String(localized: "Kaset")) {
+                Button(String(localized: "KasetPlus")) {
                     self.showMainWindow()
                 }
                 .keyboardShortcut("0", modifiers: .command)
@@ -517,7 +517,7 @@ struct KasetApp: App {
             // Help menu - What's New
             CommandGroup(after: .appInfo) {
                 Divider()
-                Button(String(localized: "What's New in Kaset")) {
+                Button(String(localized: "What's New in KasetPlus")) {
                     self.showWhatsNew = true
                 }
             }

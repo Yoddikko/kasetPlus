@@ -358,7 +358,7 @@ struct MiniPlayerWindow: View { // swiftlint:disable:this type_body_length
             self.hoverIconButton(
                 systemName: "macwindow",
                 accessibilityID: AccessibilityID.MiniPlayer.returnToKasetButton,
-                label: String(localized: "Return to Kaset")
+                label: String(localized: "Return to KasetPlus")
             ) {
                 MiniPlayerWindowController.shared.returnToMainWindowFromUserAction()
             }
@@ -653,7 +653,7 @@ struct MiniPlayerWindow: View { // swiftlint:disable:this type_body_length
     }
 
     private var artistText: some View {
-        Text(self.playerService.currentTrack?.artistsDisplay.isEmpty == false ? self.playerService.currentTrack?.artistsDisplay ?? "" : String(localized: "Kaset"))
+        Text(self.playerService.currentTrack?.artistsDisplay.isEmpty == false ? self.playerService.currentTrack?.artistsDisplay ?? "" : String(localized: "KasetPlus"))
             .lineLimit(1)
             .foregroundStyle(.white.opacity(0.78))
             .shadow(color: .black.opacity(0.58), radius: 2, y: 1)

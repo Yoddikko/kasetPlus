@@ -54,7 +54,7 @@ struct EqualizerSettingsView: View {
         Form {
             Section {
                 Toggle("Enable Equalizer", isOn: self.isEnabled)
-                    .help(String(localized: "Processes Kaset's audio output through a 6-band equalizer."))
+                    .help(String(localized: "Processes KasetPlus's audio output through a 6-band equalizer."))
 
                 EQStatusRow(status: self.service.status)
 
@@ -206,7 +206,7 @@ private struct EQStatusRow: View {
         case .off:
             nil
         case .active:
-            String(localized: "Equalizer is processing Kaset's audio output.")
+            String(localized: "Equalizer is processing KasetPlus's audio output.")
         case .standby:
             String(localized: "The equalizer activates as soon as you press play.")
         case let .permissionNeeded(message), let .error(message):

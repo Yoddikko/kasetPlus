@@ -121,7 +121,7 @@ struct YouTubeContentView: View {
         if item.requiresSignIn, !self.hasPersonalAccount {
             SignInRequiredView(
                 title: String(localized: "Sign in to use \(item.displayName)"),
-                message: String(localized: "Kaset works without login for public YouTube search, discovery, and playback. Sign in to access personal video collections.")
+                message: String(localized: "KasetPlus works without login for public YouTube search, discovery, and playback. Sign in to access personal video collections.")
             )
         } else {
             self.publicOrAuthenticatedRootView(for: item)

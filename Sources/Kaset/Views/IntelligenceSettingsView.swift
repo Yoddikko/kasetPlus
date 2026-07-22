@@ -49,7 +49,7 @@ struct IntelligenceSettingsView: View {
                 ))
                 .disabled(!self.isSystemAvailable)
 
-                Text(String(localized: "When enabled, Kaset can add richer queue analysis, AI-powered playlist refinement, and lyrics explanations."))
+                Text(String(localized: "When enabled, KasetPlus can add richer queue analysis, AI-powered playlist refinement, and lyrics explanations."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -86,7 +86,7 @@ struct IntelligenceSettingsView: View {
                     self.aiService.refreshAvailability()
                 }
 
-                Text(String(localized: "Kaset creates fresh AI sessions per request. Refresh the status if Apple Intelligence finishes downloading or becomes available while the app is open."))
+                Text(String(localized: "KasetPlus creates fresh AI sessions per request. Refresh the status if Apple Intelligence finishes downloading or becomes available while the app is open."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

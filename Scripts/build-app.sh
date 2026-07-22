@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build script to create Kaset.app bundle
+# Build script to create KasetPlus.app bundle
 
 set -euo pipefail
 
@@ -499,9 +499,9 @@ ${APP_LOCALIZATIONS_PLIST}
 
     <!-- Core Audio process tap (Equalizer) - macOS 14.2+ TCC requires these -->
     <key>NSAudioCaptureUsageDescription</key>
-    <string>Kaset processes its own music output through a built-in equalizer. This permission only covers Kaset's own playback — no other app's audio is captured.</string>
+    <string>KasetPlus processes its own music output through a built-in equalizer. This permission only covers KasetPlus's own playback — no other app's audio is captured.</string>
     <key>NSScreenCaptureUsageDescription</key>
-    <string>Kaset taps its own audio output (not the screen) so the built-in equalizer can apply effects to your music. No screen content is recorded.</string>
+    <string>KasetPlus taps its own audio output (not the screen) so the built-in equalizer can apply effects to your music. No screen content is recorded.</string>
 
     <!-- KasetPlus support (Ko-fi) — Cloudflare Worker for supporter verification -->
     <key>SupportWorkerURL</key>

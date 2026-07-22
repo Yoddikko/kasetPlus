@@ -320,7 +320,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
     private var artistName: String {
         guard let track = self.playerService.currentTrack else {
-            return String(localized: "Kaset")
+            return String(localized: "KasetPlus")
         }
         return track.artistsDisplay.isEmpty ? String(localized: "Unknown Artist") : track.artistsDisplay
     }
@@ -789,7 +789,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
             },
             isSelected: self.playerService.isMiniPlayerVisible,
             accessibilityID: AccessibilityID.PlayerBar.miniPlayerButton,
-            accessibilityLabel: self.playerService.isMiniPlayerVisible ? String(localized: "Return to Kaset") : String(localized: "Switch to Mini Player"),
+            accessibilityLabel: self.playerService.isMiniPlayerVisible ? String(localized: "Return to KasetPlus") : String(localized: "Switch to Mini Player"),
             accessibilityValue: self.playerService.isMiniPlayerVisible ? String(localized: "Showing") : String(localized: "Hidden"),
             icon: {
                 Image(systemName: self.playerService.isMiniPlayerVisible ? "macwindow" : "rectangle.inset.bottomright.filled")

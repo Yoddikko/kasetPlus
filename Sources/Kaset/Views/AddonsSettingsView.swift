@@ -14,7 +14,7 @@ struct AddonsSettingsView: View {
             } header: {
                 Text("Ad Blocker")
             } footer: {
-                Text("Content-blocking rules block known ad-serving and tracking domains. YouTube video ads are intercepted at the API level before they load. Changes take effect after restarting Kaset.")
+                Text("Content-blocking rules block known ad-serving and tracking domains. YouTube video ads are intercepted at the API level before they load. Changes take effect after restarting KasetPlus.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

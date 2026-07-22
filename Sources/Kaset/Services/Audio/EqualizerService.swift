@@ -271,7 +271,7 @@ final class EqualizerService {
         // intent remains on.
         if self.inferredPermissionDenial {
             return .permissionNeeded(message: String(
-                localized: "Open System Settings → Privacy & Security → Screen & System Audio Recording and enable Kaset, then retry playback or toggle the equalizer off and on."
+                localized: "Open System Settings → Privacy & Security → Screen & System Audio Recording and enable KasetPlus, then retry playback or toggle the equalizer off and on."
             ))
         }
         guard self.settings.isEnabled else { return .off }

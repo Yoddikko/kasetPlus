@@ -10,7 +10,7 @@ import AppKit
 /// window below the point where the sidebar/player controls remain usable.
 enum MainWindowLayout {
     static let autosaveName = "KasetMainWindow"
-    static let windowTitle = "Kaset"
+    static let windowTitle = "KasetPlus"
     static let minimumWidth: CGFloat = 980
     static let minimumHeight: CGFloat = 600
     static let defaultWidth: CGFloat = 1100

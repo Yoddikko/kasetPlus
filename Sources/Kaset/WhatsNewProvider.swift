@@ -167,7 +167,7 @@ enum WhatsNewProvider {
         let versionString = tagName.hasPrefix("v") ? String(tagName.dropFirst()) : tagName
         let version = WhatsNew.Version(stringLiteral: versionString)
         let name = json["name"] as? String
-        let title = name ?? "What's New in Kaset \(versionString)"
+        let title = name ?? "What's New in KasetPlus \(versionString)"
 
         return WhatsNew(
             version: version,
