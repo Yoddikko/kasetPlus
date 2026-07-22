@@ -280,7 +280,7 @@ Help make KasetPlus available in more languages. Translation happens entirely th
 </p>
 
 <p align="center">
-  <img src="https://kaset-lastfm.alessioiodiceuni.workers.dev/crowdin/translators.svg" alt="KasetPlus translators">
+  <img src="https://kaset-lastfm.alessioiodiceuni.workers.dev/crowdin/translators.svg?v=2" alt="KasetPlus translators">
 </p>
 
 <details>
