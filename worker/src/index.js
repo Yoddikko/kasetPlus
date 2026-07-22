@@ -342,11 +342,11 @@ async function handleCrowdinBadge(lang, env, ctx) {
 		} else {
 			const tr = Math.round(p.tr || 0);
 			const ap = Math.round(p.ap || 0);
-			// tr = % translated, ap = % verified/approved (shown only where it exists)
+			// tr = % translated, ap = % verified/approved (always shown for transparency)
 			body = {
 				schemaVersion: 1,
 				label,
-				message: ap > 0 ? `${tr}% · ✓${ap}%` : `${tr}%`,
+				message: `${tr}% · ✓${ap}%`,
 				color: tr >= 90 ? "brightgreen" : tr >= 60 ? "green" : tr >= 30 ? "yellow" : "orange",
 			};
 		}

@@ -290,43 +290,43 @@ Help make KasetPlus available in more languages. Translation happens entirely th
 
 <!-- LOCALIZATION-STATUS:START -->
 
-![Afrikaans](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Faf)
-![Arabic](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Far)
-![Catalan](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fca)
-![Chinese (Simpl.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-CN)
-![Chinese (Trad.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-TW)
-![Czech](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fcs)
-![Danish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fda)
-![Dutch](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fnl)
-![Finnish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffi)
-![French](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffr)
-![German](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fde)
-![Greek](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fel)
-![Hebrew](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhe)
-![Hungarian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhu)
-![Indonesian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fid)
-![Italian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fit)
-![Japanese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fja)
-![Korean](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fko)
-![Norwegian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fno)
-![Polish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpl)
-![Portuguese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-PT)
-![Portuguese (BR)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-BR)
-![Romanian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fro)
-![Russian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fru)
-![Serbian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsr)
-![Spanish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fes-ES)
-![Swedish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsv-SE)
-![Turkish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ftr)
-![Ukrainian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fuk)
-![Vietnamese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fvi)
+![Afrikaans](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Faf%3Fv%3D2)
+![Arabic](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Far%3Fv%3D2)
+![Catalan](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fca%3Fv%3D2)
+![Chinese (Simpl.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-CN%3Fv%3D2)
+![Chinese (Trad.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-TW%3Fv%3D2)
+![Czech](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fcs%3Fv%3D2)
+![Danish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fda%3Fv%3D2)
+![Dutch](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fnl%3Fv%3D2)
+![Finnish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffi%3Fv%3D2)
+![French](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffr%3Fv%3D2)
+![German](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fde%3Fv%3D2)
+![Greek](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fel%3Fv%3D2)
+![Hebrew](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhe%3Fv%3D2)
+![Hungarian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhu%3Fv%3D2)
+![Indonesian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fid%3Fv%3D2)
+![Italian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fit%3Fv%3D2)
+![Japanese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fja%3Fv%3D2)
+![Korean](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fko%3Fv%3D2)
+![Norwegian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fno%3Fv%3D2)
+![Polish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpl%3Fv%3D2)
+![Portuguese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-PT%3Fv%3D2)
+![Portuguese (BR)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-BR%3Fv%3D2)
+![Romanian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fro%3Fv%3D2)
+![Russian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fru%3Fv%3D2)
+![Serbian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsr%3Fv%3D2)
+![Spanish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fes-ES%3Fv%3D2)
+![Swedish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsv-SE%3Fv%3D2)
+![Turkish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ftr%3Fv%3D2)
+![Ukrainian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fuk%3Fv%3D2)
+![Vietnamese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fvi%3Fv%3D2)
 
 <!-- LOCALIZATION-STATUS:END -->
 
 <br>
 
 <sub>
-  <code>NN%</code> translated · <code>✓ NN%</code> verified (proofread, shown when&nbsp;>&nbsp;0). Live progress powered by
+  <code>NN%</code> translated · <code>✓ NN%</code> verified (proofread). Live progress powered by
   <a href="https://crowdin.com/project/kasetplus">Crowdin</a>.
 </sub>
 
