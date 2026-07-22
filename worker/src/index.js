@@ -381,7 +381,7 @@ function flagAndCode(langCode) {
 
 async function getCrowdinMembers(env, ctx) {
 	const cache = caches.default;
-	const key = new Request("https://internal.cache/crowdin-members-v2");
+	const key = new Request("https://internal.cache/crowdin-members-v3");
 	const cached = await cache.match(key);
 	if (cached) return cached.json();
 	const res = await fetch(
@@ -402,11 +402,15 @@ async function getCrowdinMembers(env, ctx) {
 				for (const lg of Object.keys(access)) langs.add(lg);
 			}
 		}
+		const roles = roleObjs.map((r) => r.name || r).filter(Boolean);
 		return {
+			id: String(m.data.id),
 			name: m.data.fullName || m.data.username || "?",
-			roles: roleObjs.map((r) => r.name || r).filter(Boolean),
+			avatarUrl: m.data.avatarUrl || null,
+			roles,
 			langs: [...langs],
 			allLang,
+			isOwner: roles.includes("owner"),
 		};
 	});
 	const store = new Response(JSON.stringify(members), {
@@ -416,70 +420,140 @@ async function getCrowdinMembers(env, ctx) {
 	return members;
 }
 
+// Per-user contribution (approved/translated words) via the async Report API.
+async function getCrowdinContributions(env, ctx) {
+	const cache = caches.default;
+	const key = new Request("https://internal.cache/crowdin-contrib-v1");
+	const cached = await cache.match(key);
+	if (cached) return cached.json();
+	const base = `https://api.crowdin.com/api/v2/projects/${CROWDIN_PROJECT_ID}/reports`;
+	const auth = { Authorization: `Bearer ${env.CROWDIN_TOKEN}` };
+	const gen = await fetch(base, {
+		method: "POST",
+		headers: { ...auth, "Content-Type": "application/json" },
+		body: JSON.stringify({ name: "top-members", schema: { unit: "words", format: "json" } }),
+	});
+	const genData = (await gen.json()).data;
+	const id = genData?.identifier;
+	if (!id) throw new Error("report generation failed");
+	let status = genData.status;
+	for (let i = 0; i < 12 && status !== "finished"; i++) {
+		await new Promise((r) => setTimeout(r, 600));
+		status = (await (await fetch(`${base}/${id}`, { headers: auth })).json()).data?.status;
+		if (status === "failed") throw new Error("report failed");
+	}
+	if (status !== "finished") throw new Error("report timeout");
+	const url = (await (await fetch(`${base}/${id}/download`, { headers: auth })).json()).data?.url;
+	const report = await (await fetch(url)).json();
+	const map = {};
+	for (const u of report.data || []) {
+		map[String(u.user.id)] = { approved: u.approved || 0, translated: u.translated || 0 };
+	}
+	const store = new Response(JSON.stringify(map), {
+		headers: { "content-type": "application/json", "cache-control": "public, max-age=3600" },
+	});
+	if (ctx) ctx.waitUntil(cache.put(key, store.clone()));
+	return map;
+}
+
+// Fetches an avatar and inlines it as a base64 data URI (external <image> URLs
+// don't load inside an SVG rendered via GitHub's <img>).
+async function fetchAvatarDataURI(url) {
+	if (!url) return null;
+	try {
+		const res = await fetch(url, { cf: { cacheTtl: 86400, cacheEverything: true } });
+		if (!res.ok) return null;
+		const bytes = new Uint8Array(await res.arrayBuffer());
+		let bin = "";
+		for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+		return `data:${res.headers.get("content-type") || "image/png"};base64,${btoa(bin)}`;
+	} catch {
+		return null;
+	}
+}
+
 function xmlEscape(s) {
 	return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function translatorsSVG(members) {
-	const rows = members
-		.map((m) => ({
-			name: m.name,
-			roles: TRANSLATOR_ROLE_ORDER.filter((r) => m.roles.includes(r)),
-			langs: m.langs || [],
-			allLang: m.allLang,
-		}))
-		.filter((m) => m.roles.length > 0)
-		.sort((a, b) =>
-			TRANSLATOR_ROLE_ORDER.indexOf(a.roles[0]) - TRANSLATOR_ROLE_ORDER.indexOf(b.roles[0]) ||
-			a.name.localeCompare(b.name),
-		);
-	const W = 560, rowH = 30, padX = 18, padY = 14;
-	const H = padY * 2 + Math.max(rows.length, 1) * rowH;
-	let body;
-	if (rows.length === 0) {
-		body = `<text x="${padX}" y="${padY + 20}" class="role">No translators yet — be the first!</text>`;
-	} else {
-		body = rows
-			.map((m, i) => {
-				const y = padY + i * rowH + 20;
-				const color = TRANSLATOR_ROLES[m.roles[0]][1]; // senior role's color
-				const labels = m.roles.map((r) => TRANSLATOR_ROLES[r][0]).join(" · ");
-				const langLabel = m.langs.length
-					? m.langs.map(flagAndCode).join("  ")
-					: (m.allLang ? "🌐 all" : "");
-				const nameCell = langLabel
-					? `<text x="${padX + 18}" y="${y}"><tspan class="name">${xmlEscape(m.name)}</tspan>` +
-						`<tspan class="role" dx="8" font-size="12">${xmlEscape(langLabel)}</tspan></text>`
-					: `<text x="${padX + 18}" y="${y}" class="name">${xmlEscape(m.name)}</text>`;
-				return (
-					`<circle cx="${padX + 4}" cy="${y - 5}" r="4" fill="${color}"/>` +
-					nameCell +
-					`<text x="${W - padX}" y="${y}" text-anchor="end" font-size="12" fill="${color}">${xmlEscape(labels)}</text>`
-				);
-			})
-			.join("");
+function renderTranslatorsSVG(translators) {
+	const W = 520, rowH = 46, padX = 16, padY = 12;
+	const H = padY * 2 + Math.max(translators.length, 1) * rowH;
+	const head = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">` +
+		`<style>.name{fill:#24292f;font-weight:600;font-size:14px}.sub{fill:#57606a;font-size:12px}.count{fill:#2da44f;font-size:13px;font-weight:600}@media(prefers-color-scheme:dark){.name{fill:#e6edf3}.sub{fill:#8b949e}}</style>`;
+	if (translators.length === 0) {
+		return head + `<text x="${padX}" y="${padY + 24}" class="sub">No translators yet — be the first!</text></svg>`;
 	}
-	return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="14">` +
-		`<style>.name{fill:#24292f;font-weight:600}.role{fill:#57606a}@media(prefers-color-scheme:dark){.name{fill:#e6edf3}.role{fill:#8b949e}}</style>` +
-		body +
-		`</svg>`;
+	const body = translators
+		.map((m, i) => {
+			const top = padY + i * rowH;
+			const cy = top + rowH / 2;
+			const roleColor = TRANSLATOR_ROLES[m.roles[0]][1];
+			const langText = m.langs.length ? m.langs.map(flagAndCode).join("  ") : (m.allLang ? "🌐 all" : "");
+			const roleText = m.roles.map((r) => TRANSLATOR_ROLES[r][0]).join(" · ");
+			const sub = [langText, roleText].filter(Boolean).join("  ·  ");
+			const avatar = m.avatar
+				? `<clipPath id="c${i}"><circle cx="${padX + 16}" cy="${cy}" r="16"/></clipPath>` +
+					`<image xlink:href="${m.avatar}" x="${padX}" y="${cy - 16}" width="32" height="32" clip-path="url(#c${i})"/>`
+				: `<circle cx="${padX + 16}" cy="${cy}" r="16" fill="${roleColor}"/>` +
+					`<text x="${padX + 16}" y="${cy + 5}" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">${xmlEscape((m.name[0] || "?").toUpperCase())}</text>`;
+			const count = m.approved != null
+				? `<text x="${W - padX}" y="${cy + 5}" text-anchor="end" class="count">${m.approved} approved</text>`
+				: "";
+			return (
+				avatar +
+				`<text x="${padX + 44}" y="${top + 20}" class="name">${xmlEscape(m.name)}</text>` +
+				`<text x="${padX + 44}" y="${top + 37}" class="sub">${xmlEscape(sub)}</text>` +
+				count
+			);
+		})
+		.join("");
+	return head + body + `</svg>`;
 }
 
 async function handleCrowdinTranslators(env, ctx) {
 	if (!env.CROWDIN_TOKEN) return errorResponse("Crowdin token not set", 500);
+	const cache = caches.default;
+	const cacheKey = new Request("https://internal.cache/translators-svg-v1");
+	const hit = await cache.match(cacheKey);
+	if (hit) return hit;
 	let svg;
 	try {
-		svg = translatorsSVG(await getCrowdinMembers(env, ctx));
+		const members = await getCrowdinMembers(env, ctx);
+		let contrib = {};
+		try {
+			contrib = await getCrowdinContributions(env, ctx);
+		} catch {
+			/* report is optional — still render the list without word counts */
+		}
+		const translators = members
+			.filter((m) => !m.isOwner)
+			.map((m) => ({ ...m, roles: TRANSLATOR_ROLE_ORDER.filter((r) => m.roles.includes(r)) }))
+			.filter((m) => m.roles.length > 0)
+			.sort((a, b) =>
+				TRANSLATOR_ROLE_ORDER.indexOf(a.roles[0]) - TRANSLATOR_ROLE_ORDER.indexOf(b.roles[0]) ||
+				a.name.localeCompare(b.name),
+			);
+		const enriched = await Promise.all(
+			translators.map(async (m) => ({
+				...m,
+				approved: m.id in contrib ? contrib[m.id].approved : null,
+				avatar: await fetchAvatarDataURI(m.avatarUrl),
+			})),
+		);
+		svg = renderTranslatorsSVG(enriched);
 	} catch {
-		svg = translatorsSVG([]);
+		svg = renderTranslatorsSVG([]);
 	}
-	return new Response(svg, {
+	const resp = new Response(svg, {
 		headers: {
 			"content-type": "image/svg+xml; charset=utf-8",
 			"access-control-allow-origin": "*",
-			"cache-control": "public, max-age=1800",
+			"cache-control": "public, max-age=3600",
 		},
 	});
+	if (ctx) ctx.waitUntil(cache.put(cacheKey, resp.clone()));
+	return resp;
 }
 
 export default {
