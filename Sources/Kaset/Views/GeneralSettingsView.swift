@@ -51,10 +51,14 @@ struct GeneralSettingsView: View {
                 Toggle("Haptic Feedback", isOn: self.$settings.hapticFeedbackEnabled)
                     .help(String(localized: "Provide tactile feedback for actions on Force Touch trackpads"))
 
-                // Default Launch Page
-                Picker(String(localized: "Default Page on Launch"), selection: self.$settings.defaultLaunchPage) {
-                    ForEach(SettingsManager.LaunchPage.allCases) { page in
-                        Text(page.displayName).tag(page)
+                // Default Launch Page — every option is a YouTube Music page, and
+                // YouTube-only mode always opens YouTube, so hide it when Music is
+                // disabled (feature request #8).
+                if self.settings.youTubeMusicEnabled {
+                    Picker(String(localized: "Default Page on Launch"), selection: self.$settings.defaultLaunchPage) {
+                        ForEach(SettingsManager.LaunchPage.allCases) { page in
+                            Text(page.displayName).tag(page)
+                        }
                     }
                 }
             } header: {
