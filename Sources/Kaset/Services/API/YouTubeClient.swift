@@ -507,6 +507,16 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
         APICache.shared.invalidate(matching: Self.cachePrefix)
     }
 
+    /// Changes the notification "bell" preference for a subscribed channel. The
+    /// `params` come from a `ChannelNotificationPreference.Option` (YouTube's own
+    /// `modifyChannelNotificationPreferenceEndpoint` params).
+    func modifyNotificationPreference(params: String) async throws {
+        self.logger.info("Modifying channel notification preference")
+
+        _ = try await self.request("notification/modify_channel_preference", body: ["params": params], retry: false)
+        APICache.shared.invalidate(matching: Self.cachePrefix)
+    }
+
     func addToWatchLater(videoId: String) async throws {
         try await self.editWatchLater(actions: [
             ["addedVideoId": videoId, "action": "ACTION_ADD_VIDEO"],

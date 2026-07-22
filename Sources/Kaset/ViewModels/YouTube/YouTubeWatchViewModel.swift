@@ -31,6 +31,8 @@ final class YouTubeWatchViewModel {
 
     /// Whether the user is subscribed to the channel (seeded from watch-next).
     private(set) var isSubscribed = false
+    /// The channel's notification "bell" preference, when subscribed.
+    private(set) var notificationPreference: ChannelNotificationPreference?
 
     // MARK: - Comments State
 
@@ -109,6 +111,7 @@ final class YouTubeWatchViewModel {
             guard generation == self.loadGeneration else { return }
             self.data = data
             self.isSubscribed = data.isSubscribed ?? false
+            self.notificationPreference = data.notificationPreference
             self.commentsContinuation = data.commentsContinuation
             self.loadingState = .loaded
             if self.isLive, let liveChat = data.liveChatContinuation {
@@ -327,6 +330,29 @@ final class YouTubeWatchViewModel {
         } catch {
             self.logger.error("Failed to change subscription: \(error.localizedDescription)")
             self.isSubscribed = wasSubscribed
+        }
+    }
+
+    /// Applies a notification "bell" preference for the channel (optimistic with
+    /// rollback). `option` comes from `notificationPreference.options`.
+    func setNotificationPreference(_ option: ChannelNotificationPreference.Option) async {
+        guard let preference = self.notificationPreference else { return }
+        let previous = preference
+        self.notificationPreference = ChannelNotificationPreference(
+            channelId: preference.channelId,
+            options: preference.options.map {
+                ChannelNotificationPreference.Option(
+                    level: $0.level, label: $0.label, params: $0.params, isCurrent: $0.params == option.params
+                )
+            },
+            unsubscribeLabel: preference.unsubscribeLabel
+        )
+        do {
+            try await self.client.modifyNotificationPreference(params: option.params)
+            HapticService.toggle()
+        } catch {
+            self.logger.error("Failed to change notification preference: \(error.localizedDescription)")
+            self.notificationPreference = previous
         }
     }
 }

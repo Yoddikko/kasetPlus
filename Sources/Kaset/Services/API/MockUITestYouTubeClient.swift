@@ -189,6 +189,8 @@ final class MockUITestYouTubeClient: YouTubeClientProtocol {
 
     func setSubscribed(_: Bool, channelId _: String) async throws {}
 
+    func modifyNotificationPreference(params _: String) async throws {}
+
     func addToWatchLater(videoId _: String) async throws {}
 
     func removeFromWatchLater(videoId _: String) async throws {}

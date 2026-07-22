@@ -190,6 +190,9 @@ struct WatchNextData {
     /// Initial continuation token for the live chat, when the video is a live
     /// stream (or premiere) with chat enabled.
     var liveChatContinuation: String?
+    /// Per-channel subscription notification preference (the "bell"), present
+    /// only when the signed-in user is subscribed to the channel.
+    var notificationPreference: ChannelNotificationPreference?
 
     init(
         videoTitle: String?,
@@ -202,7 +205,8 @@ struct WatchNextData {
         descriptionText: String? = nil,
         isSubscribed: Bool? = nil,
         commentsContinuation: String? = nil,
-        liveChatContinuation: String? = nil
+        liveChatContinuation: String? = nil,
+        notificationPreference: ChannelNotificationPreference? = nil
     ) {
         self.videoTitle = videoTitle
         self.viewCountText = viewCountText
@@ -215,6 +219,7 @@ struct WatchNextData {
         self.isSubscribed = isSubscribed
         self.commentsContinuation = commentsContinuation
         self.liveChatContinuation = liveChatContinuation
+        self.notificationPreference = notificationPreference
     }
 
     static let empty = WatchNextData(

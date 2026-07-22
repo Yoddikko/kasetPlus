@@ -128,6 +128,10 @@ protocol YouTubeClientProtocol: Sendable {
     /// Subscribes to or unsubscribes from a channel.
     func setSubscribed(_ subscribed: Bool, channelId: String) async throws
 
+    /// Changes the notification "bell" preference for a subscribed channel
+    /// (params from a `ChannelNotificationPreference.Option`).
+    func modifyNotificationPreference(params: String) async throws
+
     /// Adds a video to Watch Later.
     func addToWatchLater(videoId: String) async throws
 

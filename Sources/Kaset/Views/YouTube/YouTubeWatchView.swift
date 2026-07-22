@@ -540,6 +540,7 @@ struct YouTubeWatchView: View {
 
                     if self.hasPersonalAccount {
                         self.subscribeButton
+                        self.notificationBellButton
                     }
 
                     Spacer(minLength: 0)
@@ -994,6 +995,59 @@ struct YouTubeWatchView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(AccessibilityID.YouTubeContent.subscribeButton)
+    }
+
+    /// The subscription notification "bell": a menu to pick the notification
+    /// level (labels + options come straight from YouTube) or unsubscribe. Shown
+    /// only when subscribed and YouTube exposed the preference.
+    @ViewBuilder
+    private var notificationBellButton: some View {
+        if self.viewModel.isSubscribed, let preference = self.viewModel.notificationPreference {
+            Menu {
+                Picker(String(localized: "Notifications"), selection: self.notificationSelection) {
+                    ForEach(preference.options) { option in
+                        Label(option.label, systemImage: option.level.symbolName).tag(option.id)
+                    }
+                }
+                .pickerStyle(.inline)
+
+                Divider()
+
+                Button(role: .destructive) {
+                    Task { await self.viewModel.toggleSubscribed() }
+                } label: {
+                    Label(preference.unsubscribeLabel, systemImage: "person.fill.xmark")
+                }
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: preference.currentLevel.symbolName)
+                        .font(.system(size: 13))
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .semibold))
+                }
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 14)
+                .frame(height: 36)
+                .compatGlass(interactive: true, tint: nil, in: Capsule())
+                .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .help(String(localized: "Notification settings"))
+        }
+    }
+
+    /// Binding driving the notification-level picker (applies the choice on change).
+    private var notificationSelection: Binding<String> {
+        Binding(
+            get: { self.viewModel.notificationPreference?.current?.id ?? "" },
+            set: { newID in
+                guard let option = self.viewModel.notificationPreference?.options
+                    .first(where: { $0.id == newID })
+                else { return }
+                Task { await self.viewModel.setNotificationPreference(option) }
+            }
+        )
     }
 
     // MARK: - Chapters
