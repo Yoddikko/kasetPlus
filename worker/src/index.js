@@ -294,7 +294,7 @@ const CROWDIN_LANG_NAMES = {
  */
 async function getCrowdinProgress(env, ctx) {
 	const cache = caches.default;
-	const key = new Request("https://internal.cache/crowdin-progress-v1");
+	const key = new Request("https://internal.cache/crowdin-progress-v2");
 	const cached = await cache.match(key);
 	if (cached) return cached.json();
 	const res = await fetch(
@@ -304,7 +304,9 @@ async function getCrowdinProgress(env, ctx) {
 	if (!res.ok) throw new Error(`crowdin ${res.status}`);
 	const json = await res.json();
 	const out = {};
-	for (const row of json.data || []) out[row.data.languageId] = row.data.translationProgress;
+	for (const row of json.data || []) {
+		out[row.data.languageId] = { tr: row.data.translationProgress, ap: row.data.approvalProgress };
+	}
 	const store = new Response(JSON.stringify(out), {
 		headers: { "content-type": "application/json", "cache-control": "public, max-age=1800" },
 	});
@@ -334,15 +336,20 @@ async function handleCrowdinBadge(lang, env, ctx) {
 	const label = CROWDIN_LANG_NAMES[lang] || lang;
 	let body;
 	try {
-		const pct = (await getCrowdinProgress(env, ctx))[lang];
-		body = pct == null
-			? { schemaVersion: 1, label, message: "n/a", color: "lightgrey" }
-			: {
-					schemaVersion: 1,
-					label,
-					message: `${Math.round(pct)}%`,
-					color: pct >= 90 ? "brightgreen" : pct >= 60 ? "green" : pct >= 30 ? "yellow" : "orange",
-				};
+		const p = (await getCrowdinProgress(env, ctx))[lang];
+		if (p == null) {
+			body = { schemaVersion: 1, label, message: "n/a", color: "lightgrey" };
+		} else {
+			const tr = Math.round(p.tr || 0);
+			const ap = Math.round(p.ap || 0);
+			// tr = % translated, ap = % verified/approved (shown only where it exists)
+			body = {
+				schemaVersion: 1,
+				label,
+				message: ap > 0 ? `${tr}% · ✓${ap}%` : `${tr}%`,
+				color: tr >= 90 ? "brightgreen" : tr >= 60 ? "green" : tr >= 30 ? "yellow" : "orange",
+			};
+		}
 	} catch {
 		body = { schemaVersion: 1, label, message: "error", color: "lightgrey", isError: true };
 	}

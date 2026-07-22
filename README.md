@@ -326,7 +326,7 @@ Help make KasetPlus available in more languages. Translation happens entirely th
 <br>
 
 <sub>
-  Live translation progress powered by
+  <code>NN%</code> translated · <code>✓ NN%</code> verified (proofread, shown when&nbsp;>&nbsp;0). Live progress powered by
   <a href="https://crowdin.com/project/kasetplus">Crowdin</a>.
 </sub>
 
