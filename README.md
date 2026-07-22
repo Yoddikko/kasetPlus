@@ -22,8 +22,8 @@
   <a href="https://github.com/Yoddikko/kasetPlus/stargazers">
     <img src="https://img.shields.io/github/stars/Yoddikko/kasetPlus?style=flat&label=stars" alt="Stars">
   </a>
-  <a href="https://crowdin.com/project/kasetplus">
-    <img src="https://badges.crowdin.net/kasetplus/localized.svg" alt="Crowdin localization">
+  <a href="https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431">
+    <img src="https://img.shields.io/badge/🌍_Help_translate-2ea44f" alt="Help translate KasetPlus">
   </a>
 </p>
 
@@ -286,34 +286,44 @@ Downloaded files are saved to:
 
 ## 🌍 Translations
 
-KasetPlus is localized by the community with [Crowdin](https://crowdin.com/project/kasetplus).
+Help translate KasetPlus into your language — no coding needed, it all happens in the browser.
 
-[![Crowdin](https://badges.crowdin.net/kasetplus/localized.svg)](https://crowdin.com/project/kasetplus)
+**[→ Become a translator](https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431)**
 
-**Want to help translate?** No coding needed — pick your language and translate right in the browser:
-
-### 👉 [Become a translator](https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431)
-
-New and updated translations are reviewed, merged via pull request, and ship in the next release. Don't see your language? Request it on Crowdin and start translating.
-
-### Translation status
+Contributions are reviewed and merged automatically, then ship in the next release. Don't see your language? Request it and start translating.
 
 <!-- LOCALIZATION-STATUS:START -->
-[![Arabic](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Far)](https://crowdin.com/project/kasetplus)
-[![Dutch](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fnl)](https://crowdin.com/project/kasetplus)
-[![French](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffr)](https://crowdin.com/project/kasetplus)
-[![German](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fde)](https://crowdin.com/project/kasetplus)
-[![Indonesian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fid)](https://crowdin.com/project/kasetplus)
-[![Italian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fit)](https://crowdin.com/project/kasetplus)
-[![Korean](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fko)](https://crowdin.com/project/kasetplus)
-[![Polish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpl)](https://crowdin.com/project/kasetplus)
-[![Portuguese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-PT)](https://crowdin.com/project/kasetplus)
-[![Russian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fru)](https://crowdin.com/project/kasetplus)
-[![Spanish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fes-ES)](https://crowdin.com/project/kasetplus)
-[![Swedish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsv-SE)](https://crowdin.com/project/kasetplus)
-[![Turkish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ftr)](https://crowdin.com/project/kasetplus)
-[![Ukrainian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fuk)](https://crowdin.com/project/kasetplus)
+![Afrikaans](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Faf)
+![Arabic](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Far)
+![Catalan](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fca)
+![Chinese (Simpl.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-CN)
+![Chinese (Trad.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-TW)
+![Czech](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fcs)
+![Danish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fda)
+![Dutch](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fnl)
+![Finnish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffi)
+![French](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffr)
+![German](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fde)
+![Greek](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fel)
+![Hebrew](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhe)
+![Hungarian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhu)
+![Indonesian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fid)
+![Italian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fit)
+![Japanese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fja)
+![Korean](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fko)
+![Norwegian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fno)
+![Polish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpl)
+![Portuguese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-PT)
+![Portuguese (BR)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-BR)
+![Romanian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fro)
+![Russian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fru)
+![Serbian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsr)
+![Spanish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fes-ES)
+![Swedish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsv-SE)
+![Turkish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ftr)
+![Ukrainian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fuk)
+![Vietnamese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fvi)
 <!-- LOCALIZATION-STATUS:END -->
 
-<sub>Live from Crowdin — updates automatically (via a small Cloudflare Worker that reads the Crowdin API). Also open for contribution (0% so far): Afrikaans, Catalan, Chinese (Simplified &amp; Traditional), Czech, Danish, Finnish, Greek, Hebrew, Hungarian, Japanese, Norwegian, Portuguese (Brazil), Romanian, Serbian, Vietnamese — [start translating &rarr;](https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431)</sub>
+<sub>Live translation progress · powered by [Crowdin](https://crowdin.com/project/kasetplus).</sub>
 
