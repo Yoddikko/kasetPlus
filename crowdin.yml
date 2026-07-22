@@ -1,0 +1,4 @@
+files:
+  - source: /Sources/Kaset/Resources/Localizable.xcstrings
+    translation: /Sources/Kaset/Resources/Localizable.xcstrings
+    multilingual: 1
