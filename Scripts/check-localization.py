@@ -69,9 +69,43 @@ def analyze(catalog: dict, used: set[str]):
     return missing, coverage, source_lang
 
 
+LANG_NAMES = {
+    "en": "English", "it": "Italian", "fr": "French", "de": "German", "es": "Spanish",
+    "pt": "Portuguese", "pt-BR": "Portuguese (Brazil)", "nl": "Dutch", "pl": "Polish",
+    "ru": "Russian", "uk": "Ukrainian", "sv": "Swedish", "ar": "Arabic", "ko": "Korean",
+    "tr": "Turkish", "id": "Indonesian", "ja": "Japanese", "zh-Hans": "Chinese (Simplified)",
+    "zh-Hant": "Chinese (Traditional)", "cs": "Czech", "da": "Danish", "fi": "Finnish",
+    "el": "Greek", "he": "Hebrew", "hu": "Hungarian", "no": "Norwegian", "ro": "Romanian",
+    "sr": "Serbian", "vi": "Vietnamese", "ca": "Catalan", "af": "Afrikaans",
+}
+
+
+def render_markdown(coverage: dict, source_lang: str) -> str:
+    """A README table of per-language coverage, between markers so it can be
+    regenerated in place (e.g. `check-localization.py --markdown`)."""
+    rows = []
+    for lang, (done, total) in coverage.items():
+        pct = 100 * done / total if total else 100
+        filled = round(pct / 10)
+        bar = "█" * filled + "░" * (10 - filled)
+        rows.append((pct, lang, LANG_NAMES.get(lang, lang), bar))
+    rows.sort(key=lambda r: (-r[0], r[2]))
+    out = ["<!-- LOCALIZATION-STATUS:START -->", "| Language | Progress |", "| --- | --- |"]
+    for pct, lang, name, bar in rows:
+        out.append(f"| {name} (`{lang}`) | `{bar}` {pct:.0f}% |")
+    out.append("<!-- LOCALIZATION-STATUS:END -->")
+    return "\n".join(out)
+
+
 def main(argv: list[str]) -> int:
     if "--selftest" in argv:
         return selftest()
+
+    if "--markdown" in argv:
+        catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+        _, coverage, source_lang = analyze(catalog, source_keys(SOURCES))
+        print(render_markdown(coverage, source_lang))
+        return 0
 
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     used = source_keys(SOURCES)

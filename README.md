@@ -22,6 +22,9 @@
   <a href="https://github.com/Yoddikko/kasetPlus/stargazers">
     <img src="https://img.shields.io/github/stars/Yoddikko/kasetPlus?style=flat&label=stars" alt="Stars">
   </a>
+  <a href="https://crowdin.com/project/kasetplus">
+    <img src="https://badges.crowdin.net/kasetplus/localized.svg" alt="Crowdin localization">
+  </a>
 </p>
 
 <p align="center">
@@ -280,4 +283,40 @@ Downloaded files are saved to:
 ```text
 ~/Downloads/KasetPlus/
 ```
+
+## 🌍 Translations
+
+KasetPlus is localized by the community with [Crowdin](https://crowdin.com/project/kasetplus).
+
+[![Crowdin](https://badges.crowdin.net/kasetplus/localized.svg)](https://crowdin.com/project/kasetplus)
+
+**Want to help translate?** No coding needed — pick your language and translate right in the browser:
+
+### 👉 [Become a translator](https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431)
+
+New and updated translations are reviewed, merged via pull request, and ship in the next release. Don't see your language? Request it on Crowdin and start translating.
+
+### Translation status
+
+<!-- LOCALIZATION-STATUS:START -->
+| Language | Progress |
+| --- | --- |
+| English (`en`) | `██████████` 100% |
+| Dutch (`nl`) | `████████░░` 84% |
+| German (`de`) | `████████░░` 84% |
+| Italian (`it`) | `████████░░` 84% |
+| Polish (`pl`) | `████████░░` 84% |
+| Portuguese (`pt`) | `████████░░` 84% |
+| Russian (`ru`) | `████████░░` 84% |
+| Spanish (`es`) | `████████░░` 84% |
+| Swedish (`sv`) | `████████░░` 84% |
+| Ukrainian (`uk`) | `████████░░` 84% |
+| Arabic (`ar`) | `████████░░` 81% |
+| Korean (`ko`) | `████████░░` 81% |
+| French (`fr`) | `████████░░` 81% |
+| Turkish (`tr`) | `████████░░` 81% |
+| Indonesian (`id`) | `████████░░` 80% |
+<!-- LOCALIZATION-STATUS:END -->
+
+<sub>Percentages reflect translations currently shipped in the app. For live progress (including in-review work), see the [Crowdin project](https://crowdin.com/project/kasetplus). Maintainers refresh this table with <code>python3 Scripts/check-localization.py --markdown</code>.</sub>
 
