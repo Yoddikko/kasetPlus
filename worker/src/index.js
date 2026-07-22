@@ -276,6 +276,85 @@ async function handleTelemetryRecent(request, env) {
 	return jsonResponse({ count: events.length, events });
 }
 
+// --- Crowdin localization progress (powers the README status badges) ---
+const CROWDIN_PROJECT_ID = 914637;
+const CROWDIN_LANG_NAMES = {
+	ar: "Arabic", de: "German", en: "English", "es-ES": "Spanish", fr: "French",
+	id: "Indonesian", it: "Italian", ko: "Korean", nl: "Dutch", pl: "Polish",
+	"pt-PT": "Portuguese", "pt-BR": "Portuguese (BR)", ru: "Russian", "sv-SE": "Swedish",
+	tr: "Turkish", uk: "Ukrainian", ja: "Japanese", "zh-CN": "Chinese (Simpl.)",
+	"zh-TW": "Chinese (Trad.)", cs: "Czech", da: "Danish", fi: "Finnish", el: "Greek",
+	he: "Hebrew", hu: "Hungarian", no: "Norwegian", ro: "Romanian", sr: "Serbian",
+	vi: "Vietnamese", ca: "Catalan", af: "Afrikaans",
+};
+
+/**
+ * Fetches `{ crowdinLangId: translationProgress }` from the Crowdin API, cached
+ * at the edge for 30 min so 30 badge requests = at most one upstream call.
+ */
+async function getCrowdinProgress(env, ctx) {
+	const cache = caches.default;
+	const key = new Request("https://internal.cache/crowdin-progress-v1");
+	const cached = await cache.match(key);
+	if (cached) return cached.json();
+	const res = await fetch(
+		`https://api.crowdin.com/api/v2/projects/${CROWDIN_PROJECT_ID}/languages/progress?limit=100`,
+		{ headers: { Authorization: `Bearer ${env.CROWDIN_TOKEN}` } },
+	);
+	if (!res.ok) throw new Error(`crowdin ${res.status}`);
+	const json = await res.json();
+	const out = {};
+	for (const row of json.data || []) out[row.data.languageId] = row.data.translationProgress;
+	const store = new Response(JSON.stringify(out), {
+		headers: { "content-type": "application/json", "cache-control": "public, max-age=1800" },
+	});
+	if (ctx) ctx.waitUntil(cache.put(key, store.clone()));
+	return out;
+}
+
+async function handleCrowdinProgress(env, ctx) {
+	if (!env.CROWDIN_TOKEN) return errorResponse("Crowdin token not set", 500);
+	try {
+		const out = await getCrowdinProgress(env, ctx);
+		return new Response(JSON.stringify(out), {
+			headers: {
+				"content-type": "application/json",
+				"access-control-allow-origin": "*",
+				"cache-control": "public, max-age=1800",
+			},
+		});
+	} catch (e) {
+		return errorResponse(`crowdin: ${e}`, 502);
+	}
+}
+
+async function handleCrowdinBadge(lang, env, ctx) {
+	// Shields.io endpoint schema: https://shields.io/badges/endpoint-badge
+	if (!env.CROWDIN_TOKEN) return errorResponse("Crowdin token not set", 500);
+	const label = CROWDIN_LANG_NAMES[lang] || lang;
+	let body;
+	try {
+		const pct = (await getCrowdinProgress(env, ctx))[lang];
+		body = pct == null
+			? { schemaVersion: 1, label, message: "n/a", color: "lightgrey" }
+			: {
+					schemaVersion: 1,
+					label,
+					message: `${Math.round(pct)}%`,
+					color: pct >= 90 ? "brightgreen" : pct >= 60 ? "green" : pct >= 30 ? "yellow" : "orange",
+				};
+	} catch {
+		body = { schemaVersion: 1, label, message: "error", color: "lightgrey", isError: true };
+	}
+	return new Response(JSON.stringify(body), {
+		headers: {
+			"content-type": "application/json",
+			"access-control-allow-origin": "*",
+			"cache-control": "public, max-age=1800",
+		},
+	});
+}
+
 export default {
 	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
@@ -296,6 +375,12 @@ export default {
 		}
 		if (path === "/telemetry/recent" && request.method === "GET") {
 			return handleTelemetryRecent(request, env);
+		}
+		if (path === "/crowdin/progress" && request.method === "GET") {
+			return handleCrowdinProgress(env, ctx);
+		}
+		if (path.startsWith("/crowdin/badge/") && request.method === "GET") {
+			return handleCrowdinBadge(decodeURIComponent(path.slice(15)), env, ctx);
 		}
 
 		// Validate env vars are configured (Last.fm routes only)

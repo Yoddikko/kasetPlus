@@ -299,24 +299,21 @@ New and updated translations are reviewed, merged via pull request, and ship in 
 ### Translation status
 
 <!-- LOCALIZATION-STATUS:START -->
-| Language | Progress |
-| --- | --- |
-| English (`en`) | `██████████` 100% |
-| Dutch (`nl`) | `████████░░` 84% |
-| German (`de`) | `████████░░` 84% |
-| Italian (`it`) | `████████░░` 84% |
-| Polish (`pl`) | `████████░░` 84% |
-| Portuguese (`pt`) | `████████░░` 84% |
-| Russian (`ru`) | `████████░░` 84% |
-| Spanish (`es`) | `████████░░` 84% |
-| Swedish (`sv`) | `████████░░` 84% |
-| Ukrainian (`uk`) | `████████░░` 84% |
-| Arabic (`ar`) | `████████░░` 81% |
-| Korean (`ko`) | `████████░░` 81% |
-| French (`fr`) | `████████░░` 81% |
-| Turkish (`tr`) | `████████░░` 81% |
-| Indonesian (`id`) | `████████░░` 80% |
+[![Arabic](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Far)](https://crowdin.com/project/kasetplus)
+[![Dutch](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fnl)](https://crowdin.com/project/kasetplus)
+[![French](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffr)](https://crowdin.com/project/kasetplus)
+[![German](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fde)](https://crowdin.com/project/kasetplus)
+[![Indonesian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fid)](https://crowdin.com/project/kasetplus)
+[![Italian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fit)](https://crowdin.com/project/kasetplus)
+[![Korean](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fko)](https://crowdin.com/project/kasetplus)
+[![Polish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpl)](https://crowdin.com/project/kasetplus)
+[![Portuguese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-PT)](https://crowdin.com/project/kasetplus)
+[![Russian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fru)](https://crowdin.com/project/kasetplus)
+[![Spanish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fes-ES)](https://crowdin.com/project/kasetplus)
+[![Swedish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsv-SE)](https://crowdin.com/project/kasetplus)
+[![Turkish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ftr)](https://crowdin.com/project/kasetplus)
+[![Ukrainian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fuk)](https://crowdin.com/project/kasetplus)
 <!-- LOCALIZATION-STATUS:END -->
 
-<sub>Percentages reflect translations currently shipped in the app. For live progress (including in-review work), see the [Crowdin project](https://crowdin.com/project/kasetplus). Maintainers refresh this table with <code>python3 Scripts/check-localization.py --markdown</code>.</sub>
+<sub>Live from Crowdin — updates automatically (via a small Cloudflare Worker that reads the Crowdin API). Also open for contribution (0% so far): Afrikaans, Catalan, Chinese (Simplified &amp; Traditional), Czech, Danish, Finnish, Greek, Hebrew, Hungarian, Japanese, Norwegian, Portuguese (Brazil), Romanian, Serbian, Vietnamese — [start translating &rarr;](https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431)</sub>
 
