@@ -44,7 +44,7 @@ final class ProcessTapHelper {
     private static let tapName = "com.sertacozercan.Kaset.EQ.Tap"
 
     /// User-visible name of the aggregate device that wraps the tap.
-    private static let aggregateName = "Kaset EQ Aggregate"
+    private static let aggregateName = "KasetPlus EQ Aggregate"
 
     /// Prefix for the aggregate device's unique ID. A UUID suffix is appended
     /// per instance so repeated start/stop cycles don't collide.
@@ -140,7 +140,7 @@ final class ProcessTapHelper {
 
         // Clean up any aggregate devices left behind by a prior crash —
         // Core Audio keeps them until the system reboots otherwise, and
-        // they show up in Audio MIDI Setup as lingering "Kaset EQ Aggregate"
+        // they show up in Audio MIDI Setup as lingering "KasetPlus EQ Aggregate"
         // entries. Identified by our UID prefix.
         Self.destroyOrphanedAggregates()
 
@@ -272,7 +272,7 @@ final class ProcessTapHelper {
         }
         if !candidates.isEmpty {
             Self.logger.warning(
-                "found \(candidates.count) WebKit audio process(es) but none were provably owned by Kaset; skipping tap to avoid hijacking unrelated audio"
+                "found \(candidates.count) WebKit audio process(es) but none were provably owned by KasetPlus; skipping tap to avoid hijacking unrelated audio"
             )
         }
         return []
@@ -383,8 +383,8 @@ final class ProcessTapHelper {
 
     /// Reads the user-facing legacy process name for a PID.
     ///
-    /// WebKit helper names include the host app ("Kaset Web Content",
-    /// "Kaset Graphics and Media"), which survives even when their Unix
+    /// WebKit helper names include the host app ("KasetPlus Web Content",
+    /// "KasetPlus Graphics and Media"), which survives even when their Unix
     /// parent PID has been reparented to launchd.
     private static func processName(of pid: pid_t) -> String? {
         var psn = ProcessSerialNumber()
@@ -395,7 +395,7 @@ final class ProcessTapHelper {
     /// Reads the launcher process name from Process Manager metadata.
     ///
     /// Web Content helpers often report a launcher like
-    /// "Kaset Networking", which provides a second ownership proof path.
+    /// "KasetPlus Networking", which provides a second ownership proof path.
     private static func launcherProcessName(of pid: pid_t) -> String? {
         var psn = ProcessSerialNumber()
         guard Self.legacyGetProcessForPID(pid, &psn) == noErr else { return nil }
