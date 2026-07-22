@@ -347,7 +347,8 @@ async function handleCrowdinBadge(lang, env, ctx) {
 				schemaVersion: 1,
 				label,
 				message: `${tr}% · ✓${ap}%`,
-				color: tr >= 90 ? "brightgreen" : tr >= 60 ? "green" : tr >= 30 ? "yellow" : "orange",
+				// color follows the verified (✓) %, not the translated total
+				color: ap >= 90 ? "brightgreen" : ap >= 50 ? "green" : ap >= 20 ? "yellow" : ap > 0 ? "orange" : "lightgrey",
 			};
 		}
 	} catch {
