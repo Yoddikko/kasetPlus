@@ -167,6 +167,7 @@ async function handleKofiSupporters(request, env) {
 	do {
 		const page = await env.SUPPORTERS.list({ cursor });
 		for (const key of page.keys) {
+			if (key.name.startsWith("tel:")) continue; // telemetry events share this KV
 			const rec = await env.SUPPORTERS.get(key.name, "json");
 			if (!rec || rec.expiry <= now) continue;
 			supporters.push({
@@ -225,23 +226,49 @@ async function handleTelemetry(request, env) {
 	const event = String(body.event || "").slice(0, 64);
 	if (!event) return errorResponse("missing event", 400);
 
-	const detail =
-		body.detail && typeof body.detail === "object" ? body.detail : {};
-	console.log(
-		JSON.stringify({
-			kind: "telemetry",
-			ts: new Date().toISOString(),
-			event,
-			detail,
-			app: String(body.app || "?").slice(0, 32),
-			os: String(body.os || "?").slice(0, 64),
-			id: String(body.id || "?").slice(0, 40),
-		}),
-	);
+	const record = {
+		ts: new Date().toISOString(),
+		event,
+		detail: body.detail && typeof body.detail === "object" ? body.detail : {},
+		app: String(body.app || "?").slice(0, 32),
+		os: String(body.os || "?").slice(0, 64),
+		id: String(body.id || "?").slice(0, 40),
+	};
+	// Show up in Workers Logs / `wrangler tail`.
+	console.log(JSON.stringify({ kind: "telemetry", ...record }));
+	// Persist for the /telemetry/recent view. 7-day TTL auto-cleans, so there
+	// are no manual deletes and none of the stale-cache ghosts we hit before.
+	// Stored in metadata so the recent view is a single list() with no gets.
+	if (env.SUPPORTERS) {
+		try {
+			const key = `tel:${Date.now().toString().padStart(15, "0")}:${crypto.randomUUID().slice(0, 8)}`;
+			// ponytail: record is small; metadata ceiling is 1 KiB, fine here.
+			await env.SUPPORTERS.put(key, "1", {
+				expirationTtl: 604800,
+				metadata: record,
+			});
+		} catch (e) {
+			console.log(JSON.stringify({ kind: "telemetry-store-error", error: String(e) }));
+		}
+	}
 	return new Response(JSON.stringify({ ok: true }), {
 		status: 200,
 		headers: { "Content-Type": "application/json" },
 	});
+}
+
+/**
+ * Returns recently stored telemetry events (newest first) for the
+ * `check-telemetry` skill / a quick browser check. No PII; anonymized already.
+ */
+async function handleTelemetryRecent(env) {
+	if (!env.SUPPORTERS) return errorResponse("KV not bound", 500);
+	const { keys } = await env.SUPPORTERS.list({ prefix: "tel:", limit: 1000 });
+	const events = keys
+		.map((k) => k.metadata)
+		.filter(Boolean)
+		.reverse();
+	return jsonResponse({ count: events.length, events });
 }
 
 export default {
@@ -261,6 +288,9 @@ export default {
 		}
 		if (path === "/telemetry" && request.method === "POST") {
 			return handleTelemetry(request, env);
+		}
+		if (path === "/telemetry/recent" && request.method === "GET") {
+			return handleTelemetryRecent(env);
 		}
 
 		// Validate env vars are configured (Last.fm routes only)

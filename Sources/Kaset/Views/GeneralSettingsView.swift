@@ -61,9 +61,10 @@ struct GeneralSettingsView: View {
 
             Section {
                 Toggle(String(localized: "Share anonymous diagnostics"), isOn: self.$settings.telemetryEnabled)
-                    .help(String(localized: "Sends an anonymous ping when the app fails to load data from YouTube, so breakages can be fixed quickly. No account, no personal data, no listening history."))
             } header: {
                 Text(String(localized: "Privacy"))
+            } footer: {
+                Text(String(localized: "When something breaks while loading data from YouTube, KasetPlus sends an anonymous report — no account, no personal data, no listening history — so it can be fixed quickly. You can turn this off at any time."))
             }
 
             // MARK: - Language Section
