@@ -763,10 +763,12 @@ struct SettingsView: View {
                     Label(String(localized: "General"), systemImage: "gearshape")
                 }
 
-            MusicSettingsView()
-                .tabItem {
-                    Label(String(localized: "Music"), systemImage: "music.note")
-                }
+            if self.settings.youTubeMusicEnabled {
+                MusicSettingsView()
+                    .tabItem {
+                        Label(String(localized: "Music"), systemImage: "music.note")
+                    }
+            }
 
             YouTubeSettingsView()
                 .tabItem {

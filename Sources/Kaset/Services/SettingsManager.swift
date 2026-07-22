@@ -11,6 +11,7 @@ final class SettingsManager {
 
     enum Keys {
         static let appSource = "settings.appSource"
+        static let youTubeMusicEnabled = "settings.youTubeMusicEnabled"
         static let showNowPlayingNotifications = "settings.showNowPlayingNotifications"
         static let defaultLaunchPage = "settings.defaultLaunchPage"
         static let hapticFeedbackEnabled = "settings.hapticFeedbackEnabled"
@@ -224,6 +225,18 @@ final class SettingsManager {
     var appSource: AppSource {
         didSet {
             UserDefaults.standard.set(self.appSource.rawValue, forKey: Keys.appSource)
+        }
+    }
+
+    /// Whether the YouTube Music experience is available. When off, the Music
+    /// surface, its source toggle, and the Music settings tab are hidden and the
+    /// app stays on regular YouTube (feature request #8).
+    var youTubeMusicEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.youTubeMusicEnabled, forKey: Keys.youTubeMusicEnabled)
+            if !self.youTubeMusicEnabled, self.appSource == .music {
+                self.appSource = .video
+            }
         }
     }
 
@@ -623,8 +636,14 @@ final class SettingsManager {
             self.contentLanguage = .system
         }
 
-        if let rawValue = UserDefaults.standard.string(forKey: Keys.appSource),
-           let source = AppSource(rawValue: rawValue)
+        let musicEnabled = UserDefaults.standard.object(forKey: Keys.youTubeMusicEnabled) as? Bool ?? true
+        self.youTubeMusicEnabled = musicEnabled
+
+        if !musicEnabled {
+            // Music disabled → always land on YouTube regardless of the saved source.
+            self.appSource = .video
+        } else if let rawValue = UserDefaults.standard.string(forKey: Keys.appSource),
+                  let source = AppSource(rawValue: rawValue)
         {
             self.appSource = source
         } else {

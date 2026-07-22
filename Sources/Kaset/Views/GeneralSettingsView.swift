@@ -43,6 +43,10 @@ struct GeneralSettingsView: View {
             // MARK: - Behavior Section
 
             Section {
+                // Show YouTube Music (feature request #8: YouTube-only mode)
+                Toggle(String(localized: "Show YouTube Music"), isOn: self.$settings.youTubeMusicEnabled)
+                    .help(String(localized: "Show the YouTube Music experience and its source toggle. Turn this off to use KasetPlus for YouTube only."))
+
                 // Haptic Feedback
                 Toggle("Haptic Feedback", isOn: self.$settings.hapticFeedbackEnabled)
                     .help(String(localized: "Provide tactile feedback for actions on Force Touch trackpads"))
