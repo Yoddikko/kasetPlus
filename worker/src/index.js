@@ -364,9 +364,24 @@ const TRANSLATOR_ROLES = {
 };
 const TRANSLATOR_ROLE_ORDER = ["proofreader", "language_coordinator", "translator"];
 
+// Crowdin language id -> ISO country code (for the flag + short code).
+const LANG_FLAG_COUNTRY = {
+	it: "IT", de: "DE", fr: "FR", es: "ES", "es-ES": "ES", pt: "PT", "pt-PT": "PT", "pt-BR": "BR",
+	nl: "NL", pl: "PL", ru: "RU", uk: "UA", sv: "SE", "sv-SE": "SE", ar: "SA", ko: "KR", tr: "TR",
+	id: "ID", ja: "JP", "zh-CN": "CN", "zh-Hans": "CN", "zh-TW": "TW", "zh-Hant": "TW",
+	cs: "CZ", da: "DK", fi: "FI", el: "GR", he: "IL", hu: "HU", no: "NO", nb: "NO", ro: "RO",
+	sr: "RS", vi: "VN", ca: "ES", af: "ZA", en: "GB",
+};
+
+function flagAndCode(langCode) {
+	const cc = LANG_FLAG_COUNTRY[langCode] || (langCode.split("-").pop() || langCode).slice(0, 2).toUpperCase();
+	const flag = [...cc].map((ch) => String.fromCodePoint(0x1f1e6 + ch.charCodeAt(0) - 65)).join("");
+	return `${flag} ${cc}`;
+}
+
 async function getCrowdinMembers(env, ctx) {
 	const cache = caches.default;
-	const key = new Request("https://internal.cache/crowdin-members-v1");
+	const key = new Request("https://internal.cache/crowdin-members-v2");
 	const cached = await cache.match(key);
 	if (cached) return cached.json();
 	const res = await fetch(
@@ -375,10 +390,25 @@ async function getCrowdinMembers(env, ctx) {
 	);
 	if (!res.ok) throw new Error(`crowdin ${res.status}`);
 	const json = await res.json();
-	const members = (json.data || []).map((m) => ({
-		name: m.data.fullName || m.data.username || "?",
-		roles: (m.data.roles || []).map((r) => r.name || r).filter(Boolean),
-	}));
+	const members = (json.data || []).map((m) => {
+		const roleObjs = m.data.roles || [];
+		const langs = new Set();
+		let allLang = false;
+		for (const r of roleObjs) {
+			const perm = r.permissions || {};
+			if (perm.allLanguages) allLang = true;
+			const access = perm.languagesAccess;
+			if (access && typeof access === "object" && !Array.isArray(access)) {
+				for (const lg of Object.keys(access)) langs.add(lg);
+			}
+		}
+		return {
+			name: m.data.fullName || m.data.username || "?",
+			roles: roleObjs.map((r) => r.name || r).filter(Boolean),
+			langs: [...langs],
+			allLang,
+		};
+	});
 	const store = new Response(JSON.stringify(members), {
 		headers: { "content-type": "application/json", "cache-control": "public, max-age=1800" },
 	});
@@ -392,13 +422,18 @@ function xmlEscape(s) {
 
 function translatorsSVG(members) {
 	const rows = members
-		.map((m) => ({ name: m.name, role: TRANSLATOR_ROLE_ORDER.find((r) => m.roles.includes(r)) }))
-		.filter((m) => m.role)
+		.map((m) => ({
+			name: m.name,
+			roles: TRANSLATOR_ROLE_ORDER.filter((r) => m.roles.includes(r)),
+			langs: m.langs || [],
+			allLang: m.allLang,
+		}))
+		.filter((m) => m.roles.length > 0)
 		.sort((a, b) =>
-			TRANSLATOR_ROLE_ORDER.indexOf(a.role) - TRANSLATOR_ROLE_ORDER.indexOf(b.role) ||
+			TRANSLATOR_ROLE_ORDER.indexOf(a.roles[0]) - TRANSLATOR_ROLE_ORDER.indexOf(b.roles[0]) ||
 			a.name.localeCompare(b.name),
 		);
-	const W = 460, rowH = 30, padX = 18, padY = 14;
+	const W = 560, rowH = 30, padX = 18, padY = 14;
 	const H = padY * 2 + Math.max(rows.length, 1) * rowH;
 	let body;
 	if (rows.length === 0) {
@@ -407,11 +442,19 @@ function translatorsSVG(members) {
 		body = rows
 			.map((m, i) => {
 				const y = padY + i * rowH + 20;
-				const [label, color] = TRANSLATOR_ROLES[m.role];
+				const color = TRANSLATOR_ROLES[m.roles[0]][1]; // senior role's color
+				const labels = m.roles.map((r) => TRANSLATOR_ROLES[r][0]).join(" · ");
+				const langLabel = m.langs.length
+					? m.langs.map(flagAndCode).join("  ")
+					: (m.allLang ? "🌐 all" : "");
+				const nameCell = langLabel
+					? `<text x="${padX + 18}" y="${y}"><tspan class="name">${xmlEscape(m.name)}</tspan>` +
+						`<tspan class="role" dx="8" font-size="12">${xmlEscape(langLabel)}</tspan></text>`
+					: `<text x="${padX + 18}" y="${y}" class="name">${xmlEscape(m.name)}</text>`;
 				return (
 					`<circle cx="${padX + 4}" cy="${y - 5}" r="4" fill="${color}"/>` +
-					`<text x="${padX + 18}" y="${y}" class="name">${xmlEscape(m.name)}</text>` +
-					`<text x="${W - padX}" y="${y}" text-anchor="end" font-size="12" fill="${color}">${label}</text>`
+					nameCell +
+					`<text x="${W - padX}" y="${y}" text-anchor="end" font-size="12" fill="${color}">${xmlEscape(labels)}</text>`
 				);
 			})
 			.join("");
