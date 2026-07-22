@@ -1,9 +1,27 @@
-<img width="2172" height="724" alt="Banner KasetPlus 12 Lug 2026" src="https://github.com/user-attachments/assets/ff1f0466-9452-42e0-97a1-9f1667b5641c" />
+<img
+width="2172"
+height="724"
+alt="KasetPlus banner"
+src="https://github.com/user-attachments/assets/ff1f0466-9452-42e0-97a1-9f1667b5641c"
+/>
 
-<h1 align="center"><img src="https://github.com/user-attachments/assets/c964b327-f5e2-4929-97df-0834926c944f" width="58" height="58" alt="KasetPlus icon">&nbsp;&nbsp;KasetPlus</h1>
+<h1 align="center">
+  <img
+    src="https://github.com/user-attachments/assets/c964b327-f5e2-4929-97df-0834926c944f"
+    width="58"
+    height="58"
+    alt="KasetPlus icon"
+  >
+  &nbsp;KasetPlus
+</h1>
 
 <p align="center">
-  <strong>A cleaner, smarter, and more capable YouTube experience for macOS.</strong>
+  <strong>YouTube and YouTube Music for macOS — cleaner, smarter and built around you.</strong>
+</p>
+
+<p align="center">
+  Native SwiftUI · Built-in addons · On-device AI<br>
+  Media downloads · Lyrics · Distraction-free viewing
 </p>
 
 <p align="center">
@@ -23,276 +41,247 @@
     <img src="https://img.shields.io/github/stars/Yoddikko/kasetPlus?style=flat&label=stars" alt="Stars">
   </a>
   <a href="https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431">
-    <img src="https://img.shields.io/badge/🌍_Help_translate-2ea44f" alt="Help translate KasetPlus">
+    <img src="https://img.shields.io/badge/translate-Crowdin-2E3340?logo=crowdin&logoColor=white" alt="Translate KasetPlus">
   </a>
 </p>
 
 <p align="center">
+  <a href="https://github.com/Yoddikko/kasetPlus/releases/latest">
+    <img src="https://img.shields.io/badge/Download-KasetPlus-007AFF?style=for-the-badge&logo=apple&logoColor=white" alt="Download KasetPlus">
+  </a>
   <a href="https://ko-fi.com/yodddd">
-    <img
-      src="https://img.shields.io/badge/💗_Support-KasetPlus-ff69b4?style=for-the-badge"
-      alt="Support KasetPlus on Ko-fi"
-    >
+    <img src="https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support KasetPlus on Ko-fi">
   </a>
-</p>
-
-<p align="center">
-  Native SwiftUI &nbsp;•&nbsp; Built-in addons &nbsp;•&nbsp; On-device AI<br>
-  Video downloads &nbsp;•&nbsp; Lyrics &nbsp;•&nbsp; Distraction-free playback
 </p>
 
 <p align="center">
   <a href="https://yoddikko.github.io/kasetPlus/"><strong>Website</strong></a>
-  &nbsp;•&nbsp;
-  <a href="https://github.com/Yoddikko/kasetPlus/releases/latest"><strong>Download KasetPlus</strong></a>
-  &nbsp;•&nbsp;
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Yoddikko/kasetPlus/releases/latest"><strong>Latest release</strong></a>
+  &nbsp;·&nbsp;
   <a href="https://github.com/sozercan/kaset">Original Kaset</a>
-  &nbsp;•&nbsp;
-  <a href="https://github.com/sozercan/kaset/compare/main...Yoddikko:kasetPlus:main">Upstream comparison</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/sozercan/kaset/compare/main...Yoddikko:kasetPlus:main">Compare with upstream</a>
 </p>
 
 ---
 
-<p>
-  ⭐️ Enjoying <strong>KasetPlus</strong>? If you find it useful, please consider
-  giving the project a star! ❤️
+## Built-in addons
+
+KasetPlus brings useful community tools directly into the app. No browser extensions are required, and every addon can be enabled independently from:
+
+<p align="center">
+  <strong><code>Settings → Addons</code></strong>
 </p>
-
-<p>
-  KasetPlus wouldn’t exist without the incredible work behind
-  <a href="https://github.com/sozercan/kaset"><strong>Kaset</strong></a>.
-  If you’re considering supporting development, please consider supporting
-  the original project first.
-</p>
-
-<p>
-  ☕ <a href="https://ko-fi.com/sozercan"><strong>Buy him a coffee</strong></a>
-  and help support the project that made KasetPlus possible. 🙏
-</p>
-
-<p>
-  You can also support the development of KasetPlus by
-  <a href="https://ko-fi.com/yodddd">buying me a coffee</a>.
-</p>
-
-## Overview
-
-**KasetPlus** is a feature-focused fork of [Kaset](https://github.com/sozercan/kaset), a native macOS client for YouTube Music and YouTube built with Swift and SwiftUI.
-
-KasetPlus extends the original project with built-in content filtering, on-device video summaries, lyrics search, media downloads, additional playback controls, comment search, and a cleaner watch-page experience.
-
-> [!NOTE]
-> For information about the original application and its base functionality, see the [upstream README](https://github.com/sozercan/kaset).
-
----
-
-## Highlights
 
 <table>
 <tr>
-<td width="50%" valign="top">
-
-### ✨ On-device AI summaries
-
-Generate a concise TL;DR, key points, and intended audience directly from a video's captions using Apple Intelligence.
-
+<td width="72" align="center" valign="top">
+  <img
+    src="https://api.iconify.design/lucide:shield-check.svg?color=%23007AFF"
+    width="44"
+    height="44"
+    alt="Ad Blocker"
+  >
 </td>
-<td width="50%" valign="top">
+<td valign="top">
 
-### 🧘 Distraction-free viewing
+### Ad Blocker
 
-Hide comments and the related-videos rail for a cleaner and more focused watch page.
+Removes advertising data before it reaches the interface, blocks known ad requests and skips any ad playback that still gets through.
 
-</td>
-</tr>
-
-<tr>
-<td width="50%" valign="top">
-
-### 🧩 Built-in addons
-
-Enable ad filtering, SponsorBlock, Return YouTube Dislike, and DeArrow directly from the application.
-
-</td>
-<td width="50%" valign="top">
-
-### ⬇️ Video and audio downloads
-
-Download videos, extract MP3 audio, choose the output quality, view size estimates, and include subtitles.
+<sub>Uses response pruning, WKContentRuleList filtering and player-side ad detection.</sub>
 
 </td>
 </tr>
 
 <tr>
-<td width="50%" valign="top">
+<td width="72" align="center" valign="top">
+  <a href="https://github.com/ajayyy/SponsorBlock">
+    <img
+      src="https://raw.githubusercontent.com/ajayyy/SponsorBlock/master/public/icons/LogoSponsorBlocker256px.png"
+      width="44"
+      height="44"
+      alt="SponsorBlock"
+    >
+  </a>
+</td>
+<td valign="top">
 
-### 🎵 Lyrics for YouTube videos
+### [SponsorBlock](https://github.com/ajayyy/SponsorBlock)
 
-Search LRCLib and display editable lyrics inline while watching regular YouTube videos.
+Automatically jumps past community-marked sponsorships and other unwanted segments.
+
+Skipped sections remain visible as green markers on the progress bar, while a localized notification lets you know when a skip happens.
 
 </td>
-<td width="50%" valign="top">
+</tr>
 
-### ⚡ Improved performance
+<tr>
+<td width="72" align="center" valign="top">
+  <a href="https://github.com/Anarios/return-youtube-dislike">
+    <img
+      src="https://raw.githubusercontent.com/Anarios/return-youtube-dislike/main/Extensions/combined/icons/icon128.png"
+      width="44"
+      height="44"
+      alt="Return YouTube Dislike"
+    >
+  </a>
+</td>
+<td valign="top">
 
-General performance improvements provide a faster and smoother application experience.
+### [Return YouTube Dislike](https://github.com/Anarios/return-youtube-dislike)
+
+Brings back an estimated dislike count beside YouTube’s rating controls, making it easier to evaluate a video before watching it.
+
+</td>
+</tr>
+
+<tr>
+<td width="72" align="center" valign="top">
+  <a href="https://github.com/ajayyy/DeArrow">
+    <img
+      src="https://raw.githubusercontent.com/ajayyy/DeArrow/master/public/icons/logo.svg"
+      width="44"
+      height="44"
+      alt="DeArrow"
+    >
+  </a>
+</td>
+<td valign="top">
+
+### [DeArrow](https://github.com/ajayyy/DeArrow)
+
+Replaces clickbait titles with community-written alternatives across Home, Search and Watch pages.
+
+Use the **↔** control whenever you want to reveal the original title.
 
 </td>
 </tr>
 </table>
 
+> [!TIP]
+> Addons are optional. Enable only the ones that match the way you use YouTube.
+
 ---
 
-## Built-in Addons
-
-Configure all addons from:
-
-**`Settings` → `Addons`**
+## More than addons
 
 <table>
-<thead>
 <tr>
-<th width="72">Icon</th>
-<th width="210">Addon</th>
-<th>Description</th>
-</tr>
-</thead>
+<td width="50%" valign="top">
 
-<tbody>
-<tr>
-<td align="center">🛡️</td>
-<td><strong>Ad Blocker</strong></td>
-<td>
-API-level JSON pruning, <code>WKContentRuleList</code> domain filtering, and automatic YouTube ad skipping.
-</td>
-</tr>
+<p>
+  <img
+    src="https://api.iconify.design/lucide:sparkles.svg?color=%23AF52DE"
+    width="26"
+    height="26"
+    alt="AI summary"
+  >
+</p>
 
-<tr>
-<td align="center">
-<a href="https://github.com/ajayyy/SponsorBlock">
-<img src="https://raw.githubusercontent.com/ajayyy/SponsorBlock/master/public/icons/LogoSponsorBlocker256px.png" width="42" alt="SponsorBlock">
-</a>
-</td>
-<td>
-<strong>
-<a href="https://github.com/ajayyy/SponsorBlock">SponsorBlock</a>
-</strong>
-</td>
-<td>
-Automatically skips sponsored segments, displays localized notifications, and adds green segment markers to the progress bar.
-</td>
-</tr>
+### On-device AI summaries
 
-<tr>
-<td align="center">
-<a href="https://github.com/Anarios/return-youtube-dislike">
-<img src="https://raw.githubusercontent.com/Anarios/return-youtube-dislike/main/Extensions/combined/icons/icon128.png" width="42" alt="Return YouTube Dislike">
-</a>
+Turn a video’s captions into a concise TL;DR, its key points and a description of the intended audience.
+
+Processing happens on your Mac through Apple Intelligence, with no external API key required.
+
 </td>
-<td>
-<strong>
-<a href="https://github.com/Anarios/return-youtube-dislike">Return YouTube Dislike</a>
-</strong>
-</td>
-<td>
-Displays the estimated dislike count alongside the like and dislike controls below the video metadata.
+<td width="50%" valign="top">
+
+<p>
+  <img
+    src="https://api.iconify.design/lucide:download.svg?color=%23007AFF"
+    width="26"
+    height="26"
+    alt="Media downloads"
+  >
+</p>
+
+### Video and audio downloads
+
+Download videos or extract MP3 audio, choose the preferred quality and preview estimated file sizes.
+
+Subtitles can be saved as `.srt` files or embedded directly into the video.
+
 </td>
 </tr>
 
 <tr>
-<td align="center">
-<a href="https://github.com/ajayyy/DeArrow">
-<img src="https://raw.githubusercontent.com/ajayyy/DeArrow/master/public/icons/logo.svg" width="42" alt="DeArrow">
-</a>
+<td width="50%" valign="top">
+
+<p>
+  <img
+    src="https://api.iconify.design/lucide:captions.svg?color=%23FF2D55"
+    width="26"
+    height="26"
+    alt="Lyrics"
+  >
+</p>
+
+### Lyrics for YouTube videos
+
+Search [LRCLib](https://lrclib.net) and display lyrics inline while watching regular YouTube videos.
+
+The search fields remain editable when the detected artist or song title needs correcting.
+
 </td>
-<td>
-<strong>
-<a href="https://github.com/ajayyy/DeArrow">DeArrow</a>
-</strong>
-</td>
-<td>
-Replaces clickbait titles across Home, Search, and Watch pages. Use the <strong>↔</strong> button to reveal the original title.
+<td width="50%" valign="top">
+
+<p>
+  <img
+    src="https://api.iconify.design/lucide:scan-eye.svg?color=%2334C759"
+    width="26"
+    height="26"
+    alt="Distraction-free viewing"
+  >
+</p>
+
+### Distraction-free viewing
+
+Hide comments and the related-videos rail without removing the player or video information.
+
+Keep the video at the centre of the experience.
+
 </td>
 </tr>
-</tbody>
 </table>
 
----
-
-## Features
-
-### ✨ AI Video Summary
-
-Open a video and select the **Summary** button next to **Lyrics** to generate:
-
-- A concise TL;DR
-- The video's key points
-- A description of who the video is for
-
-Summaries are generated on your Mac from the video's captions using Apple Intelligence Foundation Models.
-
-No external API key is required.
-
-> [!IMPORTANT]
-> AI Video Summary requires **macOS 26** with **Apple Intelligence** enabled. The Summary button is hidden when the feature is unavailable.
+Additional improvements include comment search, extra playback controls, clickable timestamps and a more refined watch-page experience.
 
 ---
 
-### 🧘 Distraction-Free Watch Page
+## Requirements
 
-Enable the feature from:
-
-**`Settings` → `YouTube` → `Distraction-Free Watch Page`**
-
-The option hides:
-
-- The comments section
-- The related-videos rail
-
-The video player and its metadata remain visible.
+| Feature          | Requirement                              |
+| ---------------- | ---------------------------------------- |
+| KasetPlus        | macOS 15.4 or newer                      |
+| AI Video Summary | macOS 26 with Apple Intelligence enabled |
+| Video summaries  | A video with available captions          |
+| Downloads        | No separate yt-dlp installation required |
 
 ---
 
-### 🎵 YouTube Video Lyrics Search
+## Translations
 
-Display lyrics while watching YouTube videos using either:
+Help make KasetPlus available in more languages. Translation happens entirely through Crowdin and does not require coding.
 
-- The lyrics control in the player bar
-- The **Lyrics** button below the video title
+<p align="center">
+  <a href="https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431">
+    <img
+      src="https://img.shields.io/badge/Become_a_translator-Crowdin-2E3340?style=for-the-badge&logo=crowdin&logoColor=white"
+      alt="Become a KasetPlus translator"
+    >
+  </a>
+</p>
 
-Lyrics are fetched from [LRCLib](https://lrclib.net), a free and open-source lyrics database, and displayed inline with an editable search interface.
+<details>
+<summary><strong>View live translation progress</strong></summary>
 
----
-
-### ⬇️ YouTube Video Download
-
-Use the download button in the player bar to:
-
-- Download the current video
-- Extract audio as MP3
-- Choose the preferred quality
-- View estimated download sizes
-- Include available subtitles
-- Save subtitles as `.srt`
-- Embed captions into downloaded videos
-
-Downloads are powered by a bundled copy of [yt-dlp](https://github.com/yt-dlp/yt-dlp), so no external installation is required.
-
-Downloaded files are saved to:
-
-```text
-~/Downloads/KasetPlus/
-```
-
-## 🌍 Translations
-
-Help translate KasetPlus into your language — no coding needed, it all happens in the browser.
-
-**[→ Become a translator](https://crowdin.com/project/kasetplus/invite?h=52da2027125c27a425d9871866437ad92831431)**
-
-Contributions are reviewed and merged automatically, then ship in the next release. Don't see your language? Request it and start translating.
+<br>
 
 <!-- LOCALIZATION-STATUS:START -->
+
 ![Afrikaans](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Faf)
 ![Arabic](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Far)
 ![Catalan](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fca)
@@ -323,7 +312,54 @@ Contributions are reviewed and merged automatically, then ship in the next relea
 ![Turkish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ftr)
 ![Ukrainian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fuk)
 ![Vietnamese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fvi)
+
 <!-- LOCALIZATION-STATUS:END -->
 
-<sub>Live translation progress · powered by [Crowdin](https://crowdin.com/project/kasetplus).</sub>
+<br>
 
+<sub>
+  Live translation progress powered by
+  <a href="https://crowdin.com/project/kasetplus">Crowdin</a>.
+</sub>
+
+</details>
+
+---
+
+## About the project
+
+KasetPlus is a feature-focused fork of [Kaset](https://github.com/sozercan/kaset), a native YouTube Music and YouTube client for macOS.
+
+The original project provides the foundation that made KasetPlus possible. For its base functionality and documentation, visit the [upstream repository](https://github.com/sozercan/kaset).
+
+<p align="center">
+  <a href="https://ko-fi.com/sozercan">
+    <img
+      src="https://img.shields.io/badge/Support_original_Kaset-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white"
+      alt="Support the original Kaset project"
+    >
+  </a>
+  <a href="https://ko-fi.com/yodddd">
+    <img
+      src="https://img.shields.io/badge/Support_KasetPlus-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white"
+      alt="Support KasetPlus"
+    >
+  </a>
+</p>
+
+> [!NOTE]
+> When supporting development, please consider supporting the original Kaset project first.
+
+---
+
+<p align="center">
+  Found KasetPlus useful?
+  <a href="https://github.com/Yoddikko/kasetPlus/stargazers">
+    <strong>Give the project a star</strong>
+  </a>
+  and help more macOS users discover it.
+</p>
+
+<p align="center">
+  <sub>Third-party addon names and logos belong to their respective projects.</sub>
+</p>
