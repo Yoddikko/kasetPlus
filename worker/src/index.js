@@ -435,7 +435,7 @@ async function getCrowdinMembers(env, ctx) {
 // image request, exceeds the Worker's resource limits and 500s the SVG. So the
 // SVG handler reads only the cache and kicks off `refreshContributions` in the
 // background; the counts appear on the next render.
-const CONTRIB_CACHE_KEY = "https://internal.cache/crowdin-contrib-v1";
+const CONTRIB_CACHE_KEY = "https://internal.cache/crowdin-contrib-v2";
 
 async function getCachedContributions() {
 	const cached = await caches.default.match(new Request(CONTRIB_CACHE_KEY));
@@ -448,7 +448,7 @@ async function refreshContributions(env) {
 	const gen = await fetch(base, {
 		method: "POST",
 		headers: { ...auth, "Content-Type": "application/json" },
-		body: JSON.stringify({ name: "top-members", schema: { unit: "words", format: "json" } }),
+		body: JSON.stringify({ name: "top-members", schema: { unit: "strings", format: "json" } }),
 	});
 	const genData = (await gen.json()).data;
 	const id = genData?.identifier;
@@ -464,7 +464,12 @@ async function refreshContributions(env) {
 	const report = await (await fetch(url)).json();
 	const map = {};
 	for (const u of report.data || []) {
-		map[String(u.user.id)] = { approved: u.approved || 0, translated: u.translated || 0 };
+		map[String(u.user.id)] = {
+			translated: u.translated || 0,
+			approved: u.approved || 0,
+			// The languages the member actually worked on (not their role's access scope).
+			languages: (u.languages || []).map((l) => l.id),
+		};
 	}
 	await caches.default.put(
 		new Request(CONTRIB_CACHE_KEY),
@@ -516,8 +521,8 @@ function renderTranslatorsSVG(translators) {
 					`<image xlink:href="${m.avatar}" x="${padX}" y="${cy - 16}" width="32" height="32" clip-path="url(#c${i})"/>`
 				: `<circle cx="${padX + 16}" cy="${cy}" r="16" fill="${roleColor}"/>` +
 					`<text x="${padX + 16}" y="${cy + 5}" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">${xmlEscape((m.name[0] || "?").toUpperCase())}</text>`;
-			const count = m.approved != null
-				? `<text x="${W - padX}" y="${cy + 5}" text-anchor="end" class="count">${m.approved} approved</text>`
+			const count = m.translated != null
+				? `<text x="${W - padX}" y="${cy + 5}" text-anchor="end" class="count">${m.translated} translated</text>`
 				: "";
 			return (
 				avatar +
@@ -535,7 +540,7 @@ async function handleCrowdinTranslators(env, ctx) {
 	const cache = caches.default;
 	// Bump this key when the SVG format/headers change so a stale cached response
 	// (e.g. an old one served with the wrong content-type) is regenerated.
-	const cacheKey = new Request("https://internal.cache/translators-svg-v2");
+	const cacheKey = new Request("https://internal.cache/translators-svg-v3");
 	const hit = await cache.match(cacheKey);
 	if (hit) return hit;
 	let svg;
@@ -560,11 +565,18 @@ async function handleCrowdinTranslators(env, ctx) {
 				a.name.localeCompare(b.name),
 			);
 		const enriched = await Promise.all(
-			translators.map(async (m) => ({
-				...m,
-				approved: m.id in contrib ? contrib[m.id].approved : null,
-				avatar: await fetchAvatarDataURI(m.avatarUrl),
-			})),
+			translators.map(async (m) => {
+				const c = contrib[m.id];
+				return {
+					...m,
+					translated: c ? c.translated : null,
+					// Show the languages actually worked on (from the report); fall back
+					// to the role's language access only while the report cache is cold.
+					langs: c && c.languages.length ? c.languages : m.langs,
+					allLang: c ? c.languages.length === 0 : m.allLang,
+					avatar: await fetchAvatarDataURI(m.avatarUrl),
+				};
+			}),
 		);
 		svg = renderTranslatorsSVG(enriched);
 	} catch {
