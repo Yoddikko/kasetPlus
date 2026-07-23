@@ -429,11 +429,20 @@ async function getCrowdinMembers(env, ctx) {
 }
 
 // Per-user contribution (approved/translated words) via the async Report API.
-async function getCrowdinContributions(env, ctx) {
-	const cache = caches.default;
-	const key = new Request("https://internal.cache/crowdin-contrib-v1");
-	const cached = await cache.match(key);
-	if (cached) return cached.json();
+//
+// Split into a cheap cache read and a heavy background refresh: generating the
+// report takes several seconds (POST + poll + download) and, done inline on the
+// image request, exceeds the Worker's resource limits and 500s the SVG. So the
+// SVG handler reads only the cache and kicks off `refreshContributions` in the
+// background; the counts appear on the next render.
+const CONTRIB_CACHE_KEY = "https://internal.cache/crowdin-contrib-v1";
+
+async function getCachedContributions() {
+	const cached = await caches.default.match(new Request(CONTRIB_CACHE_KEY));
+	return cached ? cached.json() : null;
+}
+
+async function refreshContributions(env) {
 	const base = `https://api.crowdin.com/api/v2/projects/${CROWDIN_PROJECT_ID}/reports`;
 	const auth = { Authorization: `Bearer ${env.CROWDIN_TOKEN}` };
 	const gen = await fetch(base, {
@@ -457,10 +466,12 @@ async function getCrowdinContributions(env, ctx) {
 	for (const u of report.data || []) {
 		map[String(u.user.id)] = { approved: u.approved || 0, translated: u.translated || 0 };
 	}
-	const store = new Response(JSON.stringify(map), {
-		headers: { "content-type": "application/json", "cache-control": "public, max-age=3600" },
-	});
-	if (ctx) ctx.waitUntil(cache.put(key, store.clone()));
+	await caches.default.put(
+		new Request(CONTRIB_CACHE_KEY),
+		new Response(JSON.stringify(map), {
+			headers: { "content-type": "application/json", "cache-control": "public, max-age=3600" },
+		}),
+	);
 	return map;
 }
 
@@ -522,18 +533,24 @@ function renderTranslatorsSVG(translators) {
 async function handleCrowdinTranslators(env, ctx) {
 	if (!env.CROWDIN_TOKEN) return errorResponse("Crowdin token not set", 500);
 	const cache = caches.default;
-	const cacheKey = new Request("https://internal.cache/translators-svg-v1");
+	// Bump this key when the SVG format/headers change so a stale cached response
+	// (e.g. an old one served with the wrong content-type) is regenerated.
+	const cacheKey = new Request("https://internal.cache/translators-svg-v2");
 	const hit = await cache.match(cacheKey);
 	if (hit) return hit;
 	let svg;
+	// Whether the render includes contribution counts; when it doesn't (a cold
+	// report cache), skip caching the SVG so counts show on the next render
+	// instead of being frozen for the full 30-minute TTL.
+	let hasCounts = false;
 	try {
 		const members = await getCrowdinMembers(env, ctx);
-		let contrib = {};
-		try {
-			contrib = await getCrowdinContributions(env, ctx);
-		} catch {
-			/* report is optional — still render the list without word counts */
-		}
+		// Read counts from cache only; regenerate in the background when cold so
+		// the image never blocks on (or 500s from) the multi-second report job.
+		const contribCached = await getCachedContributions();
+		const contrib = contribCached || {};
+		hasCounts = contribCached != null;
+		if (!contribCached && ctx) ctx.waitUntil(refreshContributions(env).catch(() => {}));
 		const translators = members
 			.filter((m) => !m.isOwner)
 			.map((m) => ({ ...m, roles: TRANSLATOR_ROLE_ORDER.filter((r) => m.roles.includes(r)) }))
@@ -557,10 +574,11 @@ async function handleCrowdinTranslators(env, ctx) {
 		headers: {
 			"content-type": "image/svg+xml; charset=utf-8",
 			"access-control-allow-origin": "*",
-			"cache-control": "public, max-age=3600",
+			// 30-minute freshness so the README credit list refreshes as people contribute.
+			"cache-control": "public, max-age=1800",
 		},
 	});
-	if (ctx) ctx.waitUntil(cache.put(cacheKey, resp.clone()));
+	if (ctx && hasCounts) ctx.waitUntil(cache.put(cacheKey, resp.clone()));
 	return resp;
 }
 

@@ -280,7 +280,7 @@ Help make KasetPlus available in more languages. Translation happens entirely th
 </p>
 
 <p align="center">
-  <img src="https://kaset-lastfm.alessioiodiceuni.workers.dev/crowdin/translators.svg?v=3" alt="KasetPlus translators">
+  <img src="https://kaset-lastfm.alessioiodiceuni.workers.dev/crowdin/translators.svg?v=4" alt="KasetPlus translators">
 </p>
 
 <details>
@@ -290,36 +290,36 @@ Help make KasetPlus available in more languages. Translation happens entirely th
 
 <!-- LOCALIZATION-STATUS:START -->
 
-![Afrikaans](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Faf%3Fv%3D3)
-![Arabic](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Far%3Fv%3D3)
-![Catalan](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fca%3Fv%3D3)
-![Chinese (Simpl.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-CN%3Fv%3D3)
-![Chinese (Trad.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-TW%3Fv%3D3)
-![Czech](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fcs%3Fv%3D3)
-![Danish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fda%3Fv%3D3)
-![Dutch](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fnl%3Fv%3D3)
-![Finnish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffi%3Fv%3D3)
-![French](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffr%3Fv%3D3)
-![German](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fde%3Fv%3D3)
-![Greek](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fel%3Fv%3D3)
-![Hebrew](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhe%3Fv%3D3)
-![Hungarian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhu%3Fv%3D3)
-![Indonesian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fid%3Fv%3D3)
-![Italian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fit%3Fv%3D3)
-![Japanese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fja%3Fv%3D3)
-![Korean](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fko%3Fv%3D3)
-![Norwegian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fno%3Fv%3D3)
-![Polish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpl%3Fv%3D3)
-![Portuguese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-PT%3Fv%3D3)
-![Portuguese (BR)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-BR%3Fv%3D3)
-![Romanian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fro%3Fv%3D3)
-![Russian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fru%3Fv%3D3)
-![Serbian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsr%3Fv%3D3)
-![Spanish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fes-ES%3Fv%3D3)
-![Swedish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsv-SE%3Fv%3D3)
-![Turkish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ftr%3Fv%3D3)
-![Ukrainian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fuk%3Fv%3D3)
-![Vietnamese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fvi%3Fv%3D3)
+![Afrikaans](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Faf%3Fv%3D4)
+![Arabic](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Far%3Fv%3D4)
+![Catalan](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fca%3Fv%3D4)
+![Chinese (Simpl.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-CN%3Fv%3D4)
+![Chinese (Trad.)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fzh-TW%3Fv%3D4)
+![Czech](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fcs%3Fv%3D4)
+![Danish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fda%3Fv%3D4)
+![Dutch](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fnl%3Fv%3D4)
+![Finnish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffi%3Fv%3D4)
+![French](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ffr%3Fv%3D4)
+![German](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fde%3Fv%3D4)
+![Greek](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fel%3Fv%3D4)
+![Hebrew](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhe%3Fv%3D4)
+![Hungarian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fhu%3Fv%3D4)
+![Indonesian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fid%3Fv%3D4)
+![Italian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fit%3Fv%3D4)
+![Japanese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fja%3Fv%3D4)
+![Korean](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fko%3Fv%3D4)
+![Norwegian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fno%3Fv%3D4)
+![Polish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpl%3Fv%3D4)
+![Portuguese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-PT%3Fv%3D4)
+![Portuguese (BR)](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fpt-BR%3Fv%3D4)
+![Romanian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fro%3Fv%3D4)
+![Russian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fru%3Fv%3D4)
+![Serbian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsr%3Fv%3D4)
+![Spanish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fes-ES%3Fv%3D4)
+![Swedish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fsv-SE%3Fv%3D4)
+![Turkish](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Ftr%3Fv%3D4)
+![Ukrainian](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fuk%3Fv%3D4)
+![Vietnamese](https://img.shields.io/endpoint?url=https%3A%2F%2Fkaset-lastfm.alessioiodiceuni.workers.dev%2Fcrowdin%2Fbadge%2Fvi%3Fv%3D4)
 
 <!-- LOCALIZATION-STATUS:END -->
 
