@@ -1,4 +1,6 @@
+import AppKit
 import Foundation
+import SwiftUI
 import Testing
 @testable import KasetPlus
 
@@ -7,6 +9,23 @@ import Testing
 @MainActor
 struct SettingsManagerTests {
     // Note: These tests use a fresh UserDefaults domain to avoid affecting real settings
+
+    // MARK: - Accent Color Tests
+
+    @Test("Accent color hex round-trips through sRGB")
+    func accentColorHexRoundTrip() throws {
+        for hex in ["#FF0056", "#00A3FF", "#000000", "#FFFFFF", "#7F3FBF"] {
+            let color = try #require(SettingsManager.color(fromHex: hex))
+            #expect(SettingsManager.hex(from: color) == hex)
+        }
+    }
+
+    @Test("Accent color rejects malformed hex")
+    func accentColorRejectsBadHex() {
+        #expect(SettingsManager.color(fromHex: "nope") == nil)
+        #expect(SettingsManager.color(fromHex: "#FFF") == nil)
+        #expect(SettingsManager.color(fromHex: "#GG0000") == nil)
+    }
 
     // MARK: - LaunchPage Tests
 

@@ -24,7 +24,7 @@ struct KasetSidebarRow: View {
                     .foregroundStyle(.primary)
             } icon: {
                 Image(systemName: self.systemImage)
-                    .foregroundStyle(PackageResourceLookup.brandAccent)
+                    .foregroundStyle(SettingsManager.shared.accentColor)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)

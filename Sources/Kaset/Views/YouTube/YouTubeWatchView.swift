@@ -9,7 +9,7 @@ import SwiftUI
 /// this view owns it. Navigating away while playing hands the surface off
 /// to the floating window (`YouTubeVideoWindowController`).
 struct YouTubeWatchView: View {
-    fileprivate static let brandAccent = PackageResourceLookup.brandAccent
+    @MainActor fileprivate static var brandAccent: Color { SettingsManager.shared.accentColor }
 
     let video: YouTubeVideo
 
@@ -2062,7 +2062,7 @@ private struct CollaboratorsPopover: View {
 /// handle · subscribers, and a Subscribe/bell control mirroring the watch page's
 /// single-channel one.
 private struct CollaboratorRow: View {
-    static let brandAccent = PackageResourceLookup.brandAccent
+    @MainActor static var brandAccent: Color { SettingsManager.shared.accentColor }
 
     let collaborator: VideoCollaborator
     let viewModel: YouTubeWatchViewModel

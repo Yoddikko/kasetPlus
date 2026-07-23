@@ -65,6 +65,27 @@ struct GeneralSettingsView: View {
                 Text(String(localized: "Behavior"))
             }
 
+            // MARK: - Appearance Section
+
+            Section {
+                HStack {
+                    ColorPicker(
+                        String(localized: "Accent Color"),
+                        selection: self.$settings.accentColor,
+                        supportsOpacity: false
+                    )
+                    if self.settings.isUsingCustomAccent {
+                        Spacer()
+                        Button(String(localized: "Reset")) {
+                            self.settings.resetAccentColor()
+                        }
+                    }
+                }
+                .help(String(localized: "Choose the accent color used across the app's buttons, highlights, and controls."))
+            } header: {
+                Text(String(localized: "Appearance"))
+            }
+
             // MARK: - Privacy Section
 
             Section {

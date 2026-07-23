@@ -10,7 +10,7 @@ struct CommunityView: View {
     @State private var showsCompose = false
     @Environment(\.dismiss) private var dismiss
 
-    private static let accent = PackageResourceLookup.brandAccent
+    @MainActor private static var accent: Color { SettingsManager.shared.accentColor }
 
     enum Tab: Hashable {
         case issues
@@ -153,7 +153,7 @@ struct CommunityView: View {
 /// plus the GitHub device-flow login.
 struct CommunityLoginView: View {
     @State private var auth = GitHubAuthService.shared
-    private static let accent = PackageResourceLookup.brandAccent
+    @MainActor private static var accent: Color { SettingsManager.shared.accentColor }
 
     var body: some View {
         VStack(spacing: 22) {

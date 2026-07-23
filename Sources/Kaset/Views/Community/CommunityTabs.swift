@@ -214,7 +214,7 @@ struct CommunityEmptyState: View {
     let ctaTitle: String
     let onCTA: () -> Void
 
-    private static let accent = PackageResourceLookup.brandAccent
+    @MainActor private static var accent: Color { SettingsManager.shared.accentColor }
 
     var body: some View {
         VStack(spacing: 14) {

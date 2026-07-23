@@ -13,12 +13,12 @@ struct MiniPlayerGlassIconLabel: View {
         Image(systemName: self.systemName)
             .font(.system(size: self.fontSize, weight: .bold))
             .symbolRenderingMode(.hierarchical)
-            .foregroundStyle(self.isActive ? PackageResourceLookup.brandAccent : .white.opacity(0.94))
+            .foregroundStyle(self.isActive ? SettingsManager.shared.accentColor : .white.opacity(0.94))
             .frame(width: self.size, height: self.size)
-            .background(self.isActive ? PackageResourceLookup.brandAccent.opacity(0.20) : .white.opacity(0.05), in: .circle)
+            .background(self.isActive ? SettingsManager.shared.accentColor.opacity(0.20) : .white.opacity(0.05), in: .circle)
             .overlay {
                 Circle()
-                    .stroke(self.isActive ? PackageResourceLookup.brandAccent.opacity(0.90) : .white.opacity(0.26), lineWidth: self.isActive ? 1.2 : 1)
+                    .stroke(self.isActive ? SettingsManager.shared.accentColor.opacity(0.90) : .white.opacity(0.26), lineWidth: self.isActive ? 1.2 : 1)
             }
             .contentShape(.circle)
     }

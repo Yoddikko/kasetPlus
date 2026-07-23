@@ -669,7 +669,7 @@ struct MiniPlayerWindow: View { // swiftlint:disable:this type_body_length
                 }
             }
             .controlSize(.small)
-            .tint(PackageResourceLookup.brandAccent)
+            .tint(SettingsManager.shared.accentColor)
             .disabled(self.playerService.duration <= 0 || self.playerService.isCurrentItemLive)
             .accessibilityIdentifier(AccessibilityID.MiniPlayer.seekSlider)
 
@@ -749,7 +749,7 @@ struct MiniPlayerWindow: View { // swiftlint:disable:this type_body_length
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: size, weight: .bold))
-                .foregroundStyle(active ? PackageResourceLookup.brandAccent : .white.opacity(0.90))
+                .foregroundStyle(active ? SettingsManager.shared.accentColor : .white.opacity(0.90))
                 .frame(width: max(21, size + 7), height: max(21, size + 7))
                 .shadow(color: .black.opacity(0.62), radius: 2, y: 1)
         }
@@ -782,7 +782,7 @@ struct MiniPlayerWindow: View { // swiftlint:disable:this type_body_length
                                     if entry.source == .suggested {
                                         Image(systemName: "sparkles")
                                             .font(.system(size: 8, weight: .semibold))
-                                            .foregroundStyle(PackageResourceLookup.brandAccent)
+                                            .foregroundStyle(SettingsManager.shared.accentColor)
                                             .accessibilityLabel(Text(String(localized: "Suggested")))
                                     }
                                 }

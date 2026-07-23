@@ -27,7 +27,7 @@ struct YouTubePlayerBar: View {
     /// passes `videoOverlay` to reuse the exact same controls on the video.
     var mode: Mode = .docked
 
-    private static let brandAccent = PackageResourceLookup.brandAccent
+    @MainActor private static var brandAccent: Color { SettingsManager.shared.accentColor }
     private static let fullVideoDetailsWidth: CGFloat = 294
     private static let compactVideoDetailsWidth: CGFloat = 141
     /// When the video has chapters, the progress lane floats a chapter tooltip

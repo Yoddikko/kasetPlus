@@ -1,5 +1,7 @@
+import AppKit
 import Foundation
 import Observation
+import SwiftUI
 
 /// Manages user preferences persisted via UserDefaults.
 @MainActor
@@ -42,6 +44,7 @@ final class SettingsManager {
         static let dearrowEnabled = "settings.dearrow.enabled"
         static let hasCompletedInitialOnboarding = "settings.onboarding.completed"
         static let distractionFreeEnabled = "settings.distractionFree.enabled"
+        static let accentColorHex = "settings.accentColorHex"
         #if DEBUG
             static let useLegacyMacOS15UI = "settings.debug.useLegacyMacOS15UI"
         #endif
@@ -226,6 +229,54 @@ final class SettingsManager {
         didSet {
             UserDefaults.standard.set(self.appSource.rawValue, forKey: Keys.appSource)
         }
+    }
+
+    /// The app-wide accent color. Drives the root `.tint(...)` (so every standard
+    /// control follows) and the brand accent used by custom UI (`Self.brandAccent`
+    /// in the player, watch page, etc.). Defaults to the KasetPlus brand color.
+    var accentColor: Color {
+        didSet {
+            UserDefaults.standard.set(Self.hex(from: self.accentColor), forKey: Keys.accentColorHex)
+        }
+    }
+
+    /// The default brand accent (used when the user hasn't picked a custom one).
+    static var defaultAccentColor: Color { PackageResourceLookup.brandAccent }
+
+    /// Whether a custom accent (different from the brand default) is in effect.
+    var isUsingCustomAccent: Bool {
+        UserDefaults.standard.string(forKey: Keys.accentColorHex) != nil
+    }
+
+    /// Restores the brand accent and forgets any custom choice.
+    func resetAccentColor() {
+        UserDefaults.standard.removeObject(forKey: Keys.accentColorHex)
+        // Assigning re-persists the hex; remove it again so `isUsingCustomAccent`
+        // reflects "default" and a fresh install stays keyless.
+        self.accentColor = Self.defaultAccentColor
+        UserDefaults.standard.removeObject(forKey: Keys.accentColorHex)
+    }
+
+    /// Serializes a color to a `#RRGGBB` sRGB hex string for persistence.
+    static func hex(from color: Color) -> String {
+        let ns = NSColor(color).usingColorSpace(.sRGB) ?? .init(srgbRed: 1, green: 0, blue: 0.337, alpha: 1)
+        let r = Int((ns.redComponent * 255).rounded())
+        let g = Int((ns.greenComponent * 255).rounded())
+        let b = Int((ns.blueComponent * 255).rounded())
+        return String(format: "#%02X%02X%02X", r, g, b)
+    }
+
+    /// Parses a `#RRGGBB` sRGB hex string back into a color.
+    static func color(fromHex hex: String) -> Color? {
+        var value = hex
+        if value.hasPrefix("#") { value.removeFirst() }
+        guard value.count == 6, let rgb = Int(value, radix: 16) else { return nil }
+        return Color(
+            .sRGB,
+            red: Double((rgb >> 16) & 0xFF) / 255,
+            green: Double((rgb >> 8) & 0xFF) / 255,
+            blue: Double(rgb & 0xFF) / 255
+        )
     }
 
     /// Whether the YouTube Music experience is available. When off, the Music
@@ -648,6 +699,14 @@ final class SettingsManager {
             self.appSource = source
         } else {
             self.appSource = .music
+        }
+
+        if let hex = UserDefaults.standard.string(forKey: Keys.accentColorHex),
+           let color = Self.color(fromHex: hex)
+        {
+            self.accentColor = color
+        } else {
+            self.accentColor = Self.defaultAccentColor
         }
 
         AppLocalization.setLanguage(self.contentLanguage.languageCode)
