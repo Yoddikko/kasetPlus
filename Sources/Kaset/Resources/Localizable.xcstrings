@@ -453,7 +453,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@"
           }
         },
@@ -829,8 +829,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%arg songs listened today"
+            "state" : "translated",
+            "value" : "%alagu yang diputar hari ini"
           }
         },
         "it" : {
@@ -1939,8 +1939,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "AI summary needs macOS 26."
+            "state" : "translated",
+            "value" : "Ringkasan AI membutuhkan macOS 26."
           }
         },
         "it" : {
@@ -3236,8 +3236,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Ad Blocker"
+            "state" : "translated",
+            "value" : "Blokir Iklan"
           }
         },
         "it" : {
@@ -5456,7 +5456,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "AirPlay"
           }
         },
@@ -5826,7 +5826,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Album"
           }
         },
@@ -6566,8 +6566,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Ambient"
+            "state" : "translated",
+            "value" : "Pencahayaan"
           }
         },
         "it" : {
@@ -7121,8 +7121,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Ambient backdrop style"
+            "state" : "translated",
+            "value" : "Gaya latar pencahayaan"
           }
         },
         "it" : {
@@ -8046,7 +8046,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Apple Intelligence"
           }
         },
@@ -10081,8 +10081,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Ask a question, share an idea, or just say hi to the community."
+            "state" : "translated",
+            "value" : "Ajukan pertanyaan, bagikan ide, atau sekadar sapa komunitas."
           }
         },
         "it" : {
@@ -10451,7 +10451,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Audio"
           }
         },
@@ -10821,8 +10821,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Audio engine failed to start: %arg"
+            "state" : "translated",
+            "value" : "Gagal memulai mesin audio: %arg"
           }
         },
         "it" : {
@@ -11376,8 +11376,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Auto-skips sponsored segments in videos."
+            "state" : "translated",
+            "value" : "Lewati otomatis segmen sponsor dalam video."
           }
         },
         "it" : {
@@ -13044,8 +13044,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Blocks ads and tracking in YouTube videos."
+            "state" : "translated",
+            "value" : "Blokir iklan dan pelacakan di video YouTube."
           }
         },
         "it" : {
@@ -13229,8 +13229,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Body"
+            "state" : "translated",
+            "value" : "Isi"
           }
         },
         "it" : {
@@ -13414,8 +13414,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Browse and join community discussions"
+            "state" : "translated",
+            "value" : "Jelajahi dan ikuti diskusi komunitas"
           }
         },
         "it" : {
@@ -14339,8 +14339,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Card"
+            "state" : "translated",
+            "value" : "Kartu"
           }
         },
         "it" : {
@@ -15640,8 +15640,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Chat…"
+            "state" : "translated",
+            "value" : "Obrolan…"
           }
         },
         "it" : {
@@ -16935,8 +16935,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose…"
+            "state" : "translated",
+            "value" : "Pilih…"
           }
         },
         "it" : {
@@ -19156,8 +19156,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close comments"
+            "state" : "translated",
+            "value" : "Tutup komentar"
           }
         },
         "it" : {
@@ -19637,7 +19637,188 @@
     "Collaborators" : {
       "comment" : "Header of the picker for a YouTube video uploaded by multiple channels — lists each collaborating channel with its own Subscribe/bell.",
       "extractionState" : "manual",
-      "localizations" : {}
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolaborator"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Collaborators"
+          }
+        }
+      }
     },
     "Collection" : {
       "comment" : "Reusable label shown in the sidebar.",
@@ -21011,8 +21192,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connected as %arg"
+            "state" : "translated",
+            "value" : "Terhubung sebagai %arg"
           }
         },
         "it" : {
@@ -22306,8 +22487,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't capture KasetPlus's audio (status %arg). Check Screen & System Audio Recording permission in System Settings."
+            "state" : "translated",
+            "value" : "Tidak dapat menangkap audio KasetPlus (status %arg). Periksa izin Rekaman Layar & Audio Sistem di Pengaturan Sistem."
           }
         },
         "it" : {
@@ -23234,8 +23415,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't install the audio I/O proc (%arg)."
+            "state" : "translated",
+            "value" : "Tidak dapat memasang proses I/O audio (%a)."
           }
         },
         "it" : {
@@ -24532,8 +24713,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't summarize this video."
+            "state" : "translated",
+            "value" : "Tidak dapat meringkas video ini."
           }
         },
         "it" : {
@@ -24717,8 +24898,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn’t reach the server — try again."
+            "state" : "translated",
+            "value" : "Tidak dapat terhubung dengan server — coba lagi."
           }
         },
         "it" : {
@@ -24902,8 +25083,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create Playlist"
+            "state" : "translated",
+            "value" : "Buat Playlist"
           }
         },
         "it" : {
@@ -25459,7 +25640,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Dance"
           }
         },
@@ -25644,7 +25825,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "DeArrow"
           }
         },
@@ -25829,8 +26010,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Debug"
+            "state" : "translated",
+            "value" : "Debuh"
           }
         },
         "it" : {
@@ -26015,8 +26196,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Deep"
+            "state" : "translated",
+            "value" : "Kedalaman"
           }
         },
         "it" : {
@@ -26570,8 +26751,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Description"
+            "state" : "translated",
+            "value" : "Deskripsi"
           }
         },
         "it" : {
@@ -27310,8 +27491,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Discussion title"
+            "state" : "translated",
+            "value" : "Judul diskusi"
           }
         },
         "it" : {
@@ -29345,8 +29526,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Download"
+            "state" : "translated",
+            "value" : "Unduh"
           }
         },
         "it" : {
@@ -29530,8 +29711,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Download failed. Is yt-dlp installed? Try: brew install yt-dlp"
+            "state" : "translated",
+            "value" : "Unduhan gagal. Apakah yt-dlp sudah terpasang? Coba jalankan: brew install yt-dlp"
           }
         },
         "it" : {
@@ -30085,7 +30266,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "E"
           }
         },
@@ -30270,7 +30451,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Edit"
           }
         },
@@ -31938,7 +32119,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Episode"
           }
         },
@@ -32309,7 +32490,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Equalizer"
           }
         },
@@ -32680,7 +32861,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Error: %@"
           }
         },
@@ -32865,7 +33046,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Error: %arg"
           }
         },
@@ -35825,8 +36006,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Fetching formats..."
+            "state" : "translated",
+            "value" : "Format Fetching..."
           }
         },
         "it" : {
@@ -36010,7 +36191,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Filler"
           }
         },
@@ -36195,7 +36376,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Filter"
           }
         },
@@ -36751,8 +36932,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Flat"
+            "state" : "translated",
+            "value" : "Datar"
           }
         },
         "it" : {
@@ -37676,8 +37857,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Found a bug or have an idea? Report it — logs and specs are attached for you."
+            "state" : "translated",
+            "value" : "Menemukan masalah atau punya ide? Laporkan kepada kami — log dan spesifikasi perangkat akan otomatis disertakan."
           }
         },
         "it" : {
@@ -38416,7 +38597,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "GitHub"
           }
         },
@@ -41007,7 +41188,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Hip-Hop"
           }
         },
@@ -42117,7 +42298,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Hz"
           }
         },
@@ -43227,8 +43408,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Install yt-dlp"
+            "state" : "translated",
+            "value" : "Unduh dan instal yt-dlp"
           }
         },
         "it" : {
@@ -43782,8 +43963,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Interaction Reminder"
+            "state" : "translated",
+            "value" : "Pengingat Interaksi"
           }
         },
         "it" : {
@@ -43967,7 +44148,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Intro"
           }
         },
@@ -44152,8 +44333,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid video URL"
+            "state" : "translated",
+            "value" : "Tautan video tidak valid"
           }
         },
         "it" : {
@@ -44337,7 +44518,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Item %lld"
           }
         },
@@ -44523,7 +44704,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Jazz"
           }
         },
@@ -44893,8 +45074,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Jump to chapter: %arg"
+            "state" : "translated",
+            "value" : "Lompat ke bagian: %a"
           }
         },
         "it" : {
@@ -45078,8 +45259,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Jump to live"
+            "state" : "translated",
+            "value" : "Buka siaran langsung"
           }
         },
         "it" : {
@@ -45263,7 +45444,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "KasetPlus"
           }
         },
@@ -47114,7 +47295,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "LIVE"
           }
         },
@@ -48410,7 +48591,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Latin"
           }
         },
@@ -50075,8 +50256,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "List Row"
+            "state" : "translated",
+            "value" : "Tampilan Daftar"
           }
         },
         "it" : {
@@ -50445,7 +50626,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Live"
           }
         },
@@ -50815,8 +50996,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Live stream"
+            "state" : "translated",
+            "value" : "Siaran Langsung"
           }
         },
         "it" : {
@@ -54517,8 +54698,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Loudness"
+            "state" : "translated",
+            "value" : "Kekerasan suara"
           }
         },
         "it" : {
@@ -54703,8 +54884,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Lounge"
+            "state" : "translated",
+            "value" : "Ruang tunggu"
           }
         },
         "it" : {
@@ -55073,8 +55254,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "MP3 (audio only)"
+            "state" : "translated",
+            "value" : "MP3 (hanya audio)"
           }
         },
         "it" : {
@@ -55628,7 +55809,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Mix"
           }
         },
@@ -60808,8 +60989,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No active support found for that email yet."
+            "state" : "translated",
+            "value" : "Tidak ditemukan permintaan bantuan aktif untuk email ini."
           }
         },
         "it" : {
@@ -60919,7 +61100,188 @@
     "No albums yet" : {
       "comment" : "Empty-state title in Your Library's Albums section when the user has saved no albums.",
       "extractionState" : "manual",
-      "localizations" : {}
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا توجد ألبومات بعد"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Alben"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todavía no hay álbumes"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun album pour le moment"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belum ada album"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun album ancora"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 앨범이 없습니다"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen albums"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie ma jeszcze albumów"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ainda não há álbuns"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Альбомов пока нет"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga album ännu"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz albüm yok"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поки що немає альбомів"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No albums yet"
+          }
+        }
+      }
     },
     "No artists yet" : {
       "comment" : "Your Library page (playlists, liked songs, subscribed podcasts — including empty states).",
@@ -61183,8 +61545,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No captions available to summarize this video."
+            "state" : "translated",
+            "value" : "Tidak ditemukan caption untuk meringkas video ini."
           }
         },
         "it" : {
@@ -61738,8 +62100,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No discussions yet"
+            "state" : "translated",
+            "value" : "Belum ada diskusi"
           }
         },
         "it" : {
@@ -61923,8 +62285,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No formats available. Is yt-dlp installed?"
+            "state" : "translated",
+            "value" : "Tidak ada format tersedia. Apakah yt-dlp sudah terinstal?"
           }
         },
         "it" : {
@@ -62478,8 +62840,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No open issues"
+            "state" : "translated",
+            "value" : "Tidak ada isu yang terbuka"
           }
         },
         "it" : {
@@ -64513,8 +64875,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Non-Music"
+            "state" : "translated",
+            "value" : "Non-Musik"
           }
         },
         "it" : {
@@ -66363,8 +66725,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Nothing here yet"
+            "state" : "translated",
+            "value" : "Belum ada apa pun di sini"
           }
         },
         "it" : {
@@ -66659,7 +67021,188 @@
     "Notification settings" : {
       "comment" : "Tooltip on the YouTube channel notification 'bell' button.",
       "extractionState" : "manual",
-      "localizations" : {}
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengaturan notifikasi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Notification settings"
+          }
+        }
+      }
     },
     "Notifications" : {
       "comment" : "Title of the YouTube channel notification 'bell' menu (per-channel: All / Personalized / None).",
@@ -66923,8 +67466,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Notifications, %arg unread"
+            "state" : "translated",
+            "value" : "Notifikasi, %a belum dibaca"
           }
         },
         "it" : {
@@ -67663,7 +68206,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "OK"
           }
         },
@@ -68403,8 +68946,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "One-time tip or monthly membership — your choice"
+            "state" : "translated",
+            "value" : "Tip sekali atau langganan bulanan — pilihan ada di tangan Anda"
           }
         },
         "it" : {
@@ -69144,8 +69687,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open System Settings → Privacy & Security → Screen & System Audio Recording and enable KasetPlus, then retry playback or toggle the equalizer off and on."
+            "state" : "translated",
+            "value" : "Buka Pengaturan Sistem → Privasi & Keamanan → Perekaman Layar & Audio Sistem, lalu aktifkan KasetPlus. Setelah itu, coba putar lagi atau nonaktifkan lalu aktifkan kembali ekualiser."
           }
         },
         "it" : {
@@ -70070,7 +70613,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Original Kaset"
           }
         },
@@ -70440,7 +70983,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Outro"
           }
         },
@@ -70810,8 +71353,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Paused:"
+            "state" : "translated",
+            "value" : "Dihentikan:"
           }
         },
         "it" : {
@@ -71182,7 +71725,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Piano"
           }
         },
@@ -71367,8 +71910,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Picture in Picture"
+            "state" : "translated",
+            "value" : "Mode Picture in Picture"
           }
         },
         "it" : {
@@ -73217,8 +73760,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Playback Controls"
+            "state" : "translated",
+            "value" : "Kontrol Pemutaran"
           }
         },
         "it" : {
@@ -73957,8 +74500,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Playing:"
+            "state" : "translated",
+            "value" : "Memainkan:"
           }
         },
         "it" : {
@@ -75067,7 +75610,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Podcast"
           }
         },
@@ -75438,7 +75981,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Pop"
           }
         },
@@ -75993,8 +76536,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Post"
+            "state" : "translated",
+            "value" : "Unggah"
           }
         },
         "it" : {
@@ -76364,7 +76907,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Preamp"
           }
         },
@@ -76549,8 +77092,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Preparing download..."
+            "state" : "translated",
+            "value" : "Menyiapkan untuk mendownload..."
           }
         },
         "it" : {
@@ -76735,7 +77278,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Preset"
           }
         },
@@ -77105,8 +77648,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Preview / Recap"
+            "state" : "translated",
+            "value" : "Pratinjau / Rekap"
           }
         },
         "it" : {
@@ -77660,8 +78203,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Privacy"
+            "state" : "translated",
+            "value" : "Privasi"
           }
         },
         "it" : {
@@ -79142,7 +79685,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "R&B"
           }
         },
@@ -83397,8 +83940,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Replaces clickbait titles with accurate ones."
+            "state" : "translated",
+            "value" : "Mengganti judul clickbait dengan judul yang lebih akurat."
           }
         },
         "it" : {
@@ -83582,8 +84125,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Report an issue"
+            "state" : "translated",
+            "value" : "Laporkan masalah"
           }
         },
         "it" : {
@@ -83767,8 +84310,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Report an issue or join the KasetPlus community"
+            "state" : "translated",
+            "value" : "Laporkan masalah atau bergabung ke komunitas KasetPlus"
           }
         },
         "it" : {
@@ -83952,8 +84495,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Report bugs with logs and specs attached automatically"
+            "state" : "translated",
+            "value" : "Laporkan bug dengan log dan spesifikasi yang dilampirkan secara otomatis"
           }
         },
         "it" : {
@@ -84878,8 +85421,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Return YouTube Dislikes"
+            "state" : "translated",
+            "value" : "Menampilkan kembali jumlah Dislikes YouTube"
           }
         },
         "it" : {
@@ -85249,7 +85792,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Rock"
           }
         },
@@ -85545,7 +86088,188 @@
     "Save albums on YouTube Music to see them here." : {
       "comment" : "Empty-state subtitle in Your Library's Albums section (prompt to save albums).",
       "extractionState" : "manual",
-      "localizations" : {}
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "احفظ الألبومات على YouTube Music لتراها هنا."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichere Alben auf YouTube Music, um sie hier zu sehen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda álbumes en YouTube Music para verlos aquí."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrez des albums sur YouTube Music pour les voir ici."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simpan album di YouTube Music untuk melihatnya di sini."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salva album su YouTube Music per vederli qui."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "여기에서 보려면 YouTube Music에서 앨범을 저장하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bewaar albums op YouTube Music om ze hier te zien."
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisuj albumy w YouTube Music, aby zobaczyć je tutaj."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarde álbuns no YouTube Music para os ver aqui."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохраняйте альбомы в YouTube Music, чтобы видеть их здесь."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spara album i YouTube Music för att se dem här."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Burada görmek için YouTube Music'te albümleri kaydedin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зберігайте альбоми в YouTube Music, щоб побачити їх тут."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save albums on YouTube Music to see them here."
+          }
+        }
+      }
     },
     "Save playlists and subscribe to podcasts on YouTube Music to see them here." : {
       "comment" : "Empty-state message in Your Library when it has no saved playlists or podcasts.",
@@ -86735,7 +87459,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Scrobbling"
           }
         },
@@ -87290,8 +88014,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Scroll %arg left"
+            "state" : "translated",
+            "value" : "Scroll %arg ke kiri"
           }
         },
         "it" : {
@@ -87475,8 +88199,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Scroll %arg right"
+            "state" : "translated",
+            "value" : "Scroll %arg ke kanan"
           }
         },
         "it" : {
@@ -88215,8 +88939,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Search artist - title..."
+            "state" : "translated",
+            "value" : "Telusuri artis - judul..."
           }
         },
         "it" : {
@@ -88400,8 +89124,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Search comments…"
+            "state" : "translated",
+            "value" : "Telusuri komentar…"
           }
         },
         "it" : {
@@ -89695,8 +90419,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Self-promotion"
+            "state" : "translated",
+            "value" : "Promosi diri"
           }
         },
         "it" : {
@@ -89880,8 +90604,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send chat message"
+            "state" : "translated",
+            "value" : "Mengirim pesan"
           }
         },
         "it" : {
@@ -90250,8 +90974,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Share anonymous diagnostics"
+            "state" : "translated",
+            "value" : "Bagikan diagnostik anonimus"
           }
         },
         "it" : {
@@ -90435,8 +91159,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Short summary"
+            "state" : "translated",
+            "value" : "Ringkasan pendek"
           }
         },
         "it" : {
@@ -90620,7 +91344,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Shorts"
           }
         },
@@ -91175,8 +91899,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show Controls on the Video"
+            "state" : "translated",
+            "value" : "Tampilkan kontrol di video"
           }
         },
         "it" : {
@@ -91360,8 +92084,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show DeArrow title"
+            "state" : "translated",
+            "value" : "Tampilkan panah DeArrow"
           }
         },
         "it" : {
@@ -92655,8 +93379,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show all %arg"
+            "state" : "translated",
+            "value" : "Tampilkan semua %arg"
           }
         },
         "it" : {
@@ -92840,8 +93564,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show fewer"
+            "state" : "translated",
+            "value" : "Tampilkan lebih sedikit"
           }
         },
         "it" : {
@@ -93025,8 +93749,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show in Finder"
+            "state" : "translated",
+            "value" : "Tampilkan di Finder"
           }
         },
         "it" : {
@@ -93395,8 +94119,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show original title"
+            "state" : "translated",
+            "value" : "Tampilkan judul asli"
           }
         },
         "it" : {
@@ -93580,8 +94304,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show playback controls overlaid on the video (on hover) instead of in the docked bar at the bottom."
+            "state" : "translated",
+            "value" : "Tampilkan kontrol pemutaran di atas video (saat kursor diarahkan), bukan di baris bawah."
           }
         },
         "it" : {
@@ -94135,8 +94859,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Shows dislike counts on videos."
+            "state" : "translated",
+            "value" : "Tampilkan jumlah dislike pada video."
           }
         },
         "it" : {
@@ -96170,8 +96894,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Sign in to use %arg"
+            "state" : "translated",
+            "value" : "Masuk untuk menggunakan %arg"
           }
         },
         "it" : {
@@ -96355,8 +97079,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Sign in with GitHub to do that."
+            "state" : "translated",
+            "value" : "Masuk dengan GitHub untuk melakukannya."
           }
         },
         "it" : {
@@ -97280,8 +98004,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Skipped"
+            "state" : "translated",
+            "value" : "Dilewati"
           }
         },
         "it" : {
@@ -99317,7 +100041,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Sponsor"
           }
         },
@@ -99502,7 +100226,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "SponsorBlock"
           }
         },
@@ -100057,8 +100781,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start a discussion"
+            "state" : "translated",
+            "value" : "Mulai diskusi"
           }
         },
         "it" : {
@@ -100612,8 +101336,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Submit"
+            "state" : "translated",
+            "value" : "Ajukan"
           }
         },
         "it" : {
@@ -102462,8 +103186,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support KasetPlus on Ko-fi"
+            "state" : "translated",
+            "value" : "Dukung KasetPlus di Ko-fi"
           }
         },
         "it" : {
@@ -102647,8 +103371,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support on Ko-fi"
+            "state" : "translated",
+            "value" : "Dukung di Ko-fi"
           }
         },
         "it" : {
@@ -104127,7 +104851,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Template"
           }
         },
@@ -104312,8 +105036,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Thanks for the tip — supporter perks are active until %arg."
+            "state" : "translated",
+            "value" : "Terima kasih atas tip Anda. Keuntungan pendukung aktif hingga %arg."
           }
         },
         "it" : {
@@ -104497,8 +105221,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Thanks for your monthly support — you’re keeping the lights on. 🙏"
+            "state" : "translated",
+            "value" : "Terima kasih atas tip Anda! Keuntungan sebagai pendukung akan aktif hingga %arg"
           }
         },
         "it" : {
@@ -106351,8 +107075,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Title"
+            "state" : "translated",
+            "value" : "Judul"
           }
         },
         "it" : {
@@ -109794,7 +110518,188 @@
     "Unsubscribe" : {
       "comment" : "Button to stop following a YouTube channel (it: 'Annulla iscrizione').",
       "extractionState" : "manual",
-      "localizations" : {}
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Berhenti Berlangganan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unsubscribe"
+          }
+        }
+      }
     },
     "Up Next" : {
       "comment" : "Reusable label shown in the queue panel, the queue.",
@@ -110613,8 +111518,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Upvote the ideas that matter to you"
+            "state" : "translated",
+            "value" : "Dukung ide yang penting bagi Anda dengan upvote"
           }
         },
         "it" : {
@@ -110983,8 +111888,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Verification isn’t available yet."
+            "state" : "translated",
+            "value" : "Verifikasi belum tersedia."
           }
         },
         "it" : {
@@ -111168,8 +112073,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Verified — thank you! 💗"
+            "state" : "translated",
+            "value" : "Terverifikasi! — terima kasih! 💗"
           }
         },
         "it" : {
@@ -111538,7 +112443,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Video"
           }
         },
@@ -114314,7 +115219,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Volume"
           }
         },
@@ -115610,8 +116515,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Watched %arg%%"
+            "state" : "translated",
+            "value" : "Ditonton %arg%%"
           }
         },
         "it" : {
@@ -117275,8 +118180,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "When something breaks while loading data from YouTube, KasetPlus sends an anonymous report — no account, no personal data, no listening history — so it can be fixed quickly. You can turn this off at any time."
+            "state" : "translated",
+            "value" : "Jika terjadi masalah saat memuat data dari YouTube, KasetPlus akan mengirimkan laporan anonim—tanpa akun, data pribadi, atau riwayat mendengarkan—agar masalah dapat segera diperbaiki. Anda dapat menonaktifkan fitur ini kapan saja."
           }
         },
         "it" : {
@@ -117645,7 +118550,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "YouTube"
           }
         },
@@ -118311,7 +119216,188 @@
     "and" : {
       "comment" : "Conjunction joining two collaborating YouTube channel names, e.g. 'Channel A and Channel B'.",
       "extractionState" : "manual",
-      "localizations" : {}
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and"
+          }
+        }
+      }
     },
     "e.g., Remove slow songs, reorder by energy..." : {
       "comment" : "Playlist 'Refine with AI' sheet (Apple Intelligence playlist editing).",
@@ -118945,8 +120031,8 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "yt-dlp not found."
+            "state" : "translated",
+            "value" : "yt-dlp tidak ditemukan."
           }
         },
         "it" : {
@@ -119130,7 +120216,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "•"
           }
         },
@@ -119315,7 +120401,7 @@
         },
         "id" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "⌘K"
           }
         },
