@@ -34,6 +34,13 @@ final class YouTubeWatchViewModel {
     /// The channel's notification "bell" preference, when subscribed.
     private(set) var notificationPreference: ChannelNotificationPreference?
 
+    /// Credited channels on a collaboration upload (empty for single-owner videos).
+    private(set) var collaborators: [VideoCollaborator] = []
+    /// Live subscribed state per collaborator channel (optimistic; seeded from load).
+    private(set) var collaboratorSubscribed: [String: Bool] = [:]
+    /// Live notification "bell" preference per collaborator channel.
+    private(set) var collaboratorNotification: [String: ChannelNotificationPreference] = [:]
+
     // MARK: - Comments State
 
     /// Loaded comments (top-level threads).
@@ -112,6 +119,17 @@ final class YouTubeWatchViewModel {
             self.data = data
             self.isSubscribed = data.isSubscribed ?? false
             self.notificationPreference = data.notificationPreference
+            self.collaborators = data.collaborators
+            self.collaboratorSubscribed = Dictionary(
+                data.collaborators.map { ($0.channelId, $0.isSubscribed) },
+                uniquingKeysWith: { first, _ in first }
+            )
+            self.collaboratorNotification = Dictionary(
+                data.collaborators.compactMap { collaborator in
+                    collaborator.notification.map { (collaborator.channelId, $0) }
+                },
+                uniquingKeysWith: { first, _ in first }
+            )
             self.commentsContinuation = data.commentsContinuation
             self.loadingState = .loaded
             if self.isLive, let liveChat = data.liveChatContinuation {
@@ -353,6 +371,52 @@ final class YouTubeWatchViewModel {
         } catch {
             self.logger.error("Failed to change notification preference: \(error.localizedDescription)")
             self.notificationPreference = previous
+        }
+    }
+
+    // MARK: - Collaborators
+
+    /// Whether the signed-in user is subscribed to a collaborator's channel.
+    func isSubscribed(toCollaborator channelId: String) -> Bool {
+        self.collaboratorSubscribed[channelId] ?? false
+    }
+
+    /// Subscribes/unsubscribes a single collaborator (optimistic with rollback).
+    func toggleSubscribed(collaborator: VideoCollaborator) async {
+        let wasSubscribed = self.isSubscribed(toCollaborator: collaborator.channelId)
+        self.collaboratorSubscribed[collaborator.channelId] = !wasSubscribed
+        do {
+            try await self.client.setSubscribed(!wasSubscribed, channelId: collaborator.channelId)
+            HapticService.toggle()
+        } catch {
+            self.logger.error("Failed to change collaborator subscription: \(error.localizedDescription)")
+            self.collaboratorSubscribed[collaborator.channelId] = wasSubscribed
+        }
+    }
+
+    /// Applies a notification "bell" preference for a single collaborator
+    /// (optimistic with rollback).
+    func setNotificationPreference(
+        _ option: ChannelNotificationPreference.Option,
+        forCollaborator channelId: String
+    ) async {
+        guard let preference = self.collaboratorNotification[channelId] else { return }
+        let previous = preference
+        self.collaboratorNotification[channelId] = ChannelNotificationPreference(
+            channelId: preference.channelId,
+            options: preference.options.map {
+                ChannelNotificationPreference.Option(
+                    level: $0.level, label: $0.label, params: $0.params, isCurrent: $0.params == option.params
+                )
+            },
+            unsubscribeLabel: preference.unsubscribeLabel
+        )
+        do {
+            try await self.client.modifyNotificationPreference(params: option.params)
+            HapticService.toggle()
+        } catch {
+            self.logger.error("Failed to change collaborator notification preference: \(error.localizedDescription)")
+            self.collaboratorNotification[channelId] = previous
         }
     }
 }

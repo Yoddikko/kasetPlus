@@ -360,6 +360,128 @@ struct WatchNextParserTests {
         #expect(parsed.descriptionText == "00:00 Artist A - Track One\n03:00 Artist B - Track Two")
     }
 
+    @Test("Parses collaboration-upload owners with per-channel subscribe and bell")
+    func parsesCollaborators() throws {
+        let parsed = WatchNextParser.parse(Self.collaboratorOwnerResponse())
+
+        // The single-owner parse is empty for a collaboration upload.
+        #expect(parsed.channel == nil)
+        #expect(parsed.collaborators.count == 2)
+
+        let first = try #require(parsed.collaborators.first)
+        #expect(first.channelId == "UC_virtual")
+        #expect(first.name == "Virtual Carbon")
+        #expect(first.isVerified)
+        #expect(first.handle == "@VirtualCarbon")
+        #expect(first.subscriberText == "246K subscribers")
+        #expect(first.avatarURL?.absoluteString == "https://example.com/vc.jpg")
+        #expect(first.isSubscribed) // from the entity store
+        let bell = try #require(first.notification)
+        #expect(bell.options.count == 2) // Personalized + None (Unsubscribe excluded)
+        #expect(bell.currentLevel == .personalized)
+        #expect(bell.unsubscribeLabel == "Unsubscribe")
+        #expect(bell.options.contains { $0.params == "params-personalized" })
+
+        let second = parsed.collaborators[1]
+        #expect(second.channelId == "UC_vzion")
+        #expect(second.isVerified)
+        #expect(!second.isSubscribed)
+    }
+
+    private static func collaboratorListItem(
+        name: String,
+        channelId: String,
+        handle: String,
+        subscribers: String,
+        avatar: String,
+        stateKey: String
+    ) -> [String: Any] {
+        [
+            "listItemViewModel": [
+                "title": [
+                    "content": name,
+                    "attachmentRuns": [["element": ["type": ["imageType": ["image": ["sources": [
+                        ["clientResource": ["imageName": "CHECK_CIRCLE_FILLED"]],
+                    ]]]]]]],
+                ],
+                // YouTube wraps each run in bidi isolate controls; the parser strips them.
+                "subtitle": ["content": "\u{2066}\(handle)\u{2069} • \u{2066}\(subscribers)\u{2069}"],
+                "leadingAccessory": ["avatarViewModel": ["image": ["sources": [["url": avatar]]]]],
+                "trailingButtons": ["buttons": [[
+                    "subscribeButtonViewModel": [
+                        "channelId": channelId,
+                        "stateEntityStoreKey": stateKey,
+                        "disableNotificationBell": false,
+                        "onShowSubscriptionOptions": ["innertubeCommand": ["showSheetCommand": [
+                            "panelLoadingStrategy": ["inlineContent": ["sheetViewModel": [
+                                "content": ["listViewModel": ["listItems": [
+                                    self.bellOption("Personalized", "NOTIFICATIONS_NONE", "params-personalized", selected: true),
+                                    self.bellOption("None", "NOTIFICATIONS_OFF", "params-none", selected: false),
+                                    ["listItemViewModel": [
+                                        "title": ["content": "Unsubscribe"],
+                                        "leadingImage": ["sources": [["clientResource": ["imageName": "PERSON_MINUS"]]]],
+                                    ]],
+                                ]]],
+                            ]]],
+                        ]]],
+                    ],
+                ]]],
+            ],
+        ]
+    }
+
+    private static func bellOption(
+        _ label: String, _ icon: String, _ params: String, selected: Bool
+    ) -> [String: Any] {
+        [
+            "listItemViewModel": [
+                "title": ["content": label],
+                "isSelected": selected,
+                "leadingImage": ["sources": [["clientResource": ["imageName": icon]]]],
+                "rendererContext": ["commandContext": ["onTap": ["innertubeCommand": [
+                    "modifyChannelNotificationPreferenceEndpoint": ["params": params],
+                ]]]],
+            ],
+        ]
+    }
+
+    private static func collaboratorOwnerResponse() -> [String: Any] {
+        let listItems: [Any] = [
+            self.collaboratorListItem(
+                name: "Virtual Carbon", channelId: "UC_virtual",
+                handle: "@VirtualCarbon", subscribers: "246K subscribers",
+                avatar: "https://example.com/vc.jpg", stateKey: "key-vc"
+            ),
+            self.collaboratorListItem(
+                name: "VZION", channelId: "UC_vzion",
+                handle: "@vzion", subscribers: "354K subscribers",
+                avatar: "https://example.com/vz.jpg", stateKey: "key-vz"
+            ),
+        ]
+        let dialog: [String: Any] = [
+            "customContent": ["listViewModel": ["listItems": listItems]],
+        ]
+        let owner: [String: Any] = [
+            "attributedTitle": ["content": "Virtual Carbon and VZION"],
+            "avatarStack": ["avatarStackViewModel": ["avatars": [
+                ["avatarViewModel": ["image": ["sources": [["url": "https://example.com/vc.jpg"]]]]],
+            ]]],
+            "navigationEndpoint": ["showDialogCommand": ["panelLoadingStrategy": [
+                "inlineContent": ["dialogViewModel": dialog],
+            ]]],
+        ]
+        let secondary: [String: Any] = [
+            "videoSecondaryInfoRenderer": ["owner": ["videoOwnerRenderer": owner]],
+        ]
+        return [
+            "contents": ["twoColumnWatchNextResults": ["results": ["results": ["contents": [secondary]]]]],
+            "frameworkUpdates": ["entityBatchUpdate": ["mutations": [
+                ["payload": ["subscriptionStateEntity": ["key": "key-vc", "subscribed": true]]],
+                ["payload": ["subscriptionStateEntity": ["key": "key-vz", "subscribed": false]]],
+            ]]],
+        ]
+    }
+
     private static func chapterRendererResponse() -> [String: Any] {
         [
             "currentVideoEndpoint": [

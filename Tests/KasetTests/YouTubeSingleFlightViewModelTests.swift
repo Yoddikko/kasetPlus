@@ -427,6 +427,10 @@ private final class SingleFlightYouTubeClient: YouTubeClientProtocol {
         try await self.waitIfNeeded()
     }
 
+    func modifyNotificationPreference(params _: String) async throws {
+        try await self.waitIfNeeded()
+    }
+
     func addToWatchLater(videoId _: String) async throws {
         try await self.waitIfNeeded()
     }

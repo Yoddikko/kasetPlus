@@ -292,6 +292,7 @@ final class MockYouTubeClient: YouTubeClientProtocol {
 
     private(set) var ratedVideos: [(videoId: String, rating: YouTubeRating)] = []
     private(set) var subscriptionChanges: [(channelId: String, subscribed: Bool)] = []
+    private(set) var notificationPreferenceChanges: [String] = []
     private(set) var watchLaterAdds: [String] = []
     private(set) var watchLaterRemovals: [String] = []
     private(set) var lastDestination: YouTubeDestination?
@@ -404,6 +405,13 @@ final class MockYouTubeClient: YouTubeClientProtocol {
             throw error
         }
         self.subscriptionChanges.append((channelId, subscribed))
+    }
+
+    func modifyNotificationPreference(params: String) async throws {
+        if let error {
+            throw error
+        }
+        self.notificationPreferenceChanges.append(params)
     }
 
     func addToWatchLater(videoId: String) async throws {

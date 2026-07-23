@@ -39,6 +39,9 @@ struct YouTubeWatchView: View {
     @State private var commentSearchQuery = ""
     @State private var liveChatDraft = ""
 
+    /// Whether the "Collaborators" picker (for multi-channel uploads) is showing.
+    @State private var showsCollaborators = false
+
     // AI video summary (on-device, macOS 26+). Stored as plain values so the
     // view doesn't reference the macOS-26-only VideoSummary type outside a guard.
     @State private var showsSummary = false
@@ -506,7 +509,9 @@ struct YouTubeWatchView: View {
                 }
             }
 
-            if let channel = self.viewModel.data.channel {
+            if !self.viewModel.collaborators.isEmpty {
+                self.collaboratorsRow(self.viewModel.collaborators)
+            } else if let channel = self.viewModel.data.channel {
                 HStack(spacing: 12) {
                     NavigationLink(value: YouTubeRoute.channel(channelId: channel.channelId)) {
                         HStack(spacing: 10) {
@@ -1048,6 +1053,81 @@ struct YouTubeWatchView: View {
                 Task { await self.viewModel.setNotificationPreference(option) }
             }
         )
+    }
+
+    // MARK: - Collaborators
+
+    /// The owner row for a collaboration upload: a stacked avatar cluster and the
+    /// credited channel names, tapping either the row or the trailing pill opens
+    /// the "Collaborators" picker with a Subscribe + bell per channel.
+    private func collaboratorsRow(_ collaborators: [VideoCollaborator]) -> some View {
+        let allSubscribed = collaborators.allSatisfy {
+            self.viewModel.isSubscribed(toCollaborator: $0.channelId)
+        }
+        return HStack(spacing: 12) {
+            Button {
+                self.showsCollaborators = true
+            } label: {
+                HStack(spacing: 10) {
+                    CollaboratorAvatarStack(urls: collaborators.compactMap(\.avatarURL))
+                    self.collaboratorNames(collaborators)
+                        .font(.system(size: 13))
+                        .lineLimit(1)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if self.hasPersonalAccount {
+                Button {
+                    self.showsCollaborators = true
+                } label: {
+                    Text(allSubscribed
+                        ? String(localized: "Subscribed")
+                        : String(localized: "Subscribe"))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(allSubscribed ? AnyShapeStyle(.primary) : AnyShapeStyle(.white))
+                        .padding(.horizontal, 16)
+                        .frame(height: 36)
+                        .compatGlass(
+                            interactive: true,
+                            tint: allSubscribed ? nil : Self.brandAccent,
+                            in: Capsule()
+                        )
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .popover(isPresented: self.$showsCollaborators, arrowEdge: .bottom) {
+            CollaboratorsPopover(
+                collaborators: collaborators,
+                viewModel: self.viewModel,
+                showsControls: self.hasPersonalAccount
+            )
+        }
+    }
+
+    /// The credited channel names joined the way YouTube shows them — "A and B",
+    /// each followed by its verified badge.
+    private func collaboratorNames(_ collaborators: [VideoCollaborator]) -> Text {
+        var result = Text("")
+        for (index, collaborator) in collaborators.enumerated() {
+            if index > 0 {
+                let separator = index == collaborators.count - 1
+                    ? " \(String(localized: "and")) "
+                    : ", "
+                result = result + Text(separator).foregroundColor(.secondary)
+            }
+            result = result + Text(collaborator.name).fontWeight(.semibold)
+            if collaborator.isVerified {
+                result = result + Text(" ")
+                    + Text(Image(systemName: "checkmark.seal.fill")).foregroundColor(.secondary)
+            }
+        }
+        return result
     }
 
     // MARK: - Chapters
@@ -1919,4 +1999,197 @@ extension AccessibilityID.YouTubeContent {
     static let commentPostButton = "youtubeContent.commentPostButton"
     static let subscribeButton = "youtubeContent.subscribeButton"
     static let watchMoveHere = "youtubeContent.watchMoveHere"
+}
+
+// MARK: - CollaboratorAvatarStack
+
+/// Overlapping avatar cluster for a collaboration upload's owner row, matching
+/// YouTube's stacked-avatar look.
+private struct CollaboratorAvatarStack: View {
+    let urls: [URL]
+
+    var body: some View {
+        HStack(spacing: -10) {
+            ForEach(Array(self.urls.prefix(3).enumerated()), id: \.offset) { _, url in
+                CachedAsyncImage(
+                    url: url,
+                    targetSize: CGSize(width: 36, height: 36)
+                ) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Circle().fill(.quaternary)
+                }
+                .frame(width: 32, height: 32)
+                .clipShape(.circle)
+                .overlay(Circle().stroke(Color(nsColor: .windowBackgroundColor), lineWidth: 2))
+            }
+        }
+    }
+}
+
+// MARK: - CollaboratorsPopover
+
+/// The "Collaborators" picker for a multi-channel upload: each credited channel
+/// with its own Subscribe button and notification "bell".
+private struct CollaboratorsPopover: View {
+    let collaborators: [VideoCollaborator]
+    let viewModel: YouTubeWatchViewModel
+    let showsControls: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Collaborators", comment: "Header for the multi-channel collaboration picker")
+                .font(.headline)
+
+            ForEach(self.collaborators) { collaborator in
+                CollaboratorRow(
+                    collaborator: collaborator,
+                    viewModel: self.viewModel,
+                    showsControls: self.showsControls
+                )
+            }
+        }
+        .padding(20)
+        .frame(width: 360)
+    }
+}
+
+// MARK: - CollaboratorRow
+
+/// A single collaborator inside the picker: avatar, name + verified badge,
+/// handle · subscribers, and a Subscribe/bell control mirroring the watch page's
+/// single-channel one.
+private struct CollaboratorRow: View {
+    static let brandAccent = PackageResourceLookup.brandAccent
+
+    let collaborator: VideoCollaborator
+    let viewModel: YouTubeWatchViewModel
+    let showsControls: Bool
+
+    private var isSubscribed: Bool {
+        self.viewModel.isSubscribed(toCollaborator: self.collaborator.channelId)
+    }
+
+    private var preference: ChannelNotificationPreference? {
+        self.viewModel.collaboratorNotification[self.collaborator.channelId]
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            CachedAsyncImage(
+                url: self.collaborator.avatarURL,
+                targetSize: CGSize(width: 40, height: 40)
+            ) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle().fill(.quaternary)
+            }
+            .frame(width: 40, height: 40)
+            .clipShape(.circle)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Text(self.collaborator.name)
+                        .font(.system(size: 13, weight: .semibold))
+                        .lineLimit(1)
+                    if self.collaborator.isVerified {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                if let detail = self.collaborator.detail {
+                    Text(detail)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            if self.showsControls {
+                self.control
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var control: some View {
+        if self.isSubscribed, let preference {
+            self.bellMenu(preference)
+        } else {
+            Button {
+                Task { await self.viewModel.toggleSubscribed(collaborator: self.collaborator) }
+            } label: {
+                Text(self.isSubscribed
+                    ? String(localized: "Subscribed")
+                    : String(localized: "Subscribe"))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(self.isSubscribed ? AnyShapeStyle(.primary) : AnyShapeStyle(.white))
+                    .padding(.horizontal, 14)
+                    .frame(height: 32)
+                    .compatGlass(
+                        interactive: true,
+                        tint: self.isSubscribed ? nil : Self.brandAccent,
+                        in: Capsule()
+                    )
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func bellMenu(_ preference: ChannelNotificationPreference) -> some View {
+        Menu {
+            Picker(String(localized: "Notifications"), selection: self.selection(preference)) {
+                ForEach(preference.options) { option in
+                    Label(option.label, systemImage: option.level.symbolName).tag(option.id)
+                }
+            }
+            .pickerStyle(.inline)
+
+            Divider()
+
+            Button(role: .destructive) {
+                Task { await self.viewModel.toggleSubscribed(collaborator: self.collaborator) }
+            } label: {
+                Label(preference.unsubscribeLabel, systemImage: "person.fill.xmark")
+            }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: preference.currentLevel.symbolName)
+                    .font(.system(size: 12))
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .semibold))
+            }
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 12)
+            .frame(height: 32)
+            .compatGlass(interactive: true, tint: nil, in: Capsule())
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(String(localized: "Notification settings"))
+    }
+
+    private func selection(_ preference: ChannelNotificationPreference) -> Binding<String> {
+        Binding(
+            get: { preference.current?.id ?? "" },
+            set: { newID in
+                guard let option = preference.options.first(where: { $0.id == newID }) else { return }
+                Task {
+                    await self.viewModel.setNotificationPreference(
+                        option, forCollaborator: self.collaborator.channelId
+                    )
+                }
+            }
+        )
+    }
 }
