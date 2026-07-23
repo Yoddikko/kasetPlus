@@ -30,6 +30,23 @@ struct YouTubePlayerBar: View {
     @MainActor private static var brandAccent: Color { SettingsManager.shared.accentColor }
     private static let fullVideoDetailsWidth: CGFloat = 294
     private static let compactVideoDetailsWidth: CGFloat = 141
+
+    /// How densely the trailing option buttons are packed. On a narrow bar (the
+    /// pop-out/PiP window can shrink to ~480pt wide) the secondary options
+    /// collapse into a single "•••" overflow menu so the transport controls keep
+    /// room and never overlap the elapsed/remaining time labels.
+    private enum OptionsTier {
+        case full // every option inline
+        case reduced // full-view + overflow menu + PiP
+    }
+
+    /// Below this bar width the thumbnail/title details are dropped entirely to
+    /// give the transport controls and progress lane room (the main window is
+    /// always far wider, so it is unaffected).
+    private static let detailsCollapseWidth: CGFloat = 600
+    /// At/above this bar width every option button is shown inline; below it they
+    /// collapse into the overflow menu.
+    private static let fullOptionsWidth: CGFloat = 680
     /// When the video has chapters, the progress lane floats a chapter tooltip
     /// above the track; lift the scrub bubble just enough that its timestamp
     /// capsule sits a little above the chapter tooltip instead of landing on it
@@ -133,21 +150,26 @@ struct YouTubePlayerBar: View {
     private var dockedBar: some View {
         CompatGlassContainer(spacing: 0) {
             GeometryReader { proxy in
-                let usesCompactDetails = proxy.size.width <= PlayerBarLayout.compactDetailsBreakpoint
+                let width = proxy.size.width
+                let usesCompactDetails = width <= PlayerBarLayout.compactDetailsBreakpoint
+                let showsDetails = width >= Self.detailsCollapseWidth
+                let optionsTier: OptionsTier = width >= Self.fullOptionsWidth ? .full : .reduced
 
                 HStack(spacing: 10) {
-                    self.videoDetailsSection(usesCompactDetails: usesCompactDetails)
-                        .frame(
-                            width: usesCompactDetails ? Self.compactVideoDetailsWidth : Self.fullVideoDetailsWidth,
-                            height: 52
-                        )
+                    if showsDetails {
+                        self.videoDetailsSection(usesCompactDetails: usesCompactDetails)
+                            .frame(
+                                width: usesCompactDetails ? Self.compactVideoDetailsWidth : Self.fullVideoDetailsWidth,
+                                height: 52
+                            )
+                    }
 
                     self.youtubeProgressSection(showsHeatmap: false)
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
 
-                    self.youtubeOptionsSection
-                        .frame(width: self.youtubeOptionsWidth, height: 52)
+                    self.youtubeOptionsSection(tier: optionsTier)
+                        .frame(width: self.youtubeOptionsWidth(tier: optionsTier), height: 52)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -171,8 +193,8 @@ struct YouTubePlayerBar: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
 
-            self.youtubeOptionsSection
-                .frame(width: self.youtubeOptionsWidth, height: 52)
+            self.youtubeOptionsSection(tier: .full)
+                .frame(width: self.youtubeOptionsWidth(tier: .full), height: 52)
         }
         .padding(.horizontal, 16)
         .padding(.top, 40)
@@ -542,120 +564,206 @@ struct YouTubePlayerBar: View {
         }
     }
 
-    private var youtubeOptionsSection: some View {
+    private func youtubeOptionsSection(tier: OptionsTier) -> some View {
         HStack(spacing: 6) {
-            PlayerBarIconButton(
-                action: self.openYouTubeFullView,
-                accessibilityID: AccessibilityID.YouTubeContent.watchFullView,
-                accessibilityLabel: String(localized: "Full view"),
-                icon: {
-                    Image(systemName: "arrow.up.left.and.arrow.down.right")
-                        .font(.system(size: 15, weight: .regular))
-                        .frame(width: 16, height: 16)
-                        .foregroundStyle(.primary)
+            self.fullViewButton
+
+            switch tier {
+            case .full:
+                if self.hasPersonalAccount {
+                    self.watchLaterButton
                 }
-            )
-            .disabled(self.youtubePlayer.currentVideo == nil)
-
-            if self.hasPersonalAccount {
-                PlayerBarIconButton(
-                    action: {
-                        Task {
-                            await self.youtubePlayer.toggleWatchLater()
-                        }
-                    },
-                    isSelected: self.youtubePlayer.isInWatchLater,
-                    accessibilityID: AccessibilityID.YouTubeContent.watchLaterButton,
-                    accessibilityLabel: String(localized: "Add to Watch Later"),
-                    icon: {
-                        Image(systemName: self.youtubePlayer.isInWatchLater ? "clock.fill" : "clock")
-                            .font(.system(size: 15, weight: .regular))
-                            .frame(width: 16, height: 16)
-                            .foregroundStyle(self.youtubePlayer.isInWatchLater ? Self.brandAccent : .primary)
-                            .contentTransition(.symbolEffect(.replace))
-                    }
-                )
-                .symbolEffect(.bounce, value: self.youtubePlayer.isInWatchLater)
-                .disabled(self.youtubePlayer.currentVideo == nil)
-            }
-
-            PlayerBarIconButton(
-                action: {
-                    HapticService.toggle()
-                    self.youtubePlayer.showAirPlayPicker()
-                },
-                accessibilityLabel: String(localized: "AirPlay"),
-                icon: {
-                    Image(systemName: "airplayvideo")
-                        .font(.system(size: 16, weight: .regular))
-                        .frame(width: 10, height: 16)
-                        .foregroundStyle(.primary)
+                self.airPlayButton
+                // Live streams can't be downloaded — hide the button for them.
+                if !self.youtubePlayer.isLive {
+                    self.downloadButton
                 }
-            )
-            .disabled(self.youtubePlayer.currentVideo == nil)
-
-            // Live streams can't be downloaded — hide the button for them.
-            if !self.youtubePlayer.isLive {
-                PlayerBarIconButton(
-                    action: {
-                        self.youtubePlayer.showsDownloadSheet = true
-                    },
-                    accessibilityLabel: String(localized: "Download"),
-                    icon: {
-                        Image(systemName: "arrow.down.circle")
-                            .font(.system(size: 16, weight: .regular))
-                            .frame(width: 16, height: 16)
-                            .foregroundStyle(.primary)
-                    }
-                )
-                .disabled(self.youtubePlayer.currentVideo == nil)
+                self.compactCaptionsMenu
+                self.compactQualityMenu
+            case .reduced:
+                self.overflowMenu
             }
 
-            self.compactCaptionsMenu
-            self.compactQualityMenu
-
-            PlayerBarIconButton(
-                action: self.toggleYouTubePictureInPicture,
-                isSelected: self.youtubePlayer.surfaceLocation == .floating,
-                accessibilityID: AccessibilityID.YouTubeContent.watchPictureInPicture,
-                accessibilityLabel: self.youtubePlayer.surfaceLocation == .floating
-                    ? String(localized: "Pop video back into KasetPlus")
-                    : String(localized: "Picture in Picture")
-            ) {
-                Image(systemName: self.youtubePlayer.surfaceLocation == .floating ? "pip.exit" : "pip.enter")
-                    .font(.system(size: 15, weight: .regular))
-                    .frame(width: 13, height: 14)
-                    .foregroundStyle(self.youtubePlayer.surfaceLocation == .floating ? Self.brandAccent : .primary)
-                    .contentTransition(.symbolEffect(.replace))
-            }
-            .disabled(self.youtubePlayer.currentVideo == nil || self.youtubePlayer.isWindowFullscreen)
+            self.pipButton
         }
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
     }
 
+    private var fullViewButton: some View {
+        PlayerBarIconButton(
+            action: self.openYouTubeFullView,
+            accessibilityID: AccessibilityID.YouTubeContent.watchFullView,
+            accessibilityLabel: String(localized: "Full view"),
+            icon: {
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 15, weight: .regular))
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(.primary)
+            }
+        )
+        .disabled(self.youtubePlayer.currentVideo == nil)
+    }
+
+    private var watchLaterButton: some View {
+        PlayerBarIconButton(
+            action: {
+                Task {
+                    await self.youtubePlayer.toggleWatchLater()
+                }
+            },
+            isSelected: self.youtubePlayer.isInWatchLater,
+            accessibilityID: AccessibilityID.YouTubeContent.watchLaterButton,
+            accessibilityLabel: String(localized: "Add to Watch Later"),
+            icon: {
+                Image(systemName: self.youtubePlayer.isInWatchLater ? "clock.fill" : "clock")
+                    .font(.system(size: 15, weight: .regular))
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(self.youtubePlayer.isInWatchLater ? Self.brandAccent : .primary)
+                    .contentTransition(.symbolEffect(.replace))
+            }
+        )
+        .symbolEffect(.bounce, value: self.youtubePlayer.isInWatchLater)
+        .disabled(self.youtubePlayer.currentVideo == nil)
+    }
+
+    private var airPlayButton: some View {
+        PlayerBarIconButton(
+            action: {
+                HapticService.toggle()
+                self.youtubePlayer.showAirPlayPicker()
+            },
+            accessibilityLabel: String(localized: "AirPlay"),
+            icon: {
+                Image(systemName: "airplayvideo")
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(width: 10, height: 16)
+                    .foregroundStyle(.primary)
+            }
+        )
+        .disabled(self.youtubePlayer.currentVideo == nil)
+    }
+
+    private var downloadButton: some View {
+        PlayerBarIconButton(
+            action: {
+                self.youtubePlayer.showsDownloadSheet = true
+            },
+            accessibilityLabel: String(localized: "Download"),
+            icon: {
+                Image(systemName: "arrow.down.circle")
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(.primary)
+            }
+        )
+        .disabled(self.youtubePlayer.currentVideo == nil)
+    }
+
+    private var pipButton: some View {
+        PlayerBarIconButton(
+            action: self.toggleYouTubePictureInPicture,
+            isSelected: self.youtubePlayer.surfaceLocation == .floating,
+            accessibilityID: AccessibilityID.YouTubeContent.watchPictureInPicture,
+            accessibilityLabel: self.youtubePlayer.surfaceLocation == .floating
+                ? String(localized: "Pop video back into KasetPlus")
+                : String(localized: "Picture in Picture")
+        ) {
+            Image(systemName: self.youtubePlayer.surfaceLocation == .floating ? "pip.exit" : "pip.enter")
+                .font(.system(size: 15, weight: .regular))
+                .frame(width: 13, height: 14)
+                .foregroundStyle(self.youtubePlayer.surfaceLocation == .floating ? Self.brandAccent : .primary)
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .disabled(self.youtubePlayer.currentVideo == nil || self.youtubePlayer.isWindowFullscreen)
+    }
+
+    /// The secondary options (Watch Later, AirPlay, Download, Captions, Speed &
+    /// Quality) collapsed into a single "•••" menu when the bar is too narrow to
+    /// show them inline.
+    private var overflowMenu: some View {
+        Menu {
+            if self.hasPersonalAccount {
+                Button {
+                    Task {
+                        await self.youtubePlayer.toggleWatchLater()
+                    }
+                } label: {
+                    Label(
+                        self.youtubePlayer.isInWatchLater
+                            ? String(localized: "Remove from Watch Later")
+                            : String(localized: "Add to Watch Later"),
+                        systemImage: self.youtubePlayer.isInWatchLater ? "clock.fill" : "clock"
+                    )
+                }
+            }
+
+            Button {
+                HapticService.toggle()
+                self.youtubePlayer.showAirPlayPicker()
+            } label: {
+                Label(String(localized: "AirPlay"), systemImage: "airplayvideo")
+            }
+
+            if !self.youtubePlayer.isLive {
+                Button {
+                    self.youtubePlayer.showsDownloadSheet = true
+                } label: {
+                    Label(String(localized: "Download"), systemImage: "arrow.down.circle")
+                }
+            }
+
+            Menu {
+                self.captionMenuItems
+            } label: {
+                Label(String(localized: "Captions"), systemImage: "captions.bubble")
+            }
+
+            Menu {
+                self.qualityMenuItems
+            } label: {
+                Label(String(localized: "Speed & Quality"), systemImage: "gearshape")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 16, weight: .regular))
+                .frame(width: 16, height: 16)
+                .foregroundStyle(.primary)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .buttonStyle(.plain)
+        .frame(width: 28, height: 28)
+        .disabled(self.youtubePlayer.currentVideo == nil)
+        .accessibilityLabel(String(localized: "More options"))
+    }
+
+    @ViewBuilder private var captionMenuItems: some View {
+        Button {
+            self.youtubePlayer.selectCaptionTrack(languageCode: nil)
+        } label: {
+            if self.youtubePlayer.activeCaptionLanguageCode == nil {
+                Label(String(localized: "Off"), systemImage: "checkmark")
+            } else {
+                Text("Off", comment: "Captions off menu item")
+            }
+        }
+        ForEach(self.youtubePlayer.captionTracks) { track in
+            Button {
+                self.youtubePlayer.selectCaptionTrack(languageCode: track.languageCode)
+            } label: {
+                if self.youtubePlayer.activeCaptionLanguageCode == track.languageCode {
+                    Label(track.displayName, systemImage: "checkmark")
+                } else {
+                    Text(track.displayName)
+                }
+            }
+        }
+    }
+
     private var compactCaptionsMenu: some View {
         Menu {
-            Button {
-                self.youtubePlayer.selectCaptionTrack(languageCode: nil)
-            } label: {
-                if self.youtubePlayer.activeCaptionLanguageCode == nil {
-                    Label(String(localized: "Off"), systemImage: "checkmark")
-                } else {
-                    Text("Off", comment: "Captions off menu item")
-                }
-            }
-            ForEach(self.youtubePlayer.captionTracks) { track in
-                Button {
-                    self.youtubePlayer.selectCaptionTrack(languageCode: track.languageCode)
-                } label: {
-                    if self.youtubePlayer.activeCaptionLanguageCode == track.languageCode {
-                        Label(track.displayName, systemImage: "checkmark")
-                    } else {
-                        Text(track.displayName)
-                    }
-                }
-            }
+            self.captionMenuItems
         } label: {
             Image(systemName: self.youtubePlayer.activeCaptionLanguageCode == nil ? "captions.bubble" : "captions.bubble.fill")
                 .font(.system(size: 16, weight: .regular))
@@ -669,36 +777,40 @@ struct YouTubePlayerBar: View {
         .disabled(self.youtubePlayer.currentVideo == nil)
     }
 
+    @ViewBuilder private var qualityMenuItems: some View {
+        Text("Speed").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+        ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { speed in
+            Button {
+                self.youtubePlayer.playbackSpeed = speed
+            } label: {
+                if abs(self.youtubePlayer.playbackSpeed - speed) < 0.01 {
+                    Label("\(speed, specifier: "%.2f")x", systemImage: "checkmark")
+                } else {
+                    Text("\(speed, specifier: "%.2f")x")
+                }
+            }
+        }
+        if !self.youtubePlayer.qualityLevels.isEmpty {
+            Divider()
+            Text("Quality").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            ForEach(self.youtubePlayer.qualityLevels, id: \.self) { level in
+                Button {
+                    self.youtubePlayer.selectQuality(level)
+                } label: {
+                    // Checkmark follows the user's pin; Auto by default.
+                    if (self.youtubePlayer.userPinnedQuality ?? "auto") == level {
+                        Label(YouTubeQuality.displayName(for: level), systemImage: "checkmark")
+                    } else {
+                        Text(YouTubeQuality.displayName(for: level))
+                    }
+                }
+            }
+        }
+    }
+
     private var compactQualityMenu: some View {
         Menu {
-            Text("Speed").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { speed in
-                Button {
-                    self.youtubePlayer.playbackSpeed = speed
-                } label: {
-                    if abs(self.youtubePlayer.playbackSpeed - speed) < 0.01 {
-                        Label("\(speed, specifier: "%.2f")x", systemImage: "checkmark")
-                    } else {
-                        Text("\(speed, specifier: "%.2f")x")
-                    }
-                }
-            }
-            if !self.youtubePlayer.qualityLevels.isEmpty {
-                Divider()
-                Text("Quality").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                ForEach(self.youtubePlayer.qualityLevels, id: \.self) { level in
-                    Button {
-                        self.youtubePlayer.selectQuality(level)
-                    } label: {
-                        // Checkmark follows the user's pin; Auto by default.
-                        if (self.youtubePlayer.userPinnedQuality ?? "auto") == level {
-                            Label(YouTubeQuality.displayName(for: level), systemImage: "checkmark")
-                        } else {
-                            Text(YouTubeQuality.displayName(for: level))
-                        }
-                    }
-                }
-            }
+            self.qualityMenuItems
         } label: {
             Image(systemName: "gearshape")
                 .font(.system(size: 16, weight: .regular))
@@ -765,9 +877,13 @@ struct YouTubePlayerBar: View {
         self.colorScheme == .dark ? .black.opacity(0.36) : .black.opacity(0.18)
     }
 
-    private var youtubeOptionsWidth: CGFloat {
-        // Widened to fit the Download button that now lives in this group.
-        246
+    private func youtubeOptionsWidth(tier: OptionsTier) -> CGFloat {
+        switch tier {
+        // Widened to fit the Download button that lives in this group.
+        case .full: 246
+        // Full-view + overflow "•••" + PiP: three 28pt buttons, spacing, trailing pad.
+        case .reduced: 112
+        }
     }
 
     /// Fraction (0...1) to render: the live drag value while seeking, otherwise actual progress.
