@@ -60916,6 +60916,11 @@
         }
       }
     },
+    "No albums yet" : {
+      "comment" : "Empty-state title in Your Library's Albums section when the user has saved no albums.",
+      "extractionState" : "manual",
+      "localizations" : {}
+    },
     "No artists yet" : {
       "comment" : "Your Library page (playlists, liked songs, subscribed podcasts — including empty states).",
       "localizations" : {
@@ -85536,6 +85541,11 @@
           }
         }
       }
+    },
+    "Save albums on YouTube Music to see them here." : {
+      "comment" : "Empty-state subtitle in Your Library's Albums section (prompt to save albums).",
+      "extractionState" : "manual",
+      "localizations" : {}
     },
     "Save playlists and subscribe to podcasts on YouTube Music to see them here." : {
       "comment" : "Empty-state message in Your Library when it has no saved playlists or podcasts.",

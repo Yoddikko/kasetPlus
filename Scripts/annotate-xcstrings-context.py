@@ -233,6 +233,8 @@ PER_KEY = {
     "Save playlists and subscribe to podcasts on YouTube Music to see them here.": "Empty-state message in Your Library when it has no saved playlists or podcasts.",
 
     # Library empty states
+    "No albums yet": "Empty-state title in Your Library's Albums section when the user has saved no albums.",
+    "Save albums on YouTube Music to see them here.": "Empty-state subtitle in Your Library's Albums section (prompt to save albums).",
     "No liked songs yet": "Empty-state title in Your Library when the user has liked no songs.",
     "Songs you like will appear here": "Empty-state subtitle in Your Library's liked-songs section.",
     "Loading liked songs...": "Loading placeholder for the liked-songs list.",
