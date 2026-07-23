@@ -7,8 +7,10 @@ Kaset provides keyboard control for playback and navigation while preserving sta
 | Shortcut | Action                              |
 | -------- | ----------------------------------- |
 | `Space`  | Play / Pause                        |
-| `⌘→`     | Next track                          |
-| `⌘←`     | Previous track                      |
+| `→`      | Seek forward 30 seconds (YouTube video only) |
+| `←`      | Seek backward 30 seconds (YouTube video only) |
+| `⌘→`     | Next track or video                 |
+| `⌘←`     | Previous track or video             |
 | `⌘↑`     | Volume up                           |
 | `⌘↓`     | Volume down                         |
 | `⌘S`     | Toggle shuffle (off/on; the player-bar control also cycles to Smart Shuffle) |
