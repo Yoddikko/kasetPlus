@@ -189,11 +189,12 @@ struct WhatsNewProviderTests {
     }
 
     @Test("Returns WhatsNew for unpresented exact version")
-    func exactVersionMatch() {
+    func exactVersionMatch() throws {
         let store = WhatsNewVersionStore(defaults: self.defaults)
-        let result = WhatsNewProvider.staticWhatsNew(for: "1.0.0", store: store)
+        let fallbackVersion = try #require(WhatsNewProvider.fallbackCollection.first).version
+        let result = WhatsNewProvider.staticWhatsNew(for: fallbackVersion, store: store)
         #expect(result != nil)
-        #expect(result?.version == "1.0.0")
+        #expect(result?.version == fallbackVersion)
     }
 
     @Test("Returns nil for already presented version")
@@ -264,12 +265,12 @@ struct WhatsNewProviderTests {
             let body: [String: Any]
             let statusCode: Int
 
-            if url.path == "/repos/sozercan/kaset/releases/tags/v1.0.0" {
+            if url.path == "/repos/Yoddikko/kasetPlus/releases/tags/v1.0.0" {
                 body = [
                     "tag_name": "v1.0.0",
-                    "name": "What's New in Kaset 1.0.0",
+                    "name": "What's New in KasetPlus 1.0.0",
                     "body": "Release notes",
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v1.0.0",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v1.0.0",
                 ]
                 statusCode = 200
             } else {
@@ -304,7 +305,7 @@ struct WhatsNewProviderTests {
         #expect(result?.releaseNotes == "Release notes")
     }
 
-    @Test("Does not substitute the latest release when exact notes are unavailable")
+    @Test("Does not substitute the latest release when its core differs")
     func doesNotSubstituteLatestRelease() async {
         let session = MockURLProtocol.makeMockSession()
 
@@ -317,12 +318,68 @@ struct WhatsNewProviderTests {
             let statusCode: Int
 
             switch url.path {
-            case "/repos/sozercan/kaset/releases/latest":
+            case "/repos/Yoddikko/kasetPlus/releases/latest":
                 body = [
-                    "tag_name": "v0.13.0",
-                    "name": "What's New in Kaset 0.13.0",
+                    "tag_name": "v0.13.0-kp.21",
+                    "name": "What's New in KasetPlus 0.13.0",
                     "body": "Latest release notes",
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v0.13.0",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v0.13.0-kp.21",
+                ]
+                statusCode = 200
+            default:
+                body = [:]
+                statusCode = 404
+            }
+
+            let data = try JSONSerialization.data(withJSONObject: body)
+            guard let response = HTTPURLResponse(
+                url: url,
+                statusCode: statusCode,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "application/json"]
+            ) else {
+                throw URLError(.badServerResponse)
+            }
+
+            return (response, data)
+        }
+        defer {
+            MockURLProtocol.reset(session: session)
+        }
+
+        // App is 0.14.0 but only a 0.13.0 build is published — different core, so
+        // the latest release must NOT be substituted. (0.14.0 also isn't in the
+        // static fallback, so the result is genuinely nil.)
+        let result = await WhatsNewProvider.fetchWhatsNew(
+            for: "0.14.0",
+            store: WhatsNewVersionStore(defaults: self.defaults),
+            respectingPresentedVersions: false,
+            session: session
+        )
+
+        #expect(result == nil)
+    }
+
+    @Test("Substitutes the latest -kp release when its core matches the app version")
+    func substitutesLatestKpReleaseWithMatchingCore() async {
+        let session = MockURLProtocol.makeMockSession()
+
+        MockURLProtocol.setRequestHandler(for: session) { request in
+            guard let url = request.url else {
+                throw URLError(.badURL)
+            }
+
+            let body: [String: Any]
+            let statusCode: Int
+
+            // No exact `v0.13.0` tag exists — our releases are tagged `-kp.N`.
+            switch url.path {
+            case "/repos/Yoddikko/kasetPlus/releases/latest":
+                body = [
+                    "tag_name": "v0.13.0-kp.21",
+                    "name": "KasetPlus v0.13.0-kp.21",
+                    "body": "### What's New\n\n### Feature\nDetails",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v0.13.0-kp.21",
                 ]
                 statusCode = 200
             default:
@@ -347,13 +404,13 @@ struct WhatsNewProviderTests {
         }
 
         let result = await WhatsNewProvider.fetchWhatsNew(
-            for: "0.12.0",
+            for: "0.13.0",
             store: WhatsNewVersionStore(defaults: self.defaults),
             respectingPresentedVersions: false,
             session: session
         )
 
-        #expect(result == nil)
+        #expect(result?.version.description == "0.13.0-kp.21")
     }
 
     @Test("Does not substitute minor-release notes for a different patch version")
@@ -368,12 +425,12 @@ struct WhatsNewProviderTests {
             let body: [String: Any]
             let statusCode: Int
 
-            if url.path == "/repos/sozercan/kaset/releases/tags/v0.12.0" {
+            if url.path == "/repos/Yoddikko/kasetPlus/releases/tags/v0.12.0" {
                 body = [
                     "tag_name": "v0.12.0",
-                    "name": "What's New in Kaset 0.12.0",
+                    "name": "What's New in KasetPlus 0.12.0",
                     "body": "Minor release notes",
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v0.12.0",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v0.12.0",
                 ]
                 statusCode = 200
             } else {
@@ -419,12 +476,12 @@ struct WhatsNewProviderTests {
             let body: [String: Any]
             let statusCode: Int
 
-            if url.path == "/repos/sozercan/kaset/releases/tags/v0.12.0" {
+            if url.path == "/repos/Yoddikko/kasetPlus/releases/tags/v0.14.0" {
                 body = [
                     "tag_name": "v0.13.0",
-                    "name": "What's New in Kaset 0.13.0",
+                    "name": "What's New in KasetPlus 0.13.0",
                     "body": "Mismatched release notes",
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v0.13.0",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v0.13.0",
                 ]
                 statusCode = 200
             } else {
@@ -448,8 +505,11 @@ struct WhatsNewProviderTests {
             MockURLProtocol.reset(session: session)
         }
 
+        // The exact tag exists but its release is for a different version (0.13.0
+        // for a 0.14.0 app) — reject it, and with no matching `latest` and no
+        // static entry for 0.14.0, the result is nil.
         let result = await WhatsNewProvider.fetchWhatsNew(
-            for: "0.12.0",
+            for: "0.14.0",
             store: WhatsNewVersionStore(defaults: self.defaults),
             respectingPresentedVersions: false,
             session: session
@@ -470,12 +530,12 @@ struct WhatsNewProviderTests {
             let body: [String: Any]
             let statusCode: Int
 
-            if url.path == "/repos/sozercan/kaset/releases/tags/v2.5" {
+            if url.path == "/repos/Yoddikko/kasetPlus/releases/tags/v2.5" {
                 body = [
                     "tag_name": "v2.5",
-                    "name": "What's New in Kaset 2.5",
+                    "name": "What's New in KasetPlus 2.5",
                     "body": "Short-form release notes",
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v2.5",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v2.5",
                 ]
                 statusCode = 200
             } else {
@@ -521,12 +581,12 @@ struct WhatsNewProviderTests {
             let body: [String: Any]
             let statusCode: Int
 
-            if url.path == "/repos/sozercan/kaset/releases/tags/v1.0.0-beta.1" {
+            if url.path == "/repos/Yoddikko/kasetPlus/releases/tags/v1.0.0-beta.1" {
                 body = [
                     "tag_name": "v1.0.0-beta.1",
                     "name": "1.0.0-beta.1",
                     "body": "Beta notes",
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v1.0.0-beta.1",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v1.0.0-beta.1",
                 ]
                 statusCode = 200
             } else {
@@ -572,12 +632,12 @@ struct WhatsNewProviderTests {
             let body: [String: Any]
             let statusCode: Int
 
-            if url.path == "/repos/sozercan/kaset/releases/tags/v1.2.3" {
+            if url.path == "/repos/Yoddikko/kasetPlus/releases/tags/v1.2.3" {
                 body = [
                     "tag_name": "v1.2.3",
-                    "name": "What's New in Kaset 1.2.3",
+                    "name": "What's New in KasetPlus 1.2.3",
                     "body": "Star intro\r\n\r\n## What's New\r\n\r\n### Queue Enhancements\r\n\r\n- Faster queue updates\r\n\r\n## New Contributors\r\n\r\n- @new-contributor made their first contribution\r\n",
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v1.2.3",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v1.2.3",
                 ]
                 statusCode = 200
             } else {
@@ -622,10 +682,10 @@ struct WhatsNewProviderTests {
             let body: [String: Any]
             let statusCode: Int
 
-            if url.path == "/repos/sozercan/kaset/releases/tags/v0.7.0" {
+            if url.path == "/repos/Yoddikko/kasetPlus/releases/tags/v0.7.0" {
                 body = [
                     "tag_name": "v0.7.0",
-                    "name": "What's New in Kaset 0.7.0",
+                    "name": "What's New in KasetPlus 0.7.0",
                     "body": """
                     Star intro
 
@@ -644,9 +704,9 @@ struct WhatsNewProviderTests {
 
                     ## Full Changelog
 
-                    - https://github.com/sozercan/kaset/compare/v0.6.0...v0.7.0
+                    - https://github.com/Yoddikko/kasetPlus/compare/v0.6.0...v0.7.0
                     """,
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v0.7.0",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v0.7.0",
                 ]
                 statusCode = 200
             } else {
@@ -698,10 +758,10 @@ struct WhatsNewProviderTests {
             let body: [String: Any]
             let statusCode: Int
 
-            if url.path == "/repos/sozercan/kaset/releases/tags/v0.8.0" {
+            if url.path == "/repos/Yoddikko/kasetPlus/releases/tags/v0.8.0" {
                 body = [
                     "tag_name": "v0.8.0",
-                    "name": "What's New in Kaset 0.8.0",
+                    "name": "What's New in KasetPlus 0.8.0",
                     "body": """
                     Brief summary
 
@@ -713,7 +773,7 @@ struct WhatsNewProviderTests {
 
                     - SHA256: abc123
                     """,
-                    "html_url": "https://github.com/sozercan/kaset/releases/tag/v0.8.0",
+                    "html_url": "https://github.com/Yoddikko/kasetPlus/releases/tag/v0.8.0",
                 ]
                 statusCode = 200
             } else {
