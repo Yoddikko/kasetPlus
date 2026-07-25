@@ -183,9 +183,14 @@ enum YouTubeItemParser {
         // Row 0 is typically the channel name; row 1 holds "X views · Y ago".
         let channelName = metadataRowTexts.first?.first
         let statsRow = metadataRowTexts.dropFirst().first ?? []
+        // The stats row is ordered "views · published date". Match the English
+        // keywords when present, but fall back to position so non-English
+        // locales (e.g. "…visualizzazioni" · "…fa") still surface the upload
+        // date on home/feed cards. (issue #17)
         let viewCountText = statsRow.first { $0.localizedCaseInsensitiveContains("view") }
             ?? statsRow.first
         let publishedText = statsRow.first { $0.localizedCaseInsensitiveContains("ago") }
+            ?? (statsRow.count >= 2 ? statsRow[1] : nil)
 
         let badgeText = self.thumbnailBadgeText(of: lockup)
         let isShort = self.isShort(navigationContainer: self.onTapCommand(of: lockup))
