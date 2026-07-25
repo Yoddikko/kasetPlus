@@ -16,6 +16,27 @@ final class YouTubeHomeViewModel {
     /// Videos to display in the feed grid.
     private(set) var videos: [YouTubeVideo] = []
 
+    /// Filter chips YouTube offers on Home (Musica, Mix, Podcast…) for the chip
+    /// bar. Empty until Home loads. A `nil` selection = the personalized Home.
+    private(set) var chips: [YouTubeHomeChip] = []
+
+    /// The selected filter chip, or nil for "All" (the personalized Home).
+    private(set) var selectedChip: YouTubeHomeChip?
+
+    /// Videos for the selected chip's filtered grid.
+    private(set) var chipVideos: [YouTubeVideo] = []
+
+    /// Loading state for the selected chip's grid.
+    private(set) var chipLoadingState: LoadingState = .idle
+
+    private var chipContinuation: String?
+    @ObservationIgnored private var chipTask: Task<Void, Never>?
+
+    /// Whether the selected chip's grid has another page to load.
+    var chipContinuationAvailable: Bool {
+        self.chipContinuation != nil
+    }
+
     /// Whether more feed pages are available.
     private(set) var hasMoreVideos = true
 
@@ -122,6 +143,54 @@ final class YouTubeHomeViewModel {
         self.client = client
     }
 
+    // MARK: - Filter Chips
+
+    /// Selects a Home filter chip (nil = "All", the personalized Home). Loads
+    /// that topic's filtered grid via its continuation token.
+    func selectChip(_ chip: YouTubeHomeChip?) {
+        guard self.selectedChip?.id != chip?.id else { return }
+        self.selectedChip = chip
+        self.chipTask?.cancel()
+        self.chipTask = nil
+        self.chipVideos = []
+        self.chipContinuation = nil
+
+        guard let chip else {
+            self.chipLoadingState = .idle
+            return
+        }
+        self.chipLoadingState = .loading
+        self.chipTask = Task { await self.loadChipFeed(chip) }
+    }
+
+    private func loadChipFeed(_ chip: YouTubeHomeChip) async {
+        do {
+            let feed = try await self.client.getHomeTopicFeed(continuation: chip.continuation)
+            guard !Task.isCancelled, self.selectedChip?.id == chip.id else { return }
+            self.chipVideos = feed.videos
+            self.chipContinuation = feed.continuation
+            self.chipLoadingState = .loaded
+        } catch {
+            if error is CancellationError { return }
+            guard self.selectedChip?.id == chip.id else { return }
+            self.chipLoadingState = .error(LoadingError(from: error))
+        }
+    }
+
+    /// Loads the next page of the selected chip's grid.
+    func loadMoreChipVideos() async {
+        guard self.selectedChip != nil, let continuation = self.chipContinuation else { return }
+        do {
+            let feed = try await self.client.getHomeTopicFeed(continuation: continuation)
+            guard self.chipContinuation == continuation else { return }
+            let existing = Set(self.chipVideos.map(\.videoId))
+            self.chipVideos.append(contentsOf: feed.videos.filter { !existing.contains($0.videoId) })
+            self.chipContinuation = feed.continuation
+        } catch {
+            // Keep what we have; a later scroll retries.
+        }
+    }
+
     /// Loads the home feed once and keeps it. Safe to call repeatedly: SwiftUI
     /// restarts `.task` during launch/layout churn (the trace showed two fires
     /// ~18 ms apart on first paint), and a structured load would be cancelled by
@@ -212,6 +281,10 @@ final class YouTubeHomeViewModel {
                     self.loadingState = .loaded // any content clears the skeleton
                 }
             }
+
+            // Full chip set drives the top filter bar (YouTube-style); the rails
+            // still use only the capped subset below.
+            self.chips = bundle.chips
 
             let cappedChips = Array(bundle.chips.prefix(Self.topicRailCap))
             let initialChips = Array(cappedChips.prefix(Self.initialTopicRailBatchSize))

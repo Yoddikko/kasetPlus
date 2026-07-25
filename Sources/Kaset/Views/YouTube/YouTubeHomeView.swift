@@ -11,39 +11,17 @@ struct YouTubeHomeView: View {
     ]
 
     var body: some View {
-        Group {
-            switch self.viewModel.loadingState {
-            case .idle, .loading:
-                self.loadingGrid
-            case let .error(error):
-                ErrorView(
-                    title: error.title,
-                    message: error.message,
-                    isRetryable: error.isRetryable
-                ) {
-                    Task {
-                        await self.viewModel.refresh()
-                    }
-                }
-            case .loaded, .loadingMore:
-                if self.viewModel.sections.isEmpty,
-                   self.viewModel.videos.isEmpty,
-                   !self.viewModel.hasMoreVideos,
-                   !self.viewModel.hasMoreTopicRails,
-                   !self.viewModel.isLoadingTopicRails
-                {
-                    ContentUnavailableView {
-                        Label(String(localized: "No recommendations yet"), systemImage: "play.rectangle")
-                    } description: {
-                        Text("Watch some videos to build your feed.", comment: "Empty YouTube home feed description")
-                    }
-                } else {
-                    // Route to feedContent when there is anything to show OR more
-                    // pages remain — feedContent hosts the pagination sentinel,
-                    // which must mount so loadMore() can fetch the next page even
-                    // when the first render has no renderable rails/videos yet.
-                    self.feedContent
-                }
+        VStack(spacing: 0) {
+            // YouTube-style filter chips: "All" shows the personalized Home;
+            // any other chip loads that topic's grid. Appears once Home loads.
+            if !self.viewModel.chips.isEmpty {
+                self.chipBar
+            }
+
+            if self.viewModel.selectedChip != nil {
+                self.chipContent
+            } else {
+                self.homeContent
             }
         }
         .navigationTitle(Text("Home", comment: "YouTube home feed title"))
@@ -56,6 +34,123 @@ struct YouTubeHomeView: View {
         // immediately. (Same shape as YouTubeExploreView.)
         .task(id: ObjectIdentifier(self.viewModel)) {
             await self.viewModel.load()
+        }
+    }
+
+    // MARK: - Chip Bar
+
+    /// The personalized Home (rails + grid), shown for the "All" chip.
+    @ViewBuilder
+    private var homeContent: some View {
+        switch self.viewModel.loadingState {
+        case .idle, .loading:
+            self.loadingGrid
+        case let .error(error):
+            ErrorView(
+                title: error.title,
+                message: error.message,
+                isRetryable: error.isRetryable
+            ) {
+                Task {
+                    await self.viewModel.refresh()
+                }
+            }
+        case .loaded, .loadingMore:
+            if self.viewModel.sections.isEmpty,
+               self.viewModel.videos.isEmpty,
+               !self.viewModel.hasMoreVideos,
+               !self.viewModel.hasMoreTopicRails,
+               !self.viewModel.isLoadingTopicRails
+            {
+                ContentUnavailableView {
+                    Label(String(localized: "No recommendations yet"), systemImage: "play.rectangle")
+                } description: {
+                    Text("Watch some videos to build your feed.", comment: "Empty YouTube home feed description")
+                }
+            } else {
+                self.feedContent
+            }
+        }
+    }
+
+    /// Horizontal row of filter chips (All + YouTube's topic chips).
+    private var chipBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                self.chipButton(
+                    title: String(localized: "All", comment: "Home filter chip showing the full personalized feed"),
+                    isSelected: self.viewModel.selectedChip == nil
+                ) {
+                    self.viewModel.selectChip(nil)
+                }
+                ForEach(self.viewModel.chips) { chip in
+                    self.chipButton(title: chip.title, isSelected: self.viewModel.selectedChip?.id == chip.id) {
+                        self.viewModel.selectChip(chip)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+        }
+    }
+
+    private func chipButton(
+        title: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+                .lineLimit(1)
+                .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+                .padding(.horizontal, 14)
+                .frame(height: 32)
+                .compatGlass(interactive: true, tint: isSelected ? Color.accentColor : nil, in: Capsule())
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+    }
+
+    /// The selected chip's topic-filtered grid.
+    @ViewBuilder
+    private var chipContent: some View {
+        switch self.viewModel.chipLoadingState {
+        case .idle, .loading:
+            self.loadingGrid
+        case let .error(error):
+            ErrorView(
+                title: error.title,
+                message: error.message,
+                isRetryable: error.isRetryable
+            ) {
+                let chip = self.viewModel.selectedChip
+                self.viewModel.selectChip(nil)
+                self.viewModel.selectChip(chip)
+            }
+        case .loaded, .loadingMore:
+            ScrollView {
+                LazyVGrid(columns: Self.columns, spacing: 20) {
+                    ForEach(self.viewModel.chipVideos) { video in
+                        NavigationLink(value: YouTubeRoute.watch(video)) {
+                            VideoCard(video: video)
+                        }
+                        .buttonStyle(.interactiveCard)
+                    }
+
+                    if self.viewModel.chipContinuationAvailable {
+                        ProgressView()
+                            .controlSize(.small)
+                            .gridCellColumns(1)
+                            .task(id: self.viewModel.chipVideos.count) {
+                                await self.viewModel.loadMoreChipVideos()
+                            }
+                    }
+                }
+                .padding(.horizontal, DetailContentLayout.horizontalInset)
+                .padding(.vertical, 16)
+            }
         }
     }
 
