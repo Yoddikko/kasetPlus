@@ -373,6 +373,19 @@ struct KasetApp: App {
                 .keyboardShortcut(self.playbackShortcut(.space, modifiers: []))
                 .disabled(self.shouldDisablePlaybackCommand)
 
+                // YouTube video seek - ← / →
+                Button(String(localized: "Back 30 Seconds")) {
+                    self.youtubePlayerService.seekBackward()
+                }
+                .keyboardShortcut(self.playbackShortcut(.leftArrow, modifiers: []))
+                .disabled(self.shouldDisableVideoSeekCommands)
+
+                Button(String(localized: "Forward 30 Seconds")) {
+                    self.youtubePlayerService.seekForward()
+                }
+                .keyboardShortcut(self.playbackShortcut(.rightArrow, modifiers: []))
+                .disabled(self.shouldDisableVideoSeekCommands)
+
                 Divider()
 
                 // Next Track - ⌘→
@@ -689,6 +702,12 @@ struct KasetApp: App {
 
     private var shouldDisableTrackNavigationCommands: Bool {
         !self.playbackArbiter.routesMediaKeysToVideo && self.playerService.currentEpisode != nil
+    }
+
+    private var shouldDisableVideoSeekCommands: Bool {
+        self.textInputFocusState.isFocused
+            || !self.playbackArbiter.routesMediaKeysToVideo
+            || self.youtubePlayerService.currentVideo == nil
     }
 
     /// Label for repeat mode menu item.
