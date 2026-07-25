@@ -134,10 +134,12 @@ enum YouTubeSearchParser {
         return sectionList?["contents"] as? [[String: Any]] ?? []
     }
 
-    /// Dispatches one result item into the right bucket.
+    /// Dispatches one result item into the right bucket, preserving order in
+    /// `items` so the UI can render YouTube's original interleaving.
     private static func append(_ item: [String: Any], to response: inout YouTubeSearchResponse) {
         if let video = YouTubeItemParser.video(fromAnyItem: item) {
             response.videos.append(video)
+            response.items.append(.video(video))
             return
         }
 
@@ -145,6 +147,7 @@ enum YouTubeSearchParser {
            let channel = YouTubeItemParser.channel(fromChannelRenderer: channelRenderer)
         {
             response.channels.append(channel)
+            response.items.append(.channel(channel))
             return
         }
 
@@ -152,6 +155,7 @@ enum YouTubeSearchParser {
            let playlist = YouTubeItemParser.playlist(fromLockup: lockup)
         {
             response.playlists.append(playlist)
+            response.items.append(.playlist(playlist))
         }
     }
 }

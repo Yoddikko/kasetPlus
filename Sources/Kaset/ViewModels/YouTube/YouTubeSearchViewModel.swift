@@ -245,6 +245,10 @@ final class YouTubeSearchViewModel {
                 self.results.playlists.append(
                     contentsOf: more.playlists.filter { !existingPlaylists.contains($0.playlistId) }
                 )
+                let existingItems = Set(self.results.items.map(\.id))
+                self.results.items.append(
+                    contentsOf: more.items.filter { !existingItems.contains($0.id) }
+                )
                 self.results.continuation = more.continuation
             } else {
                 guard self.isCurrentPagination(request) else { return }

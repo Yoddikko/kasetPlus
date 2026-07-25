@@ -170,6 +170,30 @@ final class SettingsManager {
             self.languageCode ?? Locale.current.language.languageCode?.identifier ?? "en"
         }
 
+        /// The region code for API requests (`gl` parameter), so trends, home
+        /// chips, and search reflect the chosen language's country (e.g. Italian
+        /// → YouTube Italy). `.system` follows the Mac's region.
+        var apiRegionCode: String {
+            switch self {
+            case .system: Locale.current.region?.identifier ?? "US"
+            case .arabic: "SA"
+            case .dutch: "NL"
+            case .english: "US"
+            case .french: "FR"
+            case .german: "DE"
+            case .indonesian: "ID"
+            case .italian: "IT"
+            case .korean: "KR"
+            case .polish: "PL"
+            case .portuguese: "BR"
+            case .russian: "RU"
+            case .spanish: "ES"
+            case .swedish: "SE"
+            case .turkish: "TR"
+            case .ukrainian: "UA"
+            }
+        }
+
         /// The locale matching this language selection.
         var locale: Locale {
             if let code = self.languageCode {

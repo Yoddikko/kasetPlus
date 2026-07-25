@@ -162,7 +162,7 @@ struct YouTubeWatchView: View {
                 // Feed the related list to the player so the bar's next/previous
                 // buttons can skip between videos.
                 if self.youtubePlayer.currentVideo?.videoId == self.video.videoId {
-                    self.youtubePlayer.setUpNext(self.viewModel.data.related)
+                    self.youtubePlayer.setUpNext(self.upNextQueue)
                     self.youtubePlayer.setChapters(self.viewModel.data.chapters)
                     self.youtubePlayer.setHeatmap(self.viewModel.data.heatmap)
                 }
@@ -397,7 +397,7 @@ struct YouTubeWatchView: View {
                 startAt: startAt
             )
         }
-        self.youtubePlayer.setUpNext(self.viewModel.data.related)
+        self.youtubePlayer.setUpNext(self.upNextQueue)
         self.youtubePlayer.setChapters(self.viewModel.data.chapters)
         self.youtubePlayer.setHeatmap(self.viewModel.data.heatmap)
         self.youtubePlayer.activeInlineVideoId = self.video.videoId
@@ -1144,31 +1144,30 @@ struct YouTubeWatchView: View {
 
     // MARK: - Related Column
 
-    private var relatedColumn: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Related", comment: "Related videos section header")
-                .font(.title3.bold())
+    /// The queue the transport/up-next follows: the endless Mix when one is
+    /// playing, otherwise the related rail.
+    private var upNextQueue: [YouTubeVideo] {
+        self.viewModel.data.mixVideos.isEmpty
+            ? self.viewModel.data.related
+            : self.viewModel.data.mixVideos
+    }
 
+    private var relatedColumn: some View {
+        VStack(alignment: .leading, spacing: 16) {
             switch self.viewModel.loadingState {
             case .idle, .loading:
-                ForEach(0 ..< 5, id: \.self) { _ in
-                    HStack(spacing: 12) {
-                        SkeletonView.rectangle(cornerRadius: 8)
-                            .frame(width: 140, height: 79)
-                        VStack(alignment: .leading, spacing: 6) {
-                            SkeletonView.rectangle(cornerRadius: 4)
-                                .frame(width: 160, height: 12)
-                            SkeletonView.rectangle(cornerRadius: 4)
-                                .frame(width: 100, height: 10)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                }
+                self.relatedHeader
+                self.relatedSkeleton
             case let .error(error):
+                self.relatedHeader
                 Text(error.message)
                     .font(.callout)
                     .foregroundStyle(.secondary)
             case .loaded, .loadingMore:
+                if !self.viewModel.data.mixVideos.isEmpty {
+                    self.mixBox
+                }
+                self.relatedHeader
                 LazyVStack(alignment: .leading, spacing: 10) {
                     ForEach(self.viewModel.data.related) { related in
                         NavigationLink(value: YouTubeRoute.watch(related)) {
@@ -1179,6 +1178,64 @@ struct YouTubeWatchView: View {
                 }
             }
         }
+    }
+
+    private var relatedHeader: some View {
+        Text("Related", comment: "Related videos section header")
+            .font(.title3.bold())
+    }
+
+    private var relatedSkeleton: some View {
+        ForEach(0 ..< 5, id: \.self) { _ in
+            HStack(spacing: 12) {
+                SkeletonView.rectangle(cornerRadius: 8)
+                    .frame(width: 140, height: 79)
+                VStack(alignment: .leading, spacing: 6) {
+                    SkeletonView.rectangle(cornerRadius: 4)
+                        .frame(width: 160, height: 12)
+                    SkeletonView.rectangle(cornerRadius: 4)
+                        .frame(width: 100, height: 10)
+                }
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    /// The Mix's own boxed panel (title + "Mixes are playlists YouTube makes for
+    /// you" + the endless queue), mirroring YouTube's up-next Mix card.
+    private var mixBox: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(self.viewModel.data.mixTitle ?? String(localized: "Mix"))
+                    .font(.headline)
+                    .lineLimit(2)
+                if let description = self.viewModel.data.mixDescription {
+                    Text(description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+
+            Divider()
+
+            LazyVStack(alignment: .leading, spacing: 8) {
+                ForEach(self.viewModel.data.mixVideos) { mixVideo in
+                    NavigationLink(value: YouTubeRoute.watch(mixVideo)) {
+                        RelatedVideoRow(video: mixVideo)
+                    }
+                    .buttonStyle(.interactiveRow)
+                }
+            }
+            .padding(10)
+        }
+        .compatGlass(interactive: false, tint: nil, in: .rect(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+        )
     }
 
     // MARK: - Comments

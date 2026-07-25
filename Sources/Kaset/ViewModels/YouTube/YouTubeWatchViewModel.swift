@@ -114,7 +114,7 @@ final class YouTubeWatchViewModel {
         let generation = self.loadGeneration
         self.loadingState = .loading
         do {
-            let data = try await self.client.getWatchNext(videoId: self.video.videoId)
+            let data = try await self.client.getWatchNext(videoId: self.video.videoId, playlistId: self.video.mixPlaylistId)
             guard generation == self.loadGeneration else { return }
             self.data = data
             self.isSubscribed = data.isSubscribed ?? false

@@ -92,13 +92,39 @@ struct YouTubeChapter: Identifiable, Hashable {
     }
 }
 
+// MARK: - YouTubeSearchItem
+
+/// One search result in YouTube's original interleaved order. Search mixes
+/// videos, channels, mixes, and playlists together by relevance; bucketing them
+/// into fixed sections buried everything behind the infinite video list, so the
+/// UI renders this ordered stream instead.
+enum YouTubeSearchItem: Identifiable {
+    case video(YouTubeVideo)
+    case channel(YouTubeChannel)
+    case playlist(YouTubePlaylist)
+
+    var id: String {
+        switch self {
+        // A Mix seeded from a video shares that video's id, so fold the mix
+        // playlist in to keep the two rows distinct for SwiftUI's ForEach.
+        case let .video(video): "v:\(video.videoId):\(video.mixPlaylistId ?? "")"
+        case let .channel(channel): "c:\(channel.channelId)"
+        case let .playlist(playlist): "p:\(playlist.playlistId)"
+        }
+    }
+}
+
 // MARK: - YouTubeSearchResponse
 
-/// Results of a YouTube search, split by result kind.
+/// Results of a YouTube search. `items` preserves YouTube's mixed ordering for
+/// rendering; the typed arrays are kept for filter bookkeeping and callers that
+/// need a single kind.
 struct YouTubeSearchResponse {
     var videos: [YouTubeVideo]
     var channels: [YouTubeChannel]
     var playlists: [YouTubePlaylist]
+    /// All results in YouTube's original relevance order.
+    var items: [YouTubeSearchItem] = []
     var continuation: String?
     /// Filter groups YouTube offers for this search (Type, Upload date, Duration,
     /// Features, Sort by). Each option carries the opaque `params` to re-run the
@@ -113,7 +139,8 @@ struct YouTubeSearchResponse {
     )
 
     var isEmpty: Bool {
-        self.videos.isEmpty && self.channels.isEmpty && self.playlists.isEmpty
+        self.items.isEmpty && self.videos.isEmpty
+            && self.channels.isEmpty && self.playlists.isEmpty
     }
 }
 
@@ -190,6 +217,15 @@ struct WatchNextData {
     /// The credited channels on a collaboration upload. Non-empty only for
     /// multi-channel videos, where `channel` (the single-owner parse) is nil.
     var collaborators: [VideoCollaborator]
+    /// The endless Mix (radio) queue, shown in its own boxed panel above the
+    /// related rail. Empty unless this watch page is playing a mix.
+    var mixVideos: [YouTubeVideo]
+    /// The Mix (radio) playlist id when this watch page is playing a mix.
+    var mixPlaylistId: String?
+    /// The mix's display title (e.g. "Mix - Post Malone"), when playing a mix.
+    var mixTitle: String?
+    /// The mix's byline (e.g. "Mixes are playlists YouTube makes for you").
+    var mixDescription: String?
 
     init(
         videoTitle: String?,
@@ -204,7 +240,11 @@ struct WatchNextData {
         commentsContinuation: String? = nil,
         liveChatContinuation: String? = nil,
         notificationPreference: ChannelNotificationPreference? = nil,
-        collaborators: [VideoCollaborator] = []
+        collaborators: [VideoCollaborator] = [],
+        mixVideos: [YouTubeVideo] = [],
+        mixPlaylistId: String? = nil,
+        mixTitle: String? = nil,
+        mixDescription: String? = nil
     ) {
         self.videoTitle = videoTitle
         self.viewCountText = viewCountText
@@ -219,6 +259,10 @@ struct WatchNextData {
         self.liveChatContinuation = liveChatContinuation
         self.notificationPreference = notificationPreference
         self.collaborators = collaborators
+        self.mixVideos = mixVideos
+        self.mixPlaylistId = mixPlaylistId
+        self.mixTitle = mixTitle
+        self.mixDescription = mixDescription
     }
 
     static let empty = WatchNextData(

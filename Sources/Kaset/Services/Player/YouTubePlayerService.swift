@@ -991,7 +991,7 @@ final class YouTubePlayerService {
 
         var target = self.upNext.first
         if target == nil, let client = self.youtubeClient {
-            target = await (try? client.getWatchNext(videoId: current.videoId))?
+            target = await (try? client.getWatchNext(videoId: current.videoId, playlistId: nil))?
                 .related.first { !$0.isShort }
             guard self.youtubePlaybackIntentGeneration == playbackIntentGeneration,
                   self.currentVideo?.videoId == current.videoId
@@ -1068,7 +1068,7 @@ final class YouTubePlayerService {
             self.finishFailedAutoplayRecovery(generation: generation)
             return
         }
-        let nextVideo = await (try? client.getWatchNext(videoId: expectedVideoId))?
+        let nextVideo = await (try? client.getWatchNext(videoId: expectedVideoId, playlistId: nil))?
             .related.first { !$0.isShort }
         guard generation == self.autoplayRecoveryRequestGeneration,
               self.currentVideo?.videoId == expectedVideoId,

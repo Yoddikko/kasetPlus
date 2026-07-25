@@ -173,40 +173,11 @@ struct YouTubeSearchView: View {
     private var resultsList: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 12) {
-                if !self.viewModel.results.channels.isEmpty {
-                    if self.showsSectionHeaders {
-                        self.sectionHeader(String(localized: "Channels"))
-                    }
-                    ForEach(self.viewModel.results.channels) { channel in
-                        NavigationLink(value: YouTubeRoute.channel(channelId: channel.channelId)) {
-                            ChannelRowView(channel: channel)
-                        }
-                        .buttonStyle(.interactiveRow)
-                    }
-                }
-
-                if !self.viewModel.results.videos.isEmpty {
-                    if self.showsSectionHeaders {
-                        self.sectionHeader(String(localized: "Videos"))
-                    }
-                    ForEach(self.viewModel.results.videos) { video in
-                        NavigationLink(value: YouTubeRoute.watch(video)) {
-                            VideoRowView(video: video)
-                        }
-                        .buttonStyle(.interactiveRow)
-                    }
-                }
-
-                if !self.viewModel.results.playlists.isEmpty {
-                    if self.showsSectionHeaders {
-                        self.sectionHeader(String(localized: "Playlists"))
-                    }
-                    ForEach(self.viewModel.results.playlists) { playlist in
-                        NavigationLink(value: YouTubeRoute.playlist(playlistId: playlist.playlistId)) {
-                            YouTubePlaylistRowView(playlist: playlist)
-                        }
-                        .buttonStyle(.interactiveRow)
-                    }
+                // Render results in YouTube's own mixed order so mixes and
+                // playlists surface inline instead of being buried below the
+                // infinite video list.
+                ForEach(self.viewModel.results.items) { item in
+                    self.row(for: item)
                 }
 
                 if self.viewModel.results.continuation != nil {
@@ -224,20 +195,25 @@ struct YouTubeSearchView: View {
         .accessibilityIdentifier(AccessibilityID.YouTubeContent.searchResults)
     }
 
-    /// Section headers ("Videos"/"Channels"/"Playlists") only help when more
-    /// than one kind of result is present; a filtered search shows just one.
-    private var showsSectionHeaders: Bool {
-        [
-            !self.viewModel.results.channels.isEmpty,
-            !self.viewModel.results.videos.isEmpty,
-            !self.viewModel.results.playlists.isEmpty,
-        ].filter { $0 }.count > 1
-    }
-
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.title3.bold())
-            .padding(.top, 8)
+    @ViewBuilder
+    private func row(for item: YouTubeSearchItem) -> some View {
+        switch item {
+        case let .channel(channel):
+            NavigationLink(value: YouTubeRoute.channel(channelId: channel.channelId)) {
+                ChannelRowView(channel: channel)
+            }
+            .buttonStyle(.interactiveRow)
+        case let .video(video):
+            NavigationLink(value: YouTubeRoute.watch(video)) {
+                VideoRowView(video: video)
+            }
+            .buttonStyle(.interactiveRow)
+        case let .playlist(playlist):
+            NavigationLink(value: YouTubeRoute.playlist(playlistId: playlist.playlistId)) {
+                YouTubePlaylistRowView(playlist: playlist)
+            }
+            .buttonStyle(.interactiveRow)
+        }
     }
 }
 

@@ -77,6 +77,12 @@ struct VideoThumbnailView: View {
     var targetSize = CGSize(width: 320, height: 180)
 
     var body: some View {
+        // A Mix reads as the video's own poster wearing the shared "stack" cue
+        // (like a playlist), plus a Mix badge — mirroring YouTube.
+        self.thumbnail.stackedPoster(self.video.mixPlaylistId != nil)
+    }
+
+    private var thumbnail: some View {
         CachedAsyncImage(
             url: self.video.thumbnailURL,
             targetSize: self.targetSize
@@ -109,6 +115,7 @@ struct VideoThumbnailView: View {
             }
         }
     }
+
 
     /// "Members only" badge for channel-membership-restricted videos (green,
     /// like YouTube), mirroring the LIVE/duration badge treatment.
@@ -159,6 +166,18 @@ struct VideoThumbnailView: View {
                 .background(.red.opacity(0.9), in: .rect(cornerRadius: 4))
                 .foregroundStyle(.white)
                 .padding(6)
+        } else if self.video.mixPlaylistId != nil {
+            HStack(spacing: 3) {
+                Image(systemName: "play.fill")
+                    .font(.system(size: 7, weight: .bold))
+                Text("Mix", comment: "Badge on an auto-generated Mix (radio) card")
+                    .font(.system(size: 10, weight: .semibold))
+            }
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(.black.opacity(0.75), in: .rect(cornerRadius: 4))
+            .foregroundStyle(.white)
+            .padding(6)
         } else if let lengthText = self.video.lengthText {
             Text(lengthText)
                 .font(.system(size: 10, weight: .semibold).monospacedDigit())
@@ -167,6 +186,52 @@ struct VideoThumbnailView: View {
                 .background(.black.opacity(0.75), in: .rect(cornerRadius: 4))
                 .foregroundStyle(.white)
                 .padding(6)
+        }
+    }
+}
+
+// MARK: - Stacked Poster (Mixes & Playlists)
+
+/// The layered "stack" cue YouTube uses for collections: two subtle cards
+/// peeking above the poster's top edge. Shared by Mixes and playlists so both
+/// read the same, at the app's 16:9 poster proportions and rounded corners.
+private struct StackedPosterBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        // The slivers sit behind the poster and reserve real space above it via
+        // `.padding(.top,…)`, so the stack is never clipped by a rail or list.
+        // Crucially the slivers carry no width — they fill the poster's width
+        // as ZStack siblings; a `maxWidth: .infinity` here would make the whole
+        // stack greedy and break the row layout.
+        ZStack(alignment: .top) {
+            self.sliver(inset: 20, top: 0, shade: 0.40)
+            self.sliver(inset: 10, top: 3, shade: 0.56)
+            // An opaque backing over the poster area (but not the 7pt peek)
+            // stops the slivers bleeding through translucent placeholders when
+            // a thumbnail is missing.
+            content
+                .background(.background, in: .rect(cornerRadius: 8))
+                .padding(.top, 7)
+        }
+    }
+
+    private func sliver(inset: CGFloat, top: CGFloat, shade: Double) -> some View {
+        RoundedRectangle(cornerRadius: 5)
+            .fill(Color(white: shade))
+            .frame(height: 9)
+            .padding(.horizontal, inset)
+            .padding(.top, top)
+    }
+}
+
+extension View {
+    /// Wraps a 16:9 poster in YouTube's collection "stack" look. Pass `false`
+    /// to render the poster unchanged (non-collection cards).
+    @ViewBuilder
+    func stackedPoster(_ show: Bool = true) -> some View {
+        if show {
+            self.modifier(StackedPosterBackground())
+        } else {
+            self
         }
     }
 }

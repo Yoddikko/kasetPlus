@@ -328,7 +328,7 @@ private final class SingleFlightYouTubeClient: YouTubeClientProtocol {
         return continuation
     }
 
-    func getWatchNext(videoId _: String) async throws -> WatchNextData {
+    func getWatchNext(videoId _: String, playlistId _: String?) async throws -> WatchNextData {
         try await self.waitIfNeeded()
         return self.watchNextData
     }

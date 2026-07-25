@@ -248,10 +248,15 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
 
     // MARK: - Watch
 
-    func getWatchNext(videoId: String) async throws -> WatchNextData {
+    func getWatchNext(videoId: String, playlistId: String?) async throws -> WatchNextData {
         self.logger.info("Fetching watch-next data")
 
-        let data = try await self.request("next", body: ["videoId": videoId])
+        var body: [String: Any] = ["videoId": videoId]
+        // A Mix (radio) playlist turns the watch-next into the endless mix queue.
+        if let playlistId {
+            body["playlistId"] = playlistId
+        }
+        let data = try await self.request("next", body: body)
         return WatchNextParser.parse(data)
     }
 
@@ -689,7 +694,7 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
                 "clientName": "WEB",
                 "clientVersion": Self.clientVersion,
                 "hl": SettingsManager.shared.contentLanguage.apiLanguageCode,
-                "gl": "US",
+                "gl": SettingsManager.shared.contentLanguage.apiRegionCode,
                 "browserName": "Safari",
                 "browserVersion": "17.0",
                 "osName": "Macintosh",

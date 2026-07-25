@@ -72,7 +72,7 @@ final class MockUITestYouTubeClient: YouTubeClientProtocol {
         nil
     }
 
-    func getWatchNext(videoId _: String) async throws -> WatchNextData {
+    func getWatchNext(videoId _: String, playlistId _: String?) async throws -> WatchNextData {
         WatchNextData(
             videoTitle: "Mock Video One",
             viewCountText: "1,234 views",

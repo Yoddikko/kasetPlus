@@ -194,7 +194,7 @@ final class MixTracklistParser {
     private func performParse(videoId: String) async -> ParseResult {
         let watchNextData: WatchNextData
         do {
-            watchNextData = try await self.youTubeClient.getWatchNext(videoId: videoId)
+            watchNextData = try await self.youTubeClient.getWatchNext(videoId: videoId, playlistId: nil)
         } catch {
             self.logger.debug("Tracklist fetch failed for \(videoId): \(error.localizedDescription)")
             return ParseResult(tracklist: nil, cacheEntry: nil)

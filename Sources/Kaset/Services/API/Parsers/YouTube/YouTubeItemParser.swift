@@ -21,6 +21,7 @@ enum YouTubeItemParser {
             ?? item["compactVideoRenderer"] as? [String: Any]
             ?? item["videoCardRenderer"] as? [String: Any]
             ?? item["playlistVideoRenderer"] as? [String: Any]
+            ?? item["playlistPanelVideoRenderer"] as? [String: Any]
         {
             return self.video(fromVideoRenderer: renderer)
         }
@@ -32,7 +33,7 @@ enum YouTubeItemParser {
         }
 
         if let lockup = item["lockupViewModel"] as? [String: Any] {
-            return self.video(fromLockup: lockup)
+            return self.video(fromLockup: lockup) ?? self.mixVideo(fromLockup: lockup)
         }
 
         return nil
@@ -73,6 +74,39 @@ enum YouTubeItemParser {
             isShort: self.isShort(navigationContainer: renderer["navigationEndpoint"]),
             isMembersOnly: self.containsMembersOnlyBadge(renderer["badges"]),
             watchedPercent: self.watchedPercent(ofRenderer: renderer)
+        )
+    }
+
+    /// A "Mix" (radio) card: a playlist `lockupViewModel` whose id is prefixed
+    /// `RD`. Returns a playable video seeded at the mix's first track, tagged
+    /// with the mix playlist id so the watch page loads the endless mix queue.
+    /// `nil` for ordinary playlists. (Note: nearly every music `videoRenderer`
+    /// carries an `RD` "start radio" watch endpoint — that is *not* a Mix card,
+    /// so mixes are detected only from the dedicated playlist lockup.)
+    static func mixVideo(fromLockup lockup: [String: Any]) -> YouTubeVideo? {
+        guard (lockup["contentType"] as? String) == "LOCKUP_CONTENT_TYPE_PLAYLIST",
+              let playlistId = lockup["contentId"] as? String,
+              playlistId.hasPrefix("RD")
+        else {
+            return nil
+        }
+
+        let watchEndpoint = self.onTapCommand(of: lockup)?["watchEndpoint"] as? [String: Any]
+        guard let videoId = watchEndpoint?["videoId"] as? String else {
+            return nil
+        }
+
+        let metadata = (lockup["metadata"] as? [String: Any])?["lockupMetadataViewModel"]
+            as? [String: Any]
+        let title = ((metadata?["title"] as? [String: Any])?["content"]) as? String
+            ?? String(localized: "Mix")
+
+        return YouTubeVideo(
+            videoId: videoId,
+            title: title,
+            thumbnailURL: self.thumbnailURL(fromLockup: lockup)
+                ?? self.thumbnailURL(forVideoId: videoId),
+            mixPlaylistId: playlistId
         )
     }
 
@@ -316,12 +350,17 @@ enum YouTubeItemParser {
         return self.bestSourceURL(from: thumbnails)
     }
 
-    /// Picks the largest image source from a lockup's `thumbnailViewModel`.
+    /// Picks the largest image source from a lockup's thumbnail. Video lockups
+    /// expose it directly under `thumbnailViewModel`; playlist and Mix lockups
+    /// wrap it in `collectionThumbnailViewModel.primaryThumbnail` (the stacked
+    /// poster), so fall back to that path.
     static func thumbnailURL(fromLockup lockup: [String: Any]) -> URL? {
-        let sources = (
-            ((lockup["contentImage"] as? [String: Any])?["thumbnailViewModel"]
-                as? [String: Any])?["image"] as? [String: Any]
-        )?["sources"] as? [[String: Any]]
+        let contentImage = lockup["contentImage"] as? [String: Any]
+        let thumbnailViewModel = contentImage?["thumbnailViewModel"] as? [String: Any]
+            ?? ((contentImage?["collectionThumbnailViewModel"] as? [String: Any])?["primaryThumbnail"]
+                as? [String: Any])?["thumbnailViewModel"] as? [String: Any]
+        let sources = (thumbnailViewModel?["image"] as? [String: Any])?["sources"]
+            as? [[String: Any]]
         guard let sources else { return nil }
         return self.bestSourceURL(from: sources)
     }

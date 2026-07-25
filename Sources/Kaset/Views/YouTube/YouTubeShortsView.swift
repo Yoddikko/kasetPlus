@@ -507,7 +507,7 @@ private struct ShortsCommentsPanel: View {
         self.isLoading = true
         defer { self.isLoading = false }
         do {
-            let watchNext = try await self.client.getWatchNext(videoId: self.videoId)
+            let watchNext = try await self.client.getWatchNext(videoId: self.videoId, playlistId: nil)
             guard let token = watchNext.commentsContinuation else { return }
             guard !Task.isCancelled else { return }
             let page = try await self.client.getComments(continuation: token)

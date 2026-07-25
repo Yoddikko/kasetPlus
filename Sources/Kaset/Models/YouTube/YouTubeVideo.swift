@@ -23,6 +23,11 @@ struct YouTubeVideo: Identifiable, Hashable {
     let isShort: Bool
     /// Whether the video is restricted to channel members ("Members only").
     let isMembersOnly: Bool
+    /// The auto-generated Mix (radio) playlist this card seeds, when it's a "Mix"
+    /// card (`RD…`). Opening it plays the endless mix queue, not just this video.
+    /// Also stamped onto each track of a playing mix so advancing keeps the mix
+    /// context (the watch page reloads the mix panel instead of dropping it).
+    var mixPlaylistId: String?
     /// Percent of the video the signed-in user has already watched (0–100),
     /// when YouTube reports resume progress. `nil` when unwatched or unavailable.
     let watchedPercent: Int?
@@ -43,6 +48,7 @@ struct YouTubeVideo: Identifiable, Hashable {
         isLive: Bool = false,
         isShort: Bool = false,
         isMembersOnly: Bool = false,
+        mixPlaylistId: String? = nil,
         watchedPercent: Int? = nil
     ) {
         self.videoId = videoId
@@ -56,6 +62,7 @@ struct YouTubeVideo: Identifiable, Hashable {
         self.isLive = isLive
         self.isShort = isShort
         self.isMembersOnly = isMembersOnly
+        self.mixPlaylistId = mixPlaylistId
         self.watchedPercent = watchedPercent
     }
 }

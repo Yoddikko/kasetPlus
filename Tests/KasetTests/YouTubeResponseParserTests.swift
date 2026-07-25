@@ -43,6 +43,43 @@ struct YouTubeSearchParserTests {
         #expect(first.thumbnailURL != nil)
     }
 
+    @Test("Preserves YouTube's mixed result order in `items`; a Mix lockup becomes a video")
+    func preservesMixedResultOrder() throws {
+        func section(_ contents: [[String: Any]]) -> [String: Any] {
+            ["contents": ["twoColumnSearchResultsRenderer": ["primaryContents": [
+                "sectionListRenderer": ["contents": [["itemSectionRenderer": ["contents": contents]]]],
+            ]]]]
+        }
+        let videoA: [String: Any] = ["videoRenderer": [
+            "videoId": "vidA", "title": ["runs": [["text": "Video A"]]],
+        ]]
+        let mixLockup: [String: Any] = ["lockupViewModel": [
+            "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+            "contentId": "RDseed",
+            "metadata": ["lockupMetadataViewModel": ["title": ["content": "Mix - Something"]]],
+            "rendererContext": ["commandContext": ["onTap": ["innertubeCommand": [
+                "watchEndpoint": ["videoId": "seed", "playlistId": "RDseed"],
+            ]]]],
+        ]]
+        let channel: [String: Any] = ["channelRenderer": [
+            "channelId": "UCabc", "title": ["simpleText": "A Channel"],
+        ]]
+
+        let response = YouTubeSearchParser.parse(section([videoA, mixLockup, channel]))
+
+        // Order preserved exactly as YouTube returned it; the Mix id folds in
+        // its playlist so it stays distinct from a plain video of the same seed.
+        #expect(response.items.map(\.id) == ["v:vidA:", "v:seed:RDseed", "c:UCabc"])
+        // The Mix lockup is a playable video, not a static playlist.
+        #expect(response.videos.map(\.videoId) == ["vidA", "seed"])
+        #expect(response.playlists.isEmpty)
+        if case let .video(mix) = response.items[1] {
+            #expect(mix.mixPlaylistId == "RDseed")
+        } else {
+            Issue.record("second item should be the Mix video")
+        }
+    }
+
     @Test("Parses channels from a channels-filter search response")
     func parsesChannels() throws {
         let data = try loadYouTubeFixture("youtube_search_channels")
@@ -317,6 +354,36 @@ struct WatchNextParserTests {
 
         let description = try #require(watchNext.descriptionText)
         #expect(description.hasPrefix("The official video for"))
+    }
+
+    @Test("Parses a Mix queue into its own box (id, title, byline) separate from related")
+    func parsesMixQueue() throws {
+        func panelVideo(_ id: String, _ title: String) -> [String: Any] {
+            ["playlistPanelVideoRenderer": [
+                "videoId": id,
+                "title": ["simpleText": title],
+                "shortBylineText": ["runs": [["text": "Some Artist"]]],
+                "lengthText": ["simpleText": "3:32"],
+            ]]
+        }
+        let data: [String: Any] = [
+            "contents": ["twoColumnWatchNextResults": [
+                "playlist": ["playlist": [
+                    "playlistId": "RDseed123",
+                    "titleText": ["simpleText": "Mix - Some Artist"],
+                    "longBylineText": ["simpleText": "Mixes are playlists YouTube makes for you"],
+                    "contents": [panelVideo("seed123", "First"), panelVideo("v2", "Second")],
+                ]],
+            ]],
+        ]
+
+        let watchNext = WatchNextParser.parse(data)
+        #expect(watchNext.mixPlaylistId == "RDseed123")
+        #expect(watchNext.mixTitle == "Mix - Some Artist")
+        #expect(watchNext.mixDescription == "Mixes are playlists YouTube makes for you")
+        #expect(watchNext.mixVideos.map(\.videoId) == ["seed123", "v2"])
+        // The related rail stays independent of the mix box.
+        #expect(watchNext.related.isEmpty)
     }
 
     @Test("Parses canonical chapters and merges macro-marker end bounds")

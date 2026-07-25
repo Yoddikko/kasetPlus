@@ -199,7 +199,7 @@ final class MockYouTubeClient: YouTubeClientProtocol {
     /// Awaited before returning so playback tests can gate a specific call ordinal.
     var beforeWatchNextReturnByCallCount: (@Sendable (Int) async -> Void)?
 
-    func getWatchNext(videoId: String) async throws -> WatchNextData {
+    func getWatchNext(videoId: String, playlistId _: String?) async throws -> WatchNextData {
         self.getWatchNextCallCount += 1
         self.requestedWatchNextVideoIds.append(videoId)
         if let error {

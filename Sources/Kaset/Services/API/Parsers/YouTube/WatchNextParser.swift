@@ -62,6 +62,11 @@ enum WatchNextParser {
             )
         }
 
+        // Mix (radio) queue: present only when playing a mix. It lives in its
+        // own boxed panel above the related rail (YouTube keeps both), so the
+        // related list is left untouched.
+        let mix = Self.mixQueue(from: results)
+
         let chapters = Self.chapters(of: data)
 
         // Collaboration uploads: the classic single-owner parse is empty; the
@@ -83,8 +88,40 @@ enum WatchNextParser {
             commentsContinuation: Self.commentsContinuation(of: data),
             liveChatContinuation: Self.liveChatContinuation(of: data),
             notificationPreference: notificationPreference,
-            collaborators: collaborators
+            collaborators: collaborators,
+            mixVideos: mix?.videos ?? [],
+            mixPlaylistId: mix?.playlistId,
+            mixTitle: mix?.title,
+            mixDescription: mix?.description
         )
+    }
+
+    // MARK: - Mix (radio) queue
+
+    /// Parses the endless Mix queue from `twoColumnWatchNextResults.playlist.playlist`
+    /// (`playlistPanelVideoRenderer` items), present only when a Mix is playing.
+    private static func mixQueue(
+        from results: [String: Any]?
+    ) -> (videos: [YouTubeVideo], playlistId: String?, title: String?, description: String?)? {
+        guard let panel = (results?["playlist"] as? [String: Any])?["playlist"] as? [String: Any],
+              let contents = panel["contents"] as? [[String: Any]]
+        else {
+            return nil
+        }
+        let playlistId = panel["playlistId"] as? String
+        // Stamp the mix onto every track so advancing (click or auto-next) keeps
+        // the mix context and the box stays put, as on YouTube.
+        let videos = contents.compactMap { item -> YouTubeVideo? in
+            guard var video = YouTubeItemParser.video(fromAnyItem: item) else { return nil }
+            video.mixPlaylistId = playlistId
+            return video
+        }
+        guard !videos.isEmpty else { return nil }
+        let title = YouTubeItemParser.text(from: panel["titleText"])
+            ?? YouTubeItemParser.text(from: panel["title"])
+        // e.g. "Mixes are playlists YouTube makes for you" (localized by YouTube).
+        let description = YouTubeItemParser.text(from: panel["longBylineText"])
+        return (videos, playlistId, title, description)
     }
 
     // MARK: - Collaboration Owners

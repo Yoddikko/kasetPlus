@@ -181,6 +181,46 @@ struct YouTubeItemParserTests {
         #expect(video.publishedText == "9 mesi fa")
     }
 
+    @Test("A Mix playlist lockup becomes a playable seed video tagged with the RD playlist id")
+    func capturesMixFromPlaylistLockup() throws {
+        let lockup: [String: Any] = [
+            "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+            "contentId": "RDtQjsAJhsSw8",
+            "metadata": [
+                "lockupMetadataViewModel": [
+                    "title": ["content": "Mix - Post Malone - Go Flex"],
+                ],
+            ],
+            "rendererContext": [
+                "commandContext": [
+                    "onTap": [
+                        "innertubeCommand": [
+                            "watchEndpoint": ["videoId": "tQjsAJhsSw8", "playlistId": "RDtQjsAJhsSw8"],
+                        ],
+                    ],
+                ],
+            ],
+        ]
+        let mix = try #require(YouTubeItemParser.mixVideo(fromLockup: lockup))
+        #expect(mix.mixPlaylistId == "RDtQjsAJhsSw8")
+        #expect(mix.videoId == "tQjsAJhsSw8")
+        #expect(mix.title == "Mix - Post Malone - Go Flex")
+        // A normal (PL) playlist lockup is not a mix.
+        var normal = lockup
+        normal["contentId"] = "PLabc"
+        #expect(YouTubeItemParser.mixVideo(fromLockup: normal) == nil)
+    }
+
+    @Test("A plain videoRenderer with an RD 'start radio' endpoint is NOT flagged as a Mix")
+    func radioWatchEndpointIsNotAMix() throws {
+        let renderer: [String: Any] = [
+            "videoId": "vid",
+            "title": ["runs": [["text": "A Video"]]],
+            "navigationEndpoint": ["watchEndpoint": ["videoId": "vid", "playlistId": "RDvid"]],
+        ]
+        #expect(try #require(YouTubeItemParser.video(fromVideoRenderer: renderer)).mixPlaylistId == nil)
+    }
+
     @Test("Detects a Members only lockup badge")
     func detectsMembersOnlyLockupBadge() throws {
         let lockup: [String: Any] = [
