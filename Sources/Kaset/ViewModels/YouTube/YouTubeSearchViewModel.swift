@@ -20,13 +20,16 @@ final class YouTubeSearchViewModel {
     /// Search results.
     private(set) var results: YouTubeSearchResponse = .empty
 
-    /// Filter for result kinds.
-    var selectedFilter: YouTubeSearchFilter = .all {
-        didSet {
-            guard oldValue != self.selectedFilter else { return }
-            self.handleFilterChange()
-        }
-    }
+    /// Filter groups YouTube offers for the current query (Type, Upload date,
+    /// Duration, Features, Sort by). Persisted across filter re-searches so the
+    /// filter bar stays stable while results reload.
+    private(set) var filterGroups: [YouTubeSearchFilterGroup] = []
+
+    /// The applied filter `params` token, or nil when no filter is active.
+    private(set) var appliedFilterParams: String?
+
+    /// Whether any search filter is currently applied.
+    var hasActiveFilters: Bool { self.appliedFilterParams != nil }
 
     @ObservationIgnored private var searchTask: Task<Void, Never>?
     @ObservationIgnored private var paginationTask: Task<Void, Never>?
@@ -85,7 +88,21 @@ final class YouTubeSearchViewModel {
     private var currentSearchContext: SearchContext? {
         let query = Self.normalizedQuery(self.query)
         guard !query.isEmpty else { return nil }
-        return SearchContext(query: query, filter: self.selectedFilter)
+        return SearchContext(query: query, params: self.appliedFilterParams)
+    }
+
+    /// Applies a filter option (from `filterGroups`) and re-runs the search.
+    func applyFilter(_ option: YouTubeSearchFilterGroup.Option) {
+        guard !option.isDisabled, self.appliedFilterParams != option.params else { return }
+        self.appliedFilterParams = option.params
+        self.handleFilterChange()
+    }
+
+    /// Clears all applied filters and re-runs the unfiltered search.
+    func clearFilters() {
+        guard self.appliedFilterParams != nil else { return }
+        self.appliedFilterParams = nil
+        self.handleFilterChange()
     }
 
     private static func normalizedQuery(_ query: String) -> String {
@@ -98,6 +115,9 @@ final class YouTubeSearchViewModel {
         guard oldQuery != newQuery else { return }
 
         self.invalidateInFlightSearch()
+        // A new query starts fresh: drop any applied filters and their groups.
+        self.appliedFilterParams = nil
+        self.filterGroups = []
 
         if newQuery.isEmpty {
             self.resetForEmptyQuery()
@@ -154,11 +174,15 @@ final class YouTubeSearchViewModel {
         }
 
         do {
-            let results = try await client.search(query: request.context.query, filter: request.context.filter)
+            let results = try await client.search(query: request.context.query, params: request.context.params)
             guard self.isCurrentSearch(request) else { return }
             guard !Task.isCancelled else { return }
 
             self.results = results
+            // Keep the last non-empty filter set so the bar stays put on reloads.
+            if !results.filterGroups.isEmpty {
+                self.filterGroups = results.filterGroups
+            }
             self.publishedSearchContext = request.context
             self.publishedSearchGeneration = request.generation
             self.loadingState = .loaded
@@ -261,6 +285,8 @@ final class YouTubeSearchViewModel {
         self.loadingState = .idle
         self.publishedSearchContext = nil
         self.publishedSearchGeneration = nil
+        self.filterGroups = []
+        self.appliedFilterParams = nil
     }
 
     private func isCurrentSearch(_ request: SearchRequest) -> Bool {
@@ -285,7 +311,7 @@ final class YouTubeSearchViewModel {
 
 private struct SearchContext: Equatable {
     let query: String
-    let filter: YouTubeSearchFilter
+    let params: String?
 }
 
 // MARK: - SearchRequest

@@ -29,7 +29,64 @@ enum YouTubeSearchParser {
             }
         }
 
+        response.filterGroups = Self.filterGroups(of: data)
         return response
+    }
+
+    // MARK: - Filters
+
+    /// Parses the search filter groups (Type, Upload date, Duration, Features,
+    /// Sort by) from the "Filters" dialog in the search header. Each option
+    /// carries the opaque `searchEndpoint.params` to re-run the search with it
+    /// applied. Found via a scoped recursive walk since YouTube has moved this
+    /// between `subMenu` and the header filter button across layouts.
+    static func filterGroups(of data: [String: Any]) -> [YouTubeSearchFilterGroup] {
+        var renderers: [[String: Any]] = []
+        Self.collectFilterGroupRenderers(in: data["header"] ?? data, into: &renderers)
+        return renderers.compactMap(Self.filterGroup(from:))
+    }
+
+    private static func collectFilterGroupRenderers(in value: Any, into out: inout [[String: Any]]) {
+        if let dict = value as? [String: Any] {
+            if let renderer = dict["searchFilterGroupRenderer"] as? [String: Any] {
+                out.append(renderer)
+            }
+            for nested in dict.values {
+                Self.collectFilterGroupRenderers(in: nested, into: &out)
+            }
+        } else if let array = value as? [Any] {
+            for element in array {
+                Self.collectFilterGroupRenderers(in: element, into: &out)
+            }
+        }
+    }
+
+    private static func filterGroup(from renderer: [String: Any]) -> YouTubeSearchFilterGroup? {
+        guard let title = YouTubeItemParser.text(from: renderer["title"]),
+              let filters = renderer["filters"] as? [[String: Any]]
+        else {
+            return nil
+        }
+
+        let options: [YouTubeSearchFilterGroup.Option] = filters.compactMap { filter in
+            guard let inner = filter["searchFilterRenderer"] as? [String: Any],
+                  let label = YouTubeItemParser.text(from: inner["label"])
+            else {
+                return nil
+            }
+            let params = ((inner["navigationEndpoint"] as? [String: Any])?["searchEndpoint"]
+                as? [String: Any])?["params"] as? String
+            let status = inner["status"] as? String
+            return YouTubeSearchFilterGroup.Option(
+                label: label,
+                params: params,
+                isSelected: status == "FILTER_STATUS_SELECTED",
+                isDisabled: status == "FILTER_STATUS_DISABLED"
+            )
+        }
+
+        guard !options.isEmpty else { return nil }
+        return YouTubeSearchFilterGroup(title: title, options: options)
     }
 
     /// Parses a search continuation response.

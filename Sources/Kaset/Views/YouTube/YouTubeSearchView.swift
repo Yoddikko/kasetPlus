@@ -75,19 +75,89 @@ struct YouTubeSearchView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(.quaternary.opacity(0.5), in: Capsule())
+            .padding(.horizontal, 20)
 
-            Picker(String(localized: "Filter"), selection: self.$viewModel.selectedFilter) {
-                ForEach(YouTubeSearchFilter.allCases) { filter in
-                    Text(filter.displayName).tag(filter)
-                }
+            // Full-width so the filter chips can scroll edge-to-edge.
+            if !self.viewModel.filterGroups.isEmpty {
+                self.filterBar
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .accessibilityIdentifier(AccessibilityID.YouTubeContent.searchFilter)
         }
-        .padding(.horizontal, 20)
         .padding(.top, 16)
         .padding(.bottom, 12)
+    }
+
+    // MARK: - Filter Bar
+
+    /// A horizontal row of glass-capsule menus, one per YouTube filter group
+    /// (Type, Upload date, Duration, Features, Sort by), plus a Clear chip.
+    private var filterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(self.viewModel.filterGroups) { group in
+                    self.filterMenu(group)
+                }
+
+                if self.viewModel.hasActiveFilters {
+                    Button {
+                        self.viewModel.clearFilters()
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 10, weight: .semibold))
+                            Text("Clear", comment: "Clear search filters")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 12)
+                        .frame(height: 30)
+                        .compatGlass(interactive: true, tint: nil, in: Capsule())
+                        .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(String(localized: "Clear filters"))
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+        .accessibilityIdentifier(AccessibilityID.YouTubeContent.searchFilter)
+    }
+
+    private func filterMenu(_ group: YouTubeSearchFilterGroup) -> some View {
+        // A filter is "active" only when its selected option carries params
+        // (YouTube marks a default no-op like "Relevance" selected with no endpoint).
+        let selected = group.selectedOption
+        let isActive = selected?.params != nil
+
+        return Menu {
+            ForEach(group.options) { option in
+                Button {
+                    self.viewModel.applyFilter(option)
+                } label: {
+                    if option.isSelected {
+                        Label(option.label, systemImage: "checkmark")
+                    } else {
+                        Text(option.label)
+                    }
+                }
+                .disabled(option.isDisabled)
+            }
+        } label: {
+            HStack(spacing: 5) {
+                Text(isActive ? (selected?.label ?? group.title) : group.title)
+                    .font(.system(size: 12, weight: .medium))
+                    .lineLimit(1)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .semibold))
+            }
+            .foregroundStyle(isActive ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+            .padding(.horizontal, 12)
+            .frame(height: 30)
+            .compatGlass(interactive: true, tint: isActive ? Color.accentColor : nil, in: Capsule())
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
     }
 
     private var emptyState: some View {
@@ -104,7 +174,9 @@ struct YouTubeSearchView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 12) {
                 if !self.viewModel.results.channels.isEmpty {
-                    self.sectionHeader(String(localized: "Channels"))
+                    if self.showsSectionHeaders {
+                        self.sectionHeader(String(localized: "Channels"))
+                    }
                     ForEach(self.viewModel.results.channels) { channel in
                         NavigationLink(value: YouTubeRoute.channel(channelId: channel.channelId)) {
                             ChannelRowView(channel: channel)
@@ -114,7 +186,7 @@ struct YouTubeSearchView: View {
                 }
 
                 if !self.viewModel.results.videos.isEmpty {
-                    if self.viewModel.selectedFilter == .all {
+                    if self.showsSectionHeaders {
                         self.sectionHeader(String(localized: "Videos"))
                     }
                     ForEach(self.viewModel.results.videos) { video in
@@ -126,7 +198,7 @@ struct YouTubeSearchView: View {
                 }
 
                 if !self.viewModel.results.playlists.isEmpty {
-                    if self.viewModel.selectedFilter == .all {
+                    if self.showsSectionHeaders {
                         self.sectionHeader(String(localized: "Playlists"))
                     }
                     ForEach(self.viewModel.results.playlists) { playlist in
@@ -150,6 +222,16 @@ struct YouTubeSearchView: View {
             .padding(.bottom, 20)
         }
         .accessibilityIdentifier(AccessibilityID.YouTubeContent.searchResults)
+    }
+
+    /// Section headers ("Videos"/"Channels"/"Playlists") only help when more
+    /// than one kind of result is present; a filtered search shows just one.
+    private var showsSectionHeaders: Bool {
+        [
+            !self.viewModel.results.channels.isEmpty,
+            !self.viewModel.results.videos.isEmpty,
+            !self.viewModel.results.playlists.isEmpty,
+        ].filter { $0 }.count > 1
     }
 
     private func sectionHeader(_ title: String) -> some View {

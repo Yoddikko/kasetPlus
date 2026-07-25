@@ -69,6 +69,55 @@ struct YouTubeSearchParserTests {
         #expect(first.firstVideoId == "zW5wpJY1rgQ")
         #expect(!first.title.isEmpty)
     }
+
+    @Test("Parses search filter groups with their params and selected status")
+    func parsesFilterGroups() throws {
+        func filter(_ label: String, _ params: String?, _ status: String?) -> [String: Any] {
+            var renderer: [String: Any] = ["label": ["simpleText": label]]
+            if let params {
+                renderer["navigationEndpoint"] = ["searchEndpoint": ["params": params]]
+            }
+            if let status {
+                renderer["status"] = status
+            }
+            return ["searchFilterRenderer": renderer]
+        }
+        let response = YouTubeSearchParser.parse([
+            "header": ["searchHeaderRenderer": ["searchFilterButton": ["buttonRenderer": [
+                "command": ["openPopupAction": ["popup": ["searchFilterOptionsDialogRenderer": [
+                    "groups": [
+                        ["searchFilterGroupRenderer": [
+                            "title": ["simpleText": "Upload date"],
+                            "filters": [
+                                filter("Today", "EgIIAg==", nil),
+                                filter("This week", "EgIIAw==", "FILTER_STATUS_SELECTED"),
+                            ],
+                        ]],
+                        ["searchFilterGroupRenderer": [
+                            "title": ["simpleText": "Sort by"],
+                            "filters": [
+                                filter("Relevance", nil, "FILTER_STATUS_SELECTED"),
+                                filter("Rating", "CAE=", "FILTER_STATUS_DISABLED"),
+                            ],
+                        ]],
+                    ],
+                ]]]],
+            ]]]],
+        ])
+
+        #expect(response.filterGroups.count == 2)
+        let upload = try #require(response.filterGroups.first)
+        #expect(upload.title == "Upload date")
+        #expect(upload.options.count == 2)
+        #expect(upload.selectedOption?.label == "This week")
+        #expect(upload.options.first?.params == "EgIIAg==")
+
+        let sort = response.filterGroups[1]
+        // The default no-op option ("Relevance") is selected but carries no params.
+        #expect(sort.selectedOption?.label == "Relevance")
+        #expect(sort.selectedOption?.params == nil)
+        #expect(sort.options[1].isDisabled)
+    }
 }
 
 // MARK: - YouTubeFeedParserTests

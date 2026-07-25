@@ -31,10 +31,10 @@ final class MockYouTubeClient: YouTubeClientProtocol {
     private(set) var homeFeedCallCount = 0
     private(set) var searchCallCount = 0
     private(set) var lastSearchQuery: String?
-    private(set) var lastSearchFilter: YouTubeSearchFilter?
+    private(set) var lastSearchParams: String?
 
-    nonisolated static func searchKey(query: String, filter: YouTubeSearchFilter) -> String {
-        "\(filter.rawValue)|\(query)"
+    nonisolated static func searchKey(query: String, params: String?) -> String {
+        "\(params ?? "all")|\(query)"
     }
 
     var hasMoreHomeFeed: Bool {
@@ -146,19 +146,19 @@ final class MockYouTubeClient: YouTubeClientProtocol {
 
     /// Awaited inside `search` before it returns, so a test can hold one
     /// search request open while a newer query/filter search completes first.
-    var beforeSearchReturn: (@Sendable (String, YouTubeSearchFilter) async -> Void)?
+    var beforeSearchReturn: (@Sendable (String, String?) async -> Void)?
 
-    func search(query: String, filter: YouTubeSearchFilter) async throws -> YouTubeSearchResponse {
+    func search(query: String, params: String?) async throws -> YouTubeSearchResponse {
         if let error {
             throw error
         }
         self.searchCallCount += 1
         self.lastSearchQuery = query
-        self.lastSearchFilter = filter
+        self.lastSearchParams = params
         if let beforeSearchReturn {
-            await beforeSearchReturn(query, filter)
+            await beforeSearchReturn(query, params)
         }
-        let key = Self.searchKey(query: query, filter: filter)
+        let key = Self.searchKey(query: query, params: params)
         return self.searchResponsesByRequest[key] ?? self.searchResponse
     }
 

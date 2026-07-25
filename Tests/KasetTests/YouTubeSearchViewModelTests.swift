@@ -15,7 +15,7 @@ struct YouTubeSearchViewModelTests {
         self.sut = YouTubeSearchViewModel(client: self.mockClient)
     }
 
-    @Test("Search sends the query and selected filter to the client")
+    @Test("Search sends the query and applied filter params to the client")
     func searchSendsQueryAndFilter() async {
         self.mockClient.searchResponse = YouTubeSearchResponse(
             videos: MockYouTubeClient.makeVideos(count: 2),
@@ -24,14 +24,19 @@ struct YouTubeSearchViewModelTests {
             continuation: nil
         )
         self.sut.query = "swift"
-        self.sut.selectedFilter = .videos
+        self.sut.applyFilter(Self.option(params: "EgIQAQ=="))
 
         await self.sut.search()
 
         #expect(self.mockClient.lastSearchQuery == "swift")
-        #expect(self.mockClient.lastSearchFilter == .videos)
+        #expect(self.mockClient.lastSearchParams == "EgIQAQ==")
         #expect(self.sut.results.videos.count == 2)
         #expect(self.sut.loadingState == .loaded)
+    }
+
+    /// Builds a filter option for tests (label/status don't affect the request).
+    private static func option(params: String?) -> YouTubeSearchFilterGroup.Option {
+        .init(label: params ?? "All", params: params, isSelected: false, isDisabled: false)
     }
 
     @Test("Empty query does not hit the client")
@@ -164,13 +169,13 @@ struct YouTubeSearchViewModelTests {
     func lateOlderQueryCannotOverwriteNewerQuery() async {
         let oldQueryGate = AsyncGate()
         self.mockClient.searchResponsesByRequest = [
-            MockYouTubeClient.searchKey(query: "swift", filter: .all): YouTubeSearchResponse(
+            MockYouTubeClient.searchKey(query: "swift", params: nil): YouTubeSearchResponse(
                 videos: [MockYouTubeClient.makeVideo(videoId: "old-query")],
                 channels: [],
                 playlists: [],
                 continuation: "old-token"
             ),
-            MockYouTubeClient.searchKey(query: "swiftui", filter: .all): YouTubeSearchResponse(
+            MockYouTubeClient.searchKey(query: "swiftui", params: nil): YouTubeSearchResponse(
                 videos: [MockYouTubeClient.makeVideo(videoId: "new-query")],
                 channels: [],
                 playlists: [],
@@ -205,13 +210,13 @@ struct YouTubeSearchViewModelTests {
     func stalePaginationCannotCorruptNewerSearchContinuation() async {
         let paginationGate = AsyncGate()
         self.mockClient.searchResponsesByRequest = [
-            MockYouTubeClient.searchKey(query: "swift", filter: .all): YouTubeSearchResponse(
+            MockYouTubeClient.searchKey(query: "swift", params: nil): YouTubeSearchResponse(
                 videos: [MockYouTubeClient.makeVideo(videoId: "old-query")],
                 channels: [],
                 playlists: [],
                 continuation: "old-token"
             ),
-            MockYouTubeClient.searchKey(query: "swiftui", filter: .all): YouTubeSearchResponse(
+            MockYouTubeClient.searchKey(query: "swiftui", params: nil): YouTubeSearchResponse(
                 videos: [MockYouTubeClient.makeVideo(videoId: "new-query")],
                 channels: [],
                 playlists: [],
@@ -250,32 +255,34 @@ struct YouTubeSearchViewModelTests {
     @Test("Late results from an older filter cannot corrupt newer filter continuation")
     func lateOlderFilterCannotOverwriteNewerFilterOrContinuation() async {
         let oldFilterGate = AsyncGate()
+        let videosParams = "EgIQAQ=="
+        let channelsParams = "EgIQAg=="
         self.mockClient.searchResponsesByRequest = [
-            MockYouTubeClient.searchKey(query: "swift", filter: .videos): YouTubeSearchResponse(
+            MockYouTubeClient.searchKey(query: "swift", params: videosParams): YouTubeSearchResponse(
                 videos: [MockYouTubeClient.makeVideo(videoId: "old-videos")],
                 channels: [],
                 playlists: [],
                 continuation: "videos-token"
             ),
-            MockYouTubeClient.searchKey(query: "swift", filter: .channels): YouTubeSearchResponse(
+            MockYouTubeClient.searchKey(query: "swift", params: channelsParams): YouTubeSearchResponse(
                 videos: [],
                 channels: [YouTubeChannel(channelId: "new-channel", name: "New Channel")],
                 playlists: [],
                 continuation: "channels-token"
             ),
         ]
-        self.mockClient.beforeSearchReturn = { _, filter in
-            if filter == .videos {
+        self.mockClient.beforeSearchReturn = { _, params in
+            if params == videosParams {
                 await oldFilterGate.wait()
             }
         }
 
-        self.sut.selectedFilter = .videos
         self.sut.query = "swift"
+        self.sut.applyFilter(Self.option(params: videosParams))
         let oldSearch = Task { await self.sut.search() }
-        await self.waitUntil(self.mockClient.lastSearchFilter == .videos)
+        await self.waitUntil(self.mockClient.lastSearchParams == videosParams)
 
-        self.sut.selectedFilter = .channels
+        self.sut.applyFilter(Self.option(params: channelsParams))
         await self.waitUntil(self.sut.results.channels.map(\.channelId) == ["new-channel"])
 
         #expect(self.sut.results.channels.map(\.channelId) == ["new-channel"])
