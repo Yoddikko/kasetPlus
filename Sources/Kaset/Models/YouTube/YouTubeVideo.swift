@@ -21,6 +21,8 @@ struct YouTubeVideo: Identifiable, Hashable {
     let isLive: Bool
     /// Whether this is a YouTube Short (vertical, ≤60s).
     let isShort: Bool
+    /// Whether the video is restricted to channel members ("Members only").
+    let isMembersOnly: Bool
     /// Percent of the video the signed-in user has already watched (0–100),
     /// when YouTube reports resume progress. `nil` when unwatched or unavailable.
     let watchedPercent: Int?
@@ -40,6 +42,7 @@ struct YouTubeVideo: Identifiable, Hashable {
         thumbnailURL: URL? = nil,
         isLive: Bool = false,
         isShort: Bool = false,
+        isMembersOnly: Bool = false,
         watchedPercent: Int? = nil
     ) {
         self.videoId = videoId
@@ -52,6 +55,7 @@ struct YouTubeVideo: Identifiable, Hashable {
         self.thumbnailURL = thumbnailURL
         self.isLive = isLive
         self.isShort = isShort
+        self.isMembersOnly = isMembersOnly
         self.watchedPercent = watchedPercent
     }
 }

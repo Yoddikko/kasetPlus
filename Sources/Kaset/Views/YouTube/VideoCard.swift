@@ -103,6 +103,27 @@ struct VideoThumbnailView: View {
         .overlay(alignment: .bottomTrailing) {
             self.badge
         }
+        .overlay(alignment: .topLeading) {
+            if self.video.isMembersOnly {
+                self.membersBadge
+            }
+        }
+    }
+
+    /// "Members only" badge for channel-membership-restricted videos (green,
+    /// like YouTube), mirroring the LIVE/duration badge treatment.
+    private var membersBadge: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "star.fill")
+                .font(.system(size: 8))
+            Text("Members only", comment: "Badge on channel-members-only videos")
+                .font(.system(size: 10, weight: .semibold))
+        }
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
+        .background(Color(red: 0.18, green: 0.55, blue: 0.34), in: .rect(cornerRadius: 4))
+        .foregroundStyle(.white)
+        .padding(6)
     }
 
     /// Thin red resume-progress bar pinned flush to the thumbnail's bottom edge.

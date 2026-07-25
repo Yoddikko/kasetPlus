@@ -71,8 +71,28 @@ enum YouTubeItemParser {
             thumbnailURL: self.thumbnailURL(fromThumbnail: renderer["thumbnail"]),
             isLive: isLive,
             isShort: self.isShort(navigationContainer: renderer["navigationEndpoint"]),
+            isMembersOnly: self.containsMembersOnlyBadge(renderer["badges"]),
             watchedPercent: self.watchedPercent(ofRenderer: renderer)
         )
+    }
+
+    /// Whether a "Members only" badge appears anywhere in the given renderer
+    /// fragment. Handles both the legacy `metadataBadgeRenderer.style` and the
+    /// newer lockup `badgeViewModel.badgeStyle` spellings (confirmed via
+    /// api-explorer on a channel with members-only uploads).
+    private static func containsMembersOnlyBadge(_ value: Any?) -> Bool {
+        if let dict = value as? [String: Any] {
+            if (dict["badgeStyle"] as? String) == "BADGE_MEMBERS_ONLY"
+                || (dict["style"] as? String) == "BADGE_STYLE_TYPE_MEMBERS_ONLY"
+            {
+                return true
+            }
+            return dict.values.contains { self.containsMembersOnlyBadge($0) }
+        }
+        if let array = value as? [Any] {
+            return array.contains { self.containsMembersOnlyBadge($0) }
+        }
+        return false
     }
 
     /// Parses a `shortsLockupViewModel` (Shorts shelves in feeds and search).
@@ -207,6 +227,7 @@ enum YouTubeItemParser {
             thumbnailURL: self.thumbnailURL(fromLockup: lockup),
             isLive: badgeText?.localizedCaseInsensitiveCompare("live") == .orderedSame,
             isShort: isShort,
+            isMembersOnly: self.containsMembersOnlyBadge(metadata),
             watchedPercent: self.watchedPercent(ofLockup: lockup)
         )
     }

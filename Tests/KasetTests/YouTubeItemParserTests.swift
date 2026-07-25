@@ -181,6 +181,57 @@ struct YouTubeItemParserTests {
         #expect(video.publishedText == "9 mesi fa")
     }
 
+    @Test("Detects a Members only lockup badge")
+    func detectsMembersOnlyLockupBadge() throws {
+        let lockup: [String: Any] = [
+            "contentId": "mem123",
+            "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+            "metadata": [
+                "lockupMetadataViewModel": [
+                    "title": ["content": "Members Video"],
+                    "metadata": [
+                        "contentMetadataViewModel": [
+                            "metadataRows": [
+                                ["metadataParts": [["text": ["content": "Channel"]]]],
+                                ["badges": [[
+                                    "badgeViewModel": [
+                                        "badgeText": "Members only",
+                                        "badgeStyle": "BADGE_MEMBERS_ONLY",
+                                        "iconName": "SPONSORSHIP_STAR",
+                                    ],
+                                ]]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            "rendererContext": ["commandContext": ["onTap": ["innertubeCommand": [
+                "watchEndpoint": ["videoId": "mem123"],
+            ]]]],
+        ]
+
+        let video = try #require(YouTubeItemParser.video(fromLockup: lockup))
+        #expect(video.isMembersOnly)
+    }
+
+    @Test("Detects a legacy Members only videoRenderer badge; normal videos are not flagged")
+    func detectsMembersOnlyVideoRendererBadge() throws {
+        let renderer: [String: Any] = [
+            "videoId": "mem456",
+            "title": ["runs": [["text": "Members Video"]]],
+            "badges": [["metadataBadgeRenderer": ["style": "BADGE_STYLE_TYPE_MEMBERS_ONLY", "label": "Members only"]]],
+        ]
+        let video = try #require(YouTubeItemParser.video(fromVideoRenderer: renderer))
+        #expect(video.isMembersOnly)
+
+        let plain: [String: Any] = [
+            "videoId": "plain1",
+            "title": ["runs": [["text": "Public Video"]]],
+            "badges": [["metadataBadgeRenderer": ["style": "BADGE_STYLE_TYPE_SIMPLE", "label": "New"]]],
+        ]
+        #expect(try #require(YouTubeItemParser.video(fromVideoRenderer: plain)).isMembersOnly == false)
+    }
+
     @Test("Video parser rejects playlist lockups and vice versa")
     func lockupContentTypeMismatch() {
         let playlistLockup: [String: Any] = [
