@@ -149,6 +149,38 @@ struct YouTubeItemParserTests {
         #expect(video.thumbnailURL?.absoluteString == "https://example.com/thumb.jpg")
     }
 
+    @Test("Extracts the upload date from a non-English lockup by position (issue #17)")
+    func parsesNonEnglishLockupStats() throws {
+        let lockup: [String: Any] = [
+            "contentId": "it123",
+            "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+            "metadata": [
+                "lockupMetadataViewModel": [
+                    "title": ["content": "Video Italiano"],
+                    "metadata": [
+                        "contentMetadataViewModel": [
+                            "metadataRows": [
+                                ["metadataParts": [["text": ["content": "Canale"]]]],
+                                ["metadataParts": [
+                                    ["text": ["content": "1,2 Mln di visualizzazioni"]],
+                                    ["text": ["content": "9 mesi fa"]],
+                                ]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            "rendererContext": ["commandContext": ["onTap": ["innertubeCommand": [
+                "watchEndpoint": ["videoId": "it123"],
+            ]]]],
+        ]
+
+        let video = try #require(YouTubeItemParser.video(fromLockup: lockup))
+        #expect(video.viewCountText == "1,2 Mln di visualizzazioni")
+        // No "ago" to match → falls back to the second stats part (the date).
+        #expect(video.publishedText == "9 mesi fa")
+    }
+
     @Test("Video parser rejects playlist lockups and vice versa")
     func lockupContentTypeMismatch() {
         let playlistLockup: [String: Any] = [
