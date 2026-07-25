@@ -1144,12 +1144,13 @@ struct YouTubeWatchView: View {
 
     // MARK: - Related Column
 
-    /// The queue the transport/up-next follows: the endless Mix when one is
+    /// The queue the transport/up-next follows: the endless Mix (each track
+    /// carrying the mix context so auto-advance keeps the mix) when one is
     /// playing, otherwise the related rail.
     private var upNextQueue: [YouTubeVideo] {
-        self.viewModel.data.mixVideos.isEmpty
-            ? self.viewModel.data.related
-            : self.viewModel.data.mixVideos
+        let mix = self.viewModel.data.mixVideos
+        guard !mix.isEmpty else { return self.viewModel.data.related }
+        return mix.map { $0.inMix(self.viewModel.data.mixPlaylistId) }
     }
 
     private var relatedColumn: some View {
@@ -1202,7 +1203,10 @@ struct YouTubeWatchView: View {
     }
 
     /// The Mix's own boxed panel (title + "Mixes are playlists YouTube makes for
-    /// you" + the endless queue), mirroring YouTube's up-next Mix card.
+    /// you" + the endless queue), mirroring YouTube's up-next Mix card: a
+    /// fixed-height, internally-scrolling list with the current track
+    /// highlighted. The list is whatever YouTube returned for this video, so it
+    /// updates on its own as you move through the mix.
     private var mixBox: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 3) {
@@ -1217,19 +1221,34 @@ struct YouTubeWatchView: View {
                 }
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
 
             Divider()
 
-            LazyVStack(alignment: .leading, spacing: 8) {
-                ForEach(self.viewModel.data.mixVideos) { mixVideo in
-                    NavigationLink(value: YouTubeRoute.watch(mixVideo)) {
-                        RelatedVideoRow(video: mixVideo)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 2) {
+                    ForEach(self.viewModel.data.mixVideos) { mixVideo in
+                        NavigationLink(
+                            value: YouTubeRoute.watch(
+                                mixVideo.inMix(self.viewModel.data.mixPlaylistId)
+                            )
+                        ) {
+                            RelatedVideoRow(video: mixVideo)
+                                .padding(6)
+                                .background(
+                                    mixVideo.videoId == self.video.videoId
+                                        ? Color.accentColor.opacity(0.22)
+                                        : Color.clear,
+                                    in: .rect(cornerRadius: 8)
+                                )
+                        }
+                        .buttonStyle(.interactiveRow)
                     }
-                    .buttonStyle(.interactiveRow)
                 }
+                .padding(8)
             }
-            .padding(10)
+            .frame(maxHeight: 340)
         }
         .compatGlass(interactive: false, tint: nil, in: .rect(cornerRadius: 12))
         .overlay(

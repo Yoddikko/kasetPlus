@@ -109,13 +109,10 @@ enum WatchNextParser {
             return nil
         }
         let playlistId = panel["playlistId"] as? String
-        // Stamp the mix onto every track so advancing (click or auto-next) keeps
-        // the mix context and the box stays put, as on YouTube.
-        let videos = contents.compactMap { item -> YouTubeVideo? in
-            guard var video = YouTubeItemParser.video(fromAnyItem: item) else { return nil }
-            video.mixPlaylistId = playlistId
-            return video
-        }
+        // Tracks are parsed as plain videos (no mix badge — they aren't Mix
+        // cards themselves). The mix context is injected only at navigation /
+        // playback time so advancing keeps the box, without "mix inside a mix".
+        let videos = contents.compactMap { YouTubeItemParser.video(fromAnyItem: $0) }
         guard !videos.isEmpty else { return nil }
         let title = YouTubeItemParser.text(from: panel["titleText"])
             ?? YouTubeItemParser.text(from: panel["title"])

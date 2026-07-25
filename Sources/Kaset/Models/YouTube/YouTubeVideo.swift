@@ -65,4 +65,13 @@ struct YouTubeVideo: Identifiable, Hashable {
         self.mixPlaylistId = mixPlaylistId
         self.watchedPercent = watchedPercent
     }
+
+    /// A copy carrying the given Mix context, so opening or auto-advancing to it
+    /// re-requests the mix (keeping the mix box) without rendering the video
+    /// itself as a Mix card. `nil` leaves it a plain video.
+    func inMix(_ playlistId: String?) -> YouTubeVideo {
+        var copy = self
+        copy.mixPlaylistId = playlistId
+        return copy
+    }
 }

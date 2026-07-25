@@ -197,29 +197,26 @@ struct VideoThumbnailView: View {
 /// read the same, at the app's 16:9 poster proportions and rounded corners.
 private struct StackedPosterBackground: ViewModifier {
     func body(content: Content) -> some View {
-        // The slivers sit behind the poster and reserve real space above it via
-        // `.padding(.top,…)`, so the stack is never clipped by a rail or list.
-        // Crucially the slivers carry no width — they fill the poster's width
-        // as ZStack siblings; a `maxWidth: .infinity` here would make the whole
-        // stack greedy and break the row layout.
-        ZStack(alignment: .top) {
-            self.sliver(inset: 20, top: 0, shade: 0.40)
-            self.sliver(inset: 10, top: 3, shade: 0.56)
-            // An opaque backing over the poster area (but not the 7pt peek)
-            // stops the slivers bleeding through translucent placeholders when
-            // a thumbnail is missing.
+        // The stacked "cards" peek in a reserved strip *above* the poster (never
+        // behind it), so they can't bleed through a missing thumbnail, can't
+        // draw a frame around the poster, and can't be clipped by a rail. The
+        // slivers carry no width — as siblings they fill the poster's width and
+        // are inset, staying centred and narrower than the poster.
+        VStack(spacing: 0) {
+            ZStack(alignment: .bottom) {
+                self.sliver(inset: 18, height: 7, shade: 0.38)
+                self.sliver(inset: 9, height: 4, shade: 0.55)
+            }
+            .frame(height: 7)
             content
-                .background(.background, in: .rect(cornerRadius: 8))
-                .padding(.top, 7)
         }
     }
 
-    private func sliver(inset: CGFloat, top: CGFloat, shade: Double) -> some View {
+    private func sliver(inset: CGFloat, height: CGFloat, shade: Double) -> some View {
         RoundedRectangle(cornerRadius: 5)
             .fill(Color(white: shade))
-            .frame(height: 9)
+            .frame(height: height)
             .padding(.horizontal, inset)
-            .padding(.top, top)
     }
 }
 
