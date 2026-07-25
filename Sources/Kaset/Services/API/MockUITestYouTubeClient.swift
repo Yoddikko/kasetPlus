@@ -48,37 +48,20 @@ final class MockUITestYouTubeClient: YouTubeClientProtocol {
         YouTubeFeed(videos: Self.sampleVideos, continuation: nil)
     }
 
-    func search(query _: String, filter: YouTubeSearchFilter) async throws -> YouTubeSearchResponse {
-        switch filter {
-        case .all:
-            YouTubeSearchResponse(
-                videos: Self.sampleVideos,
-                channels: [Self.sampleChannel],
-                playlists: [Self.samplePlaylist],
-                continuation: nil
-            )
-        case .videos:
-            YouTubeSearchResponse(
-                videos: Self.sampleVideos,
-                channels: [],
-                playlists: [],
-                continuation: nil
-            )
-        case .channels:
-            YouTubeSearchResponse(
-                videos: [],
-                channels: [Self.sampleChannel],
-                playlists: [],
-                continuation: nil
-            )
-        case .playlists:
-            YouTubeSearchResponse(
-                videos: [],
-                channels: [],
-                playlists: [Self.samplePlaylist],
-                continuation: nil
-            )
-        }
+    func search(query _: String, params _: String?) async throws -> YouTubeSearchResponse {
+        var response = YouTubeSearchResponse(
+            videos: Self.sampleVideos,
+            channels: [Self.sampleChannel],
+            playlists: [Self.samplePlaylist],
+            continuation: nil
+        )
+        response.filterGroups = [
+            YouTubeSearchFilterGroup(title: "Upload date", options: [
+                .init(label: "Today", params: "mock-today", isSelected: false, isDisabled: false),
+                .init(label: "This week", params: "mock-week", isSelected: false, isDisabled: false),
+            ]),
+        ]
+        return response
     }
 
     func getSearchContinuation() async throws -> YouTubeSearchResponse? {

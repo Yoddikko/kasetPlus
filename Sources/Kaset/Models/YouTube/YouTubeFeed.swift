@@ -100,6 +100,10 @@ struct YouTubeSearchResponse {
     var channels: [YouTubeChannel]
     var playlists: [YouTubePlaylist]
     var continuation: String?
+    /// Filter groups YouTube offers for this search (Type, Upload date, Duration,
+    /// Features, Sort by). Each option carries the opaque `params` to re-run the
+    /// search with it applied — cumulative, straight from the response.
+    var filterGroups: [YouTubeSearchFilterGroup] = []
 
     static let empty = YouTubeSearchResponse(
         videos: [],
@@ -113,44 +117,34 @@ struct YouTubeSearchResponse {
     }
 }
 
-// MARK: - YouTubeSearchFilter
+// MARK: - YouTubeSearchFilterGroup
 
-/// Search result filters mapped to InnerTube `params` values.
-enum YouTubeSearchFilter: String, CaseIterable, Identifiable {
-    case all
-    case videos
-    case channels
-    case playlists
+/// One group of search filters YouTube offers (e.g. "Upload date", "Duration",
+/// "Type", "Sort by"). The options — and the opaque `params` used to apply them
+/// — come straight from the search response's `searchFilterGroupRenderer`, so
+/// applying a filter just replays YouTube's own `searchEndpoint.params`.
+struct YouTubeSearchFilterGroup: Identifiable, Hashable {
+    let title: String
+    let options: [Option]
 
-    var id: String {
-        rawValue
-    }
+    var id: String { self.title }
 
-    var displayName: String {
-        switch self {
-        case .all:
-            String(localized: "All")
-        case .videos:
-            String(localized: "Videos")
-        case .channels:
-            String(localized: "Channels")
-        case .playlists:
-            String(localized: "Playlists")
-        }
-    }
+    /// The currently-applied option in this group, if any.
+    var selectedOption: Option? { self.options.first(where: \.isSelected) }
 
-    /// InnerTube search `params` value for this filter (confirmed via api-explorer).
-    var params: String? {
-        switch self {
-        case .all:
-            nil
-        case .videos:
-            "EgIQAQ=="
-        case .channels:
-            "EgIQAg=="
-        case .playlists:
-            "EgIQAw=="
-        }
+    struct Option: Identifiable, Hashable {
+        /// Localized label straight from YouTube (e.g. "This week").
+        let label: String
+        /// Opaque `params` to re-run the search with this filter applied. `nil`
+        /// for the default no-op option (e.g. "Relevance") which YouTube exposes
+        /// without an endpoint.
+        let params: String?
+        /// Whether this option is the active selection (from the response status).
+        let isSelected: Bool
+        /// Whether the option is unavailable for the current query/filters.
+        let isDisabled: Bool
+
+        var id: String { self.label }
     }
 }
 

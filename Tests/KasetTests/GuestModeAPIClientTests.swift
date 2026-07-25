@@ -35,7 +35,7 @@ struct GuestModeAPIClientTests {
         defer { MockURLProtocol.reset(session: session) }
 
         let client = YouTubeClient(authService: authService, session: session)
-        let response = try await client.search(query: "swift", filter: .all)
+        let response = try await client.search(query: "swift", params: nil)
 
         #expect(response.videos.isEmpty)
         #expect(apiRequestCount == 1)
@@ -176,7 +176,7 @@ struct GuestModeAPIClientTests {
         defer { MockURLProtocol.reset(session: session) }
 
         let client = YouTubeClient(authService: authService, session: session)
-        let response = try await client.search(query: "swift", filter: .all)
+        let response = try await client.search(query: "swift", params: nil)
 
         #expect(response.videos.isEmpty)
         #expect(apiRequestCount == 1)

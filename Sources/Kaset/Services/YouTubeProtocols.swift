@@ -43,8 +43,9 @@ protocol YouTubeClientProtocol: Sendable {
 
     // MARK: Search
 
-    /// Searches YouTube with an optional result-kind filter.
-    func search(query: String, filter: YouTubeSearchFilter) async throws -> YouTubeSearchResponse
+    /// Searches YouTube, optionally applying an opaque filter `params` token
+    /// (from a `YouTubeSearchFilterGroup.Option`).
+    func search(query: String, params: String?) async throws -> YouTubeSearchResponse
 
     /// Fetches the next page of the current search, or `nil` when exhausted.
     func getSearchContinuation() async throws -> YouTubeSearchResponse?

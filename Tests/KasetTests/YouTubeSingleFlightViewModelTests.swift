@@ -311,7 +311,7 @@ private final class SingleFlightYouTubeClient: YouTubeClientProtocol {
         return self.homeTopicFeed
     }
 
-    func search(query _: String, filter _: YouTubeSearchFilter) async throws -> YouTubeSearchResponse {
+    func search(query _: String, params _: String?) async throws -> YouTubeSearchResponse {
         try await self.waitIfNeeded()
         return self.searchResponse
     }
