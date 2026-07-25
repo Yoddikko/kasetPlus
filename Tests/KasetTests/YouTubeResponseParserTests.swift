@@ -372,6 +372,7 @@ struct WatchNextParserTests {
                     "playlistId": "RDseed123",
                     "titleText": ["simpleText": "Mix - Some Artist"],
                     "longBylineText": ["simpleText": "Mixes are playlists YouTube makes for you"],
+                    "currentIndex": 0,
                     "contents": [panelVideo("seed123", "First"), panelVideo("v2", "Second")],
                 ]],
             ]],
@@ -381,6 +382,7 @@ struct WatchNextParserTests {
         #expect(watchNext.mixPlaylistId == "RDseed123")
         #expect(watchNext.mixTitle == "Mix - Some Artist")
         #expect(watchNext.mixDescription == "Mixes are playlists YouTube makes for you")
+        #expect(watchNext.mixPosition == "1/2")
         #expect(watchNext.mixVideos.map(\.videoId) == ["seed123", "v2"])
         // The related rail stays independent of the mix box.
         #expect(watchNext.related.isEmpty)

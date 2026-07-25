@@ -92,7 +92,8 @@ enum WatchNextParser {
             mixVideos: mix?.videos ?? [],
             mixPlaylistId: mix?.playlistId,
             mixTitle: mix?.title,
-            mixDescription: mix?.description
+            mixDescription: mix?.description,
+            mixPosition: mix?.position
         )
     }
 
@@ -102,7 +103,13 @@ enum WatchNextParser {
     /// (`playlistPanelVideoRenderer` items), present only when a Mix is playing.
     private static func mixQueue(
         from results: [String: Any]?
-    ) -> (videos: [YouTubeVideo], playlistId: String?, title: String?, description: String?)? {
+    ) -> (
+        videos: [YouTubeVideo],
+        playlistId: String?,
+        title: String?,
+        description: String?,
+        position: String?
+    )? {
         guard let panel = (results?["playlist"] as? [String: Any])?["playlist"] as? [String: Any],
               let contents = panel["contents"] as? [[String: Any]]
         else {
@@ -118,7 +125,13 @@ enum WatchNextParser {
             ?? YouTubeItemParser.text(from: panel["title"])
         // e.g. "Mixes are playlists YouTube makes for you" (localized by YouTube).
         let description = YouTubeItemParser.text(from: panel["longBylineText"])
-        return (videos, playlistId, title, description)
+        // Finite playlists show a "N/total" position; endless mixes don't.
+        let isInfinite = (panel["isInfinite"] as? Bool) ?? false
+        let position: String? = {
+            guard !isInfinite, let index = panel["currentIndex"] as? Int else { return nil }
+            return "\(index + 1)/\(videos.count)"
+        }()
+        return (videos, playlistId, title, description, position)
     }
 
     // MARK: - Collaboration Owners

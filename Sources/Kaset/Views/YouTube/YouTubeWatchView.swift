@@ -1202,6 +1202,13 @@ struct YouTubeWatchView: View {
         }
     }
 
+    /// Byline + "N/total" position under the queue title (either may be absent).
+    private var mixBoxSubtitle: String? {
+        let parts = [self.viewModel.data.mixDescription, self.viewModel.data.mixPosition]
+            .compactMap(\.self)
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
     /// The Mix's own boxed panel (title + "Mixes are playlists YouTube makes for
     /// you" + the endless queue), mirroring YouTube's up-next Mix card: a
     /// fixed-height, internally-scrolling list with the current track
@@ -1213,8 +1220,8 @@ struct YouTubeWatchView: View {
                 Text(self.viewModel.data.mixTitle ?? String(localized: "Mix"))
                     .font(.headline)
                     .lineLimit(2)
-                if let description = self.viewModel.data.mixDescription {
-                    Text(description)
+                if let subtitle = self.mixBoxSubtitle {
+                    Text(subtitle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)

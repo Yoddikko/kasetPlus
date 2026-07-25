@@ -226,6 +226,8 @@ struct WatchNextData {
     var mixTitle: String?
     /// The mix's byline (e.g. "Mixes are playlists YouTube makes for you").
     var mixDescription: String?
+    /// Current position in a finite playlist queue, "N/total" (nil for endless mixes).
+    var mixPosition: String?
 
     init(
         videoTitle: String?,
@@ -244,7 +246,8 @@ struct WatchNextData {
         mixVideos: [YouTubeVideo] = [],
         mixPlaylistId: String? = nil,
         mixTitle: String? = nil,
-        mixDescription: String? = nil
+        mixDescription: String? = nil,
+        mixPosition: String? = nil
     ) {
         self.videoTitle = videoTitle
         self.viewCountText = viewCountText
@@ -263,6 +266,7 @@ struct WatchNextData {
         self.mixPlaylistId = mixPlaylistId
         self.mixTitle = mixTitle
         self.mixDescription = mixDescription
+        self.mixPosition = mixPosition
     }
 
     static let empty = WatchNextData(
