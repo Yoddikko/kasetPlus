@@ -157,7 +157,10 @@ struct YouTubeChannelView: View {
         } else {
             LazyVGrid(columns: Self.columns, spacing: 20) {
                 ForEach(playlists) { playlist in
-                    NavigationLink(value: YouTubeRoute.playlist(playlistId: playlist.playlistId)) {
+                    NavigationLink(
+                        value: playlist.watchTarget.map(YouTubeRoute.watch)
+                            ?? YouTubeRoute.playlist(playlistId: playlist.playlistId)
+                    ) {
                         YouTubePlaylistCard(playlist: playlist)
                     }
                     .buttonStyle(.interactiveCard)

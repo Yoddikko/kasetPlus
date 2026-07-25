@@ -209,7 +209,10 @@ struct YouTubeSearchView: View {
             }
             .buttonStyle(.interactiveRow)
         case let .playlist(playlist):
-            NavigationLink(value: YouTubeRoute.playlist(playlistId: playlist.playlistId)) {
+            NavigationLink(
+                value: playlist.watchTarget.map(YouTubeRoute.watch)
+                    ?? YouTubeRoute.playlist(playlistId: playlist.playlistId)
+            ) {
                 YouTubePlaylistRowView(playlist: playlist)
             }
             .buttonStyle(.interactiveRow)
