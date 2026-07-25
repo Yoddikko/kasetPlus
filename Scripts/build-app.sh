@@ -456,7 +456,7 @@ ${APP_LOCALIZATIONS_PLIST}
     <key>LSMinimumSystemVersion</key>
     <string>15.4</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2025 Sertac Ozercan. All rights reserved.</string>
+    <string>Copyright © 2025 Alessio Iodice. Based on Kaset by Sertaç Özercan.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>LSUIElement</key>

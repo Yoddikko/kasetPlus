@@ -1003,10 +1003,15 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         showsAddonsStep: Bool = false
     ) async {
         let currentVersion = WhatsNew.Version.current()
-        let whatsNew = await WhatsNewProvider.fetchWhatsNew(
+        var whatsNew = await WhatsNewProvider.fetchWhatsNew(
             for: currentVersion,
             respectingPresentedVersions: respectingPresentedVersions
         )
+        // First-launch onboarding still shows the static highlights when the
+        // release notes can't be fetched (offline).
+        if whatsNew == nil, allowsGenericFallback {
+            whatsNew = WhatsNewProvider.fallbackCollection.first
+        }
 
         guard let whatsNew else { return }
 

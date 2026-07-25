@@ -23,6 +23,17 @@ struct WhatsNewVersionTests {
         #expect(version.description == "1.0.0-beta.1")
     }
 
+    @Test("Same core matches across -kp suffixes but not different cores")
+    func hasSameCoreIgnoresSuffix() {
+        // The app version (0.13.0) must match our release tag (0.13.0-kp.21).
+        let app: WhatsNew.Version = "0.13.0"
+        let release: WhatsNew.Version = "0.13.0-kp.21"
+        #expect(app.hasSameCore(as: release))
+        #expect(release.hasSameCore(as: app))
+        #expect(!app.hasSameCore(as: "0.12.0-kp.20"))
+        #expect(!app.hasSameCore(as: "0.13.1"))
+    }
+
     @Test("Preserves dev suffixes")
     func preservesDevSuffix() {
         let version: WhatsNew.Version = "0.0.0-dev.abc123"

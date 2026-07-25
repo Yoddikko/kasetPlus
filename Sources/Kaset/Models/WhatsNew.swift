@@ -155,6 +155,12 @@ extension WhatsNew.Version {
         let versionString = bundle.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
         return .init(stringLiteral: versionString)
     }
+
+    /// Whether two versions share the same `major.minor.patch` core, ignoring any
+    /// pre-release suffix (e.g. "0.13.0" and "0.13.0-kp.21" match).
+    func hasSameCore(as other: WhatsNew.Version) -> Bool {
+        self.major == other.major && self.minor == other.minor && self.patch == other.patch
+    }
 }
 
 // MARK: - WhatsNew.Feature

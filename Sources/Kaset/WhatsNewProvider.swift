@@ -105,7 +105,24 @@ enum WhatsNewProvider {
             return whatsNew
         }
 
+        // KasetPlus releases are tagged `v{version}-kp.N` (e.g. v0.13.0-kp.21),
+        // so the exact-tag lookup above never matches the bare app version
+        // (0.13.0). Fall back to the latest release and accept it when its core
+        // (major.minor.patch) matches — i.e. it's a `-kp` build of this version.
+        if let latest = await fetchLatest(session: session),
+           latest.version.hasSameCore(as: version)
+        {
+            return latest
+        }
+
         return nil
+    }
+
+    /// Fetches the repo's latest published release.
+    private static func fetchLatest(session: URLSession = .shared) async -> WhatsNew? {
+        guard let url = URL(string: "https://api.github.com/repos/\(Self.owner)/\(Self.repo)/releases/latest")
+        else { return nil }
+        return await Self.performRequest(url: url, session: session)
     }
 
     /// Returns semantically equivalent tag spellings without considering another app version.
@@ -198,7 +215,16 @@ enum WhatsNewProvider {
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
         let lines = normalizedBody.components(separatedBy: "\n")
-        let relevantLines = Self.extractSection(from: lines, preferredHeadings: preferredHeadings) ?? lines
+        // Prefer the "What's New" section. Our release notes, though, keep the
+        // changelog in sibling headings under a bare "### What's New" marker, so
+        // that section extracts empty — fall back to the whole body (the
+        // hidden-section pass below still drops the "What's New" wrapper).
+        let extracted = Self.extractSection(from: lines, preferredHeadings: preferredHeadings)
+        let relevantLines: [String] = if let extracted, !Self.collapsingBlankLines(in: extracted).isEmpty {
+            extracted
+        } else {
+            lines
+        }
         let result = Self.removingHiddenSections(from: relevantLines, hiddenHeadings: hiddenHeadings)
         let collapsedResult = Self.collapsingBlankLines(in: result)
 
