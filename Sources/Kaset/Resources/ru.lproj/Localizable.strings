@@ -105,6 +105,7 @@
 "Close comments" = "Закрыть комментарии";
 "Close side panel" = "Закрыть боковую панель";
 "Closed captions" = "Субтитры";
+"Collaborators" = "Collaborators";
 "Collection" = "Коллекция";
 "Command Bar" = "Панель команд";
 "Comments" = "Комментарии";
@@ -328,6 +329,7 @@
 "No Shorts right now" = "Сейчас нет Shorts";
 "No Song Playing" = "Ничего не воспроизводится";
 "No active support found for that email yet." = "Для этого письма пока не найдено активной поддержки.";
+"No albums yet" = "Альбомов пока нет";
 "No artists yet" = "Исполнителей пока нет";
 "No captions available to summarize this video." = "Нет подписей для суммирования этого видео.";
 "No changes suggested. The playlist looks good!" = "Изменения не предложены. Плейлист выглядит хорошо!";
@@ -359,6 +361,7 @@
 "Nothing here right now" = "Сейчас здесь ничего нет";
 "Nothing here yet" = "Здесь пока ничего нет";
 "Nothing to show" = "Нечего показывать";
+"Notification settings" = "Notification settings";
 "Notifications" = "Уведомления";
 "Notifications, %arg unread" = "Уведомления, %arg непрочитано";
 "Notifications, %lld unread" = "Уведомления, %lld непрочитанных";
@@ -461,6 +464,7 @@
 "Return to KasetPlus" = "Вернуться в KasetPlus";
 "Rock" = "Камень";
 "Romanize Lyrics" = "Романизировать текст";
+"Save albums on YouTube Music to see them here." = "Сохраняйте альбомы в YouTube Music, чтобы видеть их здесь.";
 "Save playlists and subscribe to podcasts on YouTube Music to see them here." = "Сохраняйте плейлисты и подписывайтесь на подкасты в YouTube Music, чтобы видеть их здесь.";
 "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here." = "Сохраняйте плейлисты, подписывайтесь на исполнителей и подкасты в YouTube Music, чтобы видеть их здесь.";
 "Save shuffle and repeat settings across app restarts" = "Сохранять настройки перемешивания и повтора между перезапусками приложения";
@@ -592,6 +596,7 @@
 "Unknown Artist" = "Неизвестный исполнитель";
 "Unlike" = "Убрать «нравится»";
 "Unmute" = "Включить звук";
+"Unsubscribe" = "Unsubscribe";
 "Up Next" = "Далее";
 "Updates" = "Обновления";
 "Upload songs to YouTube Music to browse them here." = "Загрузите песни в YouTube Music, чтобы просматривать их здесь.";
@@ -638,6 +643,7 @@
 "YouTube video" = "Видео YouTube";
 "Your Library" = "Ваша медиатека";
 "Your library is empty" = "Ваша медиатека пуста";
+"and" = "and";
 "e.g., Remove slow songs, reorder by energy..." = "например, убрать медленные треки, перестроить по энергии…";
 "songs" = "треков";
 "tracks" = "треков";

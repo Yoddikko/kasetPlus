@@ -105,6 +105,7 @@
 "Close comments" = "Stäng kommentarer";
 "Close side panel" = "Stäng sidopanelen";
 "Closed captions" = "Textning";
+"Collaborators" = "Collaborators";
 "Collection" = "Samling";
 "Command Bar" = "Kommandofält";
 "Comments" = "Kommentarer";
@@ -328,6 +329,7 @@
 "No Shorts right now" = "Inga Shorts just nu";
 "No Song Playing" = "Ingen låt spelas";
 "No active support found for that email yet." = "Ingen aktiv support hittades för den e-posten ännu.";
+"No albums yet" = "Inga album ännu";
 "No artists yet" = "Inga artister ännu";
 "No captions available to summarize this video." = "Inga bildtexter tillgängliga för att sammanfatta denna video.";
 "No changes suggested. The playlist looks good!" = "Inga ändringar föreslagna. Spellistan ser bra ut!";
@@ -359,6 +361,7 @@
 "Nothing here right now" = "Det finns inget här just nu";
 "Nothing here yet" = "Ingenting här ännu";
 "Nothing to show" = "Inget att visa";
+"Notification settings" = "Notification settings";
 "Notifications" = "Notiser";
 "Notifications, %arg unread" = "Aviseringar, %arg oläst";
 "Notifications, %lld unread" = "Notiser, %lld olästa";
@@ -461,6 +464,7 @@
 "Return to KasetPlus" = "Återgå till KasetPlus";
 "Rock" = "Sten";
 "Romanize Lyrics" = "Romanisera sångtext";
+"Save albums on YouTube Music to see them here." = "Spara album i YouTube Music för att se dem här.";
 "Save playlists and subscribe to podcasts on YouTube Music to see them here." = "Spara spellistor och prenumerera på poddar i YouTube Music för att se dem här.";
 "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here." = "Spara spellistor, följ artister och prenumerera på poddar i YouTube Music för att se dem här.";
 "Save shuffle and repeat settings across app restarts" = "Spara inställningar för blandning och upprepning mellan omstarter";
@@ -592,6 +596,7 @@
 "Unknown Artist" = "Okänd artist";
 "Unlike" = "Ta bort gilla";
 "Unmute" = "Slå på ljud";
+"Unsubscribe" = "Unsubscribe";
 "Up Next" = "Härnäst";
 "Updates" = "Uppdateringar";
 "Upload songs to YouTube Music to browse them here." = "Ladda upp låtar till YouTube Music för att bläddra bland dem här.";
@@ -638,6 +643,7 @@
 "YouTube video" = "YouTube-video";
 "Your Library" = "Ditt bibliotek";
 "Your library is empty" = "Ditt bibliotek är tomt";
+"and" = "and";
 "e.g., Remove slow songs, reorder by energy..." = "t.ex. ta bort långsamma låtar, ordna om efter energi…";
 "songs" = "låtar";
 "tracks" = "spår";

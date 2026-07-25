@@ -105,6 +105,7 @@
 "Close comments" = "Закрити коментарі";
 "Close side panel" = "Закрити бічну панель";
 "Closed captions" = "Субтитри";
+"Collaborators" = "Collaborators";
 "Collection" = "Колекція";
 "Command Bar" = "Панель команд";
 "Comments" = "Коментарі";
@@ -328,6 +329,7 @@
 "No Shorts right now" = "Зараз немає Shorts";
 "No Song Playing" = "Нічого не грає";
 "No active support found for that email yet." = "Для цієї електронної пошти ще не знайдено активної підтримки.";
+"No albums yet" = "Поки що немає альбомів";
 "No artists yet" = "Поки що немає виконавців";
 "No captions available to summarize this video." = "Немає субтитрів, які можна узагальнити це відео.";
 "No changes suggested. The playlist looks good!" = "Змін не запропоновано. Плейлист виглядає добре!";
@@ -359,6 +361,7 @@
 "Nothing here right now" = "Зараз тут нічого немає";
 "Nothing here yet" = "Тут поки що нічого немає";
 "Nothing to show" = "Нічого показувати";
+"Notification settings" = "Notification settings";
 "Notifications" = "Сповіщення";
 "Notifications, %arg unread" = "Повідомлення, %arg непрочитаних";
 "Notifications, %lld unread" = "Сповіщення, %lld непрочитаних";
@@ -461,6 +464,7 @@
 "Return to KasetPlus" = "Повернутися до KasetPlus";
 "Rock" = "Скеля";
 "Romanize Lyrics" = "Романізувати текст пісні";
+"Save albums on YouTube Music to see them here." = "Зберігайте альбоми в YouTube Music, щоб побачити їх тут.";
 "Save playlists and subscribe to podcasts on YouTube Music to see them here." = "Зберігайте плейлисти та підписуйтеся на подкасти в YouTube Music, щоб побачити їх тут.";
 "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here." = "Зберігайте плейлисти, підписуйтеся на виконавців і подкасти в YouTube Music, щоб побачити їх тут.";
 "Save shuffle and repeat settings across app restarts" = "Зберігати налаштування перемішування та повтору між перезапусками програми";
@@ -592,6 +596,7 @@
 "Unknown Artist" = "Невідомий виконавець";
 "Unlike" = "Прибрати «подобається»";
 "Unmute" = "Увімкнути звук";
+"Unsubscribe" = "Unsubscribe";
 "Up Next" = "Далі";
 "Updates" = "Оновлення";
 "Upload songs to YouTube Music to browse them here." = "Завантажте пісні в YouTube Music, щоб переглядати їх тут.";
@@ -638,6 +643,7 @@
 "YouTube video" = "Відео YouTube";
 "Your Library" = "Ваша бібліотека";
 "Your library is empty" = "Ваша бібліотека порожня";
+"and" = "and";
 "e.g., Remove slow songs, reorder by energy..." = "напр., прибрати повільні пісні, змінити порядок за енергією...";
 "songs" = "пісень";
 "tracks" = "треків";

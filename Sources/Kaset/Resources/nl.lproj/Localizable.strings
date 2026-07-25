@@ -105,6 +105,7 @@
 "Close comments" = "Sluit reacties";
 "Close side panel" = "Sluit zijpaneel";
 "Closed captions" = "Ondertiteling";
+"Collaborators" = "Collaborators";
 "Collection" = "Verzameling";
 "Command Bar" = "Opdrachtenbalk";
 "Comments" = "Reacties";
@@ -328,6 +329,7 @@
 "No Shorts right now" = "Nu geen Shorts";
 "No Song Playing" = "Er wordt geen nummer afgespeeld";
 "No active support found for that email yet." = "Nog geen actieve support gevonden voor deze e-mail.";
+"No albums yet" = "Nog geen albums";
 "No artists yet" = "Nog geen artiesten";
 "No captions available to summarize this video." = "Geen bijschriften beschikbaar om deze video samen te vatten.";
 "No changes suggested. The playlist looks good!" = "Geen wijzigingen voorgesteld. De afspeellijst ziet er goed uit!";
@@ -359,6 +361,7 @@
 "Nothing here right now" = "Hier staat nu niets";
 "Nothing here yet" = "Nog niets hier";
 "Nothing to show" = "Niets om weer te geven";
+"Notification settings" = "Notification settings";
 "Notifications" = "Meldingen";
 "Notifications, %arg unread" = "Meldingen, %arg ongelezen";
 "Notifications, %lld unread" = "Meldingen, %lld ongelezen";
@@ -461,6 +464,7 @@
 "Return to KasetPlus" = "Terug naar KasetPlus";
 "Rock" = "Rots";
 "Romanize Lyrics" = "Songteksten romaniseren";
+"Save albums on YouTube Music to see them here." = "Bewaar albums op YouTube Music om ze hier te zien.";
 "Save playlists and subscribe to podcasts on YouTube Music to see them here." = "Bewaar afspeellijsten en abonneer je op podcasts op YouTube Music om ze hier te zien.";
 "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here." = "Bewaar afspeellijsten, volg artiesten en abonneer je op podcasts op YouTube Music om ze hier te zien.";
 "Save shuffle and repeat settings across app restarts" = "Bewaar shuffle- en herhaalinstellingen tussen appstarts";
@@ -592,6 +596,7 @@
 "Unknown Artist" = "Onbekende artiest";
 "Unlike" = "Leuk vinden verwijderen";
 "Unmute" = "Dempen opheffen";
+"Unsubscribe" = "Unsubscribe";
 "Up Next" = "Hierna";
 "Updates" = "Bijwerken";
 "Upload songs to YouTube Music to browse them here." = "Upload nummers naar YouTube Music om ze hier te bekijken.";
@@ -638,6 +643,7 @@
 "YouTube video" = "YouTube-video";
 "Your Library" = "Jouw bibliotheek";
 "Your library is empty" = "Je bibliotheek is leeg";
+"and" = "and";
 "e.g., Remove slow songs, reorder by energy..." = "bijv. langzame nummers verwijderen, opnieuw ordenen op energie…";
 "songs" = "nummers";
 "tracks" = "nummers";

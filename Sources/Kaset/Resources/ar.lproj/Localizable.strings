@@ -105,6 +105,7 @@
 "Close comments" = "إغلاق التعليقات";
 "Close side panel" = "إغلاق اللوحة الجانبية";
 "Closed captions" = "الترجمة المصاحبة";
+"Collaborators" = "Collaborators";
 "Collection" = "المجموعة";
 "Command Bar" = "شريط الأوامر";
 "Comments" = "التعليقات";
@@ -328,6 +329,7 @@
 "No Shorts right now" = "لا توجد Shorts الآن";
 "No Song Playing" = "لا توجد أغنية قيد التشغيل";
 "No active support found for that email yet." = "لم يتم العثور على دعم نشط لهذا البريد الإلكتروني حتى الآن.";
+"No albums yet" = "لا توجد ألبومات بعد";
 "No artists yet" = "لا يوجد فنانون بعد";
 "No captions available to summarize this video." = "لا توجد تسميات توضيحية متاحة لتلخيص هذا الفيديو.";
 "No changes suggested. The playlist looks good!" = "لا توجد تغييرات مقترحة. قائمة التشغيل تبدو جيدة!";
@@ -359,6 +361,7 @@
 "Nothing here right now" = "لا يوجد شيء هنا الآن";
 "Nothing here yet" = "لا شيء هنا بعد";
 "Nothing to show" = "لا يوجد ما يمكن عرضه";
+"Notification settings" = "Notification settings";
 "Notifications" = "الإشعارات";
 "Notifications, %arg unread" = "الإشعارات ، %arg غير مقروء";
 "Notifications, %lld unread" = "الإشعارات، %lld غير مقروءة";
@@ -461,6 +464,7 @@
 "Return to KasetPlus" = "العودة إلى KasetPlus";
 "Rock" = "روك";
 "Romanize Lyrics" = "رومنة كلمات الأغاني";
+"Save albums on YouTube Music to see them here." = "احفظ الألبومات على YouTube Music لتراها هنا.";
 "Save playlists and subscribe to podcasts on YouTube Music to see them here." = "احفظ قوائم التشغيل واشترك في البودكاست على YouTube Music لتراها هنا.";
 "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here." = "احفظ قوائم التشغيل، وتابع الفنانين، واشترك في البودكاست على YouTube Music لتراها هنا.";
 "Save shuffle and repeat settings across app restarts" = "حفظ إعدادات الخلط والتكرار عند إعادة تشغيل التطبيق";
@@ -592,6 +596,7 @@
 "Unknown Artist" = "فنان غير معروف";
 "Unlike" = "إلغاء الإعجاب";
 "Unmute" = "إلغاء كتم الصوت";
+"Unsubscribe" = "Unsubscribe";
 "Up Next" = "التالي";
 "Updates" = "التحديثات";
 "Upload songs to YouTube Music to browse them here." = "ارفع الأغاني إلى YouTube Music لتصفحها هنا.";
@@ -638,6 +643,7 @@
 "YouTube video" = "فيديو YouTube";
 "Your Library" = "مكتبتك";
 "Your library is empty" = "مكتبتك فارغة";
+"and" = "and";
 "e.g., Remove slow songs, reorder by energy..." = "مثال: أزل الأغاني البطيئة، أعد الترتيب حسب الحيوية...";
 "songs" = "أغانٍ";
 "tracks" = "مقطوعات";

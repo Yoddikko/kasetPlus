@@ -105,6 +105,7 @@
 "Close comments" = "Cerrar comentarios";
 "Close side panel" = "Cerrar panel lateral";
 "Closed captions" = "Subtítulos";
+"Collaborators" = "Collaborators";
 "Collection" = "Colección";
 "Command Bar" = "Barra de comandos";
 "Comments" = "Comentarios";
@@ -328,6 +329,7 @@
 "No Shorts right now" = "No hay Shorts ahora mismo";
 "No Song Playing" = "No se está reproduciendo ninguna canción";
 "No active support found for that email yet." = "No se ha encontrado soporte activo para ese correo electrónico todavía.";
+"No albums yet" = "Todavía no hay álbumes";
 "No artists yet" = "Todavía no hay artistas";
 "No captions available to summarize this video." = "No hay subtítulos disponibles para resumir este vídeo.";
 "No changes suggested. The playlist looks good!" = "No se sugieren cambios. ¡La playlist se ve bien!";
@@ -359,6 +361,7 @@
 "Nothing here right now" = "No hay nada aquí ahora mismo";
 "Nothing here yet" = "Nada aquí aún";
 "Nothing to show" = "Nada para mostrar";
+"Notification settings" = "Notification settings";
 "Notifications" = "Notificaciones";
 "Notifications, %arg unread" = "Notificaciones, %arg no leídos";
 "Notifications, %lld unread" = "Notificaciones, %lld sin leer";
@@ -461,6 +464,7 @@
 "Return to KasetPlus" = "Volver a KasetPlus";
 "Rock" = "Roca";
 "Romanize Lyrics" = "Romanizar letras";
+"Save albums on YouTube Music to see them here." = "Guarda álbumes en YouTube Music para verlos aquí.";
 "Save playlists and subscribe to podcasts on YouTube Music to see them here." = "Guarda playlists y suscríbete a podcasts en YouTube Music para verlos aquí.";
 "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here." = "Guarda playlists, sigue artistas y suscríbete a podcasts en YouTube Music para verlos aquí.";
 "Save shuffle and repeat settings across app restarts" = "Guardar la configuración de aleatorio y repetición entre reinicios de la app";
@@ -592,6 +596,7 @@
 "Unknown Artist" = "Artista desconocido";
 "Unlike" = "Quitar Me gusta";
 "Unmute" = "Activar sonido";
+"Unsubscribe" = "Unsubscribe";
 "Up Next" = "A continuación";
 "Updates" = "Actualizaciones";
 "Upload songs to YouTube Music to browse them here." = "Sube canciones a YouTube Music para verlas aquí.";
@@ -638,6 +643,7 @@
 "YouTube video" = "Video de YouTube";
 "Your Library" = "Tu biblioteca";
 "Your library is empty" = "Tu biblioteca está vacía";
+"and" = "and";
 "e.g., Remove slow songs, reorder by energy..." = "p. ej., quitar canciones lentas, reordenar por energía…";
 "songs" = "canciones";
 "tracks" = "pistas";

@@ -105,6 +105,7 @@
 "Close comments" = "Close comments";
 "Close side panel" = "Yan paneli kapat";
 "Closed captions" = "Kapalı altyazılar";
+"Collaborators" = "Collaborators";
 "Collection" = "Koleksiyon";
 "Command Bar" = "Komut Çubuğu";
 "Comments" = "Yorumlar";
@@ -328,6 +329,7 @@
 "No Shorts right now" = "Şu anda Shorts yok";
 "No Song Playing" = "Çalan Şarkı Yok";
 "No active support found for that email yet." = "No active support found for that email yet.";
+"No albums yet" = "Henüz albüm yok";
 "No artists yet" = "Henüz sanatçı yok";
 "No captions available to summarize this video." = "No captions available to summarize this video.";
 "No changes suggested. The playlist looks good!" = "Herhangi bir değişiklik önerilmedi. Çalma listesi iyi görünüyor!";
@@ -359,6 +361,7 @@
 "Nothing here right now" = "Şu anda burada hiçbir şey yok";
 "Nothing here yet" = "Nothing here yet";
 "Nothing to show" = "Gösterilecek bir şey yok";
+"Notification settings" = "Notification settings";
 "Notifications" = "Bildirimler";
 "Notifications, %arg unread" = "Notifications, %arg unread";
 "Notifications, %lld unread" = "Bildirimler, %lld okunmamış";
@@ -461,6 +464,7 @@
 "Return to KasetPlus" = "KasetPlus'e dön";
 "Rock" = "Rock";
 "Romanize Lyrics" = "Şarkı Sözlerini Romanize Et";
+"Save albums on YouTube Music to see them here." = "Burada görmek için YouTube Music'te albümleri kaydedin.";
 "Save playlists and subscribe to podcasts on YouTube Music to see them here." = "Burada görmek için YouTube Music'te çalma listeleri kaydedin ve podcastlere abone olun.";
 "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here." = "Burada görmek için YouTube Music'te çalma listeleri kaydedin, sanatçıları takip edin ve podcastlere abone olun.";
 "Save shuffle and repeat settings across app restarts" = "Uygulama yeniden başlatıldığında karıştırma ve tekrar ayarlarını koru";
@@ -592,6 +596,7 @@
 "Unknown Artist" = "Bilinmeyen Sanatçı";
 "Unlike" = "Beğeniyi Kaldır";
 "Unmute" = "Sesi Aç";
+"Unsubscribe" = "Unsubscribe";
 "Up Next" = "Sıradaki";
 "Updates" = "Güncellemeler";
 "Upload songs to YouTube Music to browse them here." = "Şarkıları burada göz atmak için YouTube Music'e yükleyin.";
@@ -638,6 +643,7 @@
 "YouTube video" = "YouTube videosu";
 "Your Library" = "Kitaplığınız";
 "Your library is empty" = "Kitaplığınız boş";
+"and" = "and";
 "e.g., Remove slow songs, reorder by energy..." = "örn. Yavaş şarkıları kaldır, enerjiye göre yeniden sırala...";
 "songs" = "şarkı";
 "tracks" = "parça";
