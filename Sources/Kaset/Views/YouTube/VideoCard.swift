@@ -83,24 +83,31 @@ struct VideoThumbnailView: View {
     }
 
     private var thumbnail: some View {
-        CachedAsyncImage(
-            url: self.video.thumbnailURL,
-            targetSize: self.targetSize
-        ) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-        } placeholder: {
-            Rectangle()
-                .fill(.quaternary)
-                .overlay {
-                    Image(systemName: "play.rectangle")
-                        .font(.system(size: 24))
-                        .foregroundStyle(.tertiary)
+        // Anchor a strict 16:9 box (Color.clear) and fill it with the image,
+        // so square covers (YouTube-Music mix art) are cropped to 16:9 instead
+        // of stretching the card. `.aspectRatio` on the image alone is ignored
+        // because CachedAsyncImage adopts the source's own aspect.
+        Color.clear
+            .aspectRatio(16 / 9, contentMode: .fit)
+            .overlay {
+                CachedAsyncImage(
+                    url: self.video.thumbnailURL,
+                    targetSize: self.targetSize
+                ) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Rectangle()
+                        .fill(.quaternary)
+                        .overlay {
+                            Image(systemName: "play.rectangle")
+                                .font(.system(size: 24))
+                                .foregroundStyle(.tertiary)
+                        }
                 }
-        }
-        .aspectRatio(16 / 9, contentMode: .fit)
-        .overlay(alignment: .bottom) {
+            }
+            .overlay(alignment: .bottom) {
             if let percent = self.video.watchedPercent {
                 self.watchedProgressBar(percent: percent)
             }

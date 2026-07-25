@@ -109,24 +109,27 @@ struct YouTubePlaylistRowView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            CachedAsyncImage(
-                url: self.playlist.thumbnailURL,
-                targetSize: CGSize(width: 160, height: 90)
-            ) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle()
-                    .fill(.quaternary)
-                    .overlay {
-                        Image(systemName: "list.and.film")
-                            .foregroundStyle(.tertiary)
+            Color.clear
+                .aspectRatio(16 / 9, contentMode: .fit)
+                .overlay {
+                    CachedAsyncImage(
+                        url: self.playlist.thumbnailURL,
+                        targetSize: CGSize(width: 160, height: 90)
+                    ) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(.quaternary)
+                            .overlay {
+                                Image(systemName: "list.and.film")
+                                    .foregroundStyle(.tertiary)
+                            }
                     }
-            }
-            .aspectRatio(16 / 9, contentMode: .fit)
-            .frame(width: 160)
-            .clipShape(.rect(cornerRadius: 8))
+                }
+                .frame(width: 160)
+                .clipShape(.rect(cornerRadius: 8))
             .overlay(alignment: .bottomTrailing) {
                 if let videoCountText = self.playlist.videoCountText {
                     Text(videoCountText)
@@ -175,25 +178,28 @@ struct YouTubePlaylistCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            CachedAsyncImage(
-                url: self.playlist.thumbnailURL,
-                targetSize: CGSize(width: 320, height: 180)
-            ) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle()
-                    .fill(.quaternary)
-                    .overlay {
-                        Image(systemName: "list.and.film")
-                            .font(.system(size: 24))
-                            .foregroundStyle(.tertiary)
+            Color.clear
+                .aspectRatio(16 / 9, contentMode: .fit)
+                .overlay {
+                    CachedAsyncImage(
+                        url: self.playlist.thumbnailURL,
+                        targetSize: CGSize(width: 320, height: 180)
+                    ) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(.quaternary)
+                            .overlay {
+                                Image(systemName: "list.and.film")
+                                    .font(.system(size: 24))
+                                    .foregroundStyle(.tertiary)
+                            }
                     }
-            }
-            .aspectRatio(16 / 9, contentMode: .fit)
-            .clipShape(.rect(cornerRadius: 8))
-            .overlay(alignment: .bottomTrailing) {
+                }
+                .clipShape(.rect(cornerRadius: 8))
+                .overlay(alignment: .bottomTrailing) {
                 if let videoCountText = self.playlist.videoCountText {
                     Text(videoCountText)
                         .font(.system(size: 10, weight: .semibold))
