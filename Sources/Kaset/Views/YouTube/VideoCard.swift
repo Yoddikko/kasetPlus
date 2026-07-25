@@ -108,21 +108,20 @@ struct VideoThumbnailView: View {
                 }
             }
             .overlay(alignment: .bottom) {
-            if let percent = self.video.watchedPercent {
-                self.watchedProgressBar(percent: percent)
+                if let percent = self.video.watchedPercent {
+                    self.watchedProgressBar(percent: percent)
+                }
             }
-        }
-        .clipShape(.rect(cornerRadius: 8))
-        .overlay(alignment: .bottomTrailing) {
-            self.badge
-        }
-        .overlay(alignment: .topLeading) {
-            if self.video.isMembersOnly {
-                self.membersBadge
+            .clipShape(.rect(cornerRadius: 8))
+            .overlay(alignment: .bottomTrailing) {
+                self.badge
             }
-        }
+            .overlay(alignment: .topLeading) {
+                if self.video.isMembersOnly {
+                    self.membersBadge
+                }
+            }
     }
-
 
     /// "Members only" badge for channel-membership-restricted videos (green,
     /// like YouTube), mirroring the LIVE/duration badge treatment.

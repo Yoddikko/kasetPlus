@@ -130,18 +130,18 @@ struct YouTubePlaylistRowView: View {
                 }
                 .frame(width: 160)
                 .clipShape(.rect(cornerRadius: 8))
-            .overlay(alignment: .bottomTrailing) {
-                if let videoCountText = self.playlist.videoCountText {
-                    Text(videoCountText)
-                        .font(.system(size: 10, weight: .semibold))
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(.black.opacity(0.75), in: .rect(cornerRadius: 4))
-                        .foregroundStyle(.white)
-                        .padding(6)
+                .overlay(alignment: .bottomTrailing) {
+                    if let videoCountText = self.playlist.videoCountText {
+                        Text(videoCountText)
+                            .font(.system(size: 10, weight: .semibold))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(.black.opacity(0.75), in: .rect(cornerRadius: 4))
+                            .foregroundStyle(.white)
+                            .padding(6)
+                    }
                 }
-            }
-            .stackedPoster()
+                .stackedPoster()
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(self.playlist.title)
@@ -200,17 +200,17 @@ struct YouTubePlaylistCard: View {
                 }
                 .clipShape(.rect(cornerRadius: 8))
                 .overlay(alignment: .bottomTrailing) {
-                if let videoCountText = self.playlist.videoCountText {
-                    Text(videoCountText)
-                        .font(.system(size: 10, weight: .semibold))
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(.black.opacity(0.75), in: .rect(cornerRadius: 4))
-                        .foregroundStyle(.white)
-                        .padding(6)
+                    if let videoCountText = self.playlist.videoCountText {
+                        Text(videoCountText)
+                            .font(.system(size: 10, weight: .semibold))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(.black.opacity(0.75), in: .rect(cornerRadius: 4))
+                            .foregroundStyle(.white)
+                            .padding(6)
+                    }
                 }
-            }
-            .stackedPoster()
+                .stackedPoster()
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(self.playlist.title)
