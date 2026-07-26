@@ -141,6 +141,7 @@ struct YouTubePlaylistRowView: View {
                             .padding(6)
                     }
                 }
+                .stackedPoster()
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(self.playlist.title)
@@ -209,6 +210,7 @@ struct YouTubePlaylistCard: View {
                             .padding(6)
                     }
                 }
+                .stackedPoster()
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(self.playlist.title)
@@ -228,5 +230,38 @@ struct YouTubePlaylistCard: View {
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
+    }
+}
+
+// MARK: - Stacked Poster (playlists)
+
+/// The layered "stack" cue for playlist posters: two cards peeking in a thin
+/// strip *above* the poster, like a stack of thumbnails. Only used on playlist
+/// grids/lists (uniform heights), not on mix video cards which live in mixed
+/// rails where the extra height would misalign them.
+private struct StackedPosterBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        VStack(spacing: 0) {
+            ZStack(alignment: .bottom) {
+                self.sliver(inset: 18, height: 7, shade: 0.38)
+                self.sliver(inset: 9, height: 4, shade: 0.55)
+            }
+            .frame(height: 7)
+            content
+        }
+    }
+
+    private func sliver(inset: CGFloat, height: CGFloat, shade: Double) -> some View {
+        RoundedRectangle(cornerRadius: 5)
+            .fill(Color(white: shade))
+            .frame(height: height)
+            .padding(.horizontal, inset)
+    }
+}
+
+extension View {
+    /// Wraps a 16:9 poster in the playlist "stack" look (cards peeking above).
+    func stackedPoster() -> some View {
+        self.modifier(StackedPosterBackground())
     }
 }
