@@ -141,7 +141,6 @@ struct YouTubePlaylistRowView: View {
                             .padding(6)
                     }
                 }
-                .stackedPoster()
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(self.playlist.title)
@@ -210,7 +209,6 @@ struct YouTubePlaylistCard: View {
                             .padding(6)
                     }
                 }
-                .stackedPoster()
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(self.playlist.title)

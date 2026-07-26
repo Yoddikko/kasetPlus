@@ -77,9 +77,10 @@ struct VideoThumbnailView: View {
     var targetSize = CGSize(width: 320, height: 180)
 
     var body: some View {
-        // A Mix reads as the video's own poster wearing the shared "stack" cue
-        // (like a playlist), plus a Mix badge — mirroring YouTube.
-        self.thumbnail.stackedPoster(self.video.mixPlaylistId != nil)
+        // A Mix reads as the video's own 16:9 poster plus the "Mix" badge — no
+        // extra "stack" chrome, so mix cards stay the same size as video cards
+        // and line up in mixed rails/grids.
+        self.thumbnail
     }
 
     private var thumbnail: some View {
@@ -192,49 +193,6 @@ struct VideoThumbnailView: View {
                 .background(.black.opacity(0.75), in: .rect(cornerRadius: 4))
                 .foregroundStyle(.white)
                 .padding(6)
-        }
-    }
-}
-
-// MARK: - Stacked Poster (Mixes & Playlists)
-
-/// The layered "stack" cue YouTube uses for collections: two subtle cards
-/// peeking above the poster's top edge. Shared by Mixes and playlists so both
-/// read the same, at the app's 16:9 poster proportions and rounded corners.
-private struct StackedPosterBackground: ViewModifier {
-    func body(content: Content) -> some View {
-        // The stacked "cards" peek in a reserved strip *above* the poster (never
-        // behind it), so they can't bleed through a missing thumbnail, can't
-        // draw a frame around the poster, and can't be clipped by a rail. The
-        // slivers carry no width — as siblings they fill the poster's width and
-        // are inset, staying centred and narrower than the poster.
-        VStack(spacing: 0) {
-            ZStack(alignment: .bottom) {
-                self.sliver(inset: 18, height: 7, shade: 0.38)
-                self.sliver(inset: 9, height: 4, shade: 0.55)
-            }
-            .frame(height: 7)
-            content
-        }
-    }
-
-    private func sliver(inset: CGFloat, height: CGFloat, shade: Double) -> some View {
-        RoundedRectangle(cornerRadius: 5)
-            .fill(Color(white: shade))
-            .frame(height: height)
-            .padding(.horizontal, inset)
-    }
-}
-
-extension View {
-    /// Wraps a 16:9 poster in YouTube's collection "stack" look. Pass `false`
-    /// to render the poster unchanged (non-collection cards).
-    @ViewBuilder
-    func stackedPoster(_ show: Bool = true) -> some View {
-        if show {
-            self.modifier(StackedPosterBackground())
-        } else {
-            self
         }
     }
 }
