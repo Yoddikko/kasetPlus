@@ -146,9 +146,7 @@ enum YouTubeItemParser {
             return nil
         }
 
-        let sources = (
-            (lockup["thumbnailViewModel"] as? [String: Any])?["image"] as? [String: Any]
-        )?["sources"] as? [[String: Any]]
+        let sources = self.imageSources(fromThumbnailViewModel: lockup["thumbnailViewModel"])
 
         return YouTubeVideo(
             videoId: videoId,
@@ -355,14 +353,31 @@ enum YouTubeItemParser {
     /// wrap it in `collectionThumbnailViewModel.primaryThumbnail` (the stacked
     /// poster), so fall back to that path.
     static func thumbnailURL(fromLockup lockup: [String: Any]) -> URL? {
-        let contentImage = lockup["contentImage"] as? [String: Any]
-        let thumbnailViewModel = contentImage?["thumbnailViewModel"] as? [String: Any]
-            ?? ((contentImage?["collectionThumbnailViewModel"] as? [String: Any])?["primaryThumbnail"]
-                as? [String: Any])?["thumbnailViewModel"] as? [String: Any]
-        let sources = (thumbnailViewModel?["image"] as? [String: Any])?["sources"]
-            as? [[String: Any]]
-        guard let sources else { return nil }
+        guard let contentImage = lockup["contentImage"] as? [String: Any] else { return nil }
+
+        if let sources = self.imageSources(fromThumbnailViewModel: contentImage["thumbnailViewModel"]) {
+            return self.bestSourceURL(from: sources)
+        }
+
+        // Playlist and album lockups stack their poster behind a collection wrapper.
+        let collection = contentImage["collectionThumbnailViewModel"] as? [String: Any]
+        guard let sources = self.imageSources(
+            fromThumbnailViewModel: collection?["primaryThumbnail"]
+        ) else {
+            return nil
+        }
         return self.bestSourceURL(from: sources)
+    }
+
+    /// Extracts `image.sources` from a `thumbnailViewModel`, tolerating the
+    /// singly-nested form InnerTube uses for Shorts and collection lockups.
+    static func imageSources(fromThumbnailViewModel value: Any?) -> [[String: Any]]? {
+        guard let container = value as? [String: Any] else { return nil }
+        if let sources = (container["image"] as? [String: Any])?["sources"] as? [[String: Any]] {
+            return sources
+        }
+        let nested = container["thumbnailViewModel"] as? [String: Any]
+        return (nested?["image"] as? [String: Any])?["sources"] as? [[String: Any]]
     }
 
     /// Picks the largest entry from an array of `{url, width, height}` sources,
