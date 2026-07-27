@@ -93,8 +93,31 @@ enum WatchNextParser {
             mixPlaylistId: mix?.playlistId,
             mixTitle: mix?.title,
             mixDescription: mix?.description,
-            mixPosition: mix?.position
+            mixPosition: mix?.position,
+            // A channel that offers a paid membership exposes a `membershipButton`
+            // on its video-owner renderer (label "Join" / "Abbonati").
+            channelOffersMembership: ownerRenderer?["membershipButton"] != nil
         )
+    }
+
+    // MARK: - Playability (members-only gate)
+
+    /// Parses the `player` endpoint's `playabilityStatus` into a gate result.
+    /// For a members-only video a non-member can't watch, YouTube returns
+    /// `status != "OK"`, no `streamingData`, and an `errorScreen` carrying the
+    /// dynamic reason/subreason text we surface verbatim.
+    static func playability(_ data: [String: Any]) -> YouTubePlayability {
+        let status = data["playabilityStatus"] as? [String: Any]
+        let state = status?["status"] as? String
+        if state == "OK" || data["streamingData"] != nil {
+            return .playable
+        }
+        let renderer = ((status?["errorScreen"] as? [String: Any])?["playerErrorMessageRenderer"])
+            as? [String: Any]
+        let reason = YouTubeItemParser.text(from: renderer?["reason"])
+            ?? (status?["reason"] as? String)
+        let subreason = YouTubeItemParser.text(from: renderer?["subreason"])
+        return YouTubePlayability(isPlayable: false, reason: reason, subreason: subreason)
     }
 
     // MARK: - Mix (radio) queue

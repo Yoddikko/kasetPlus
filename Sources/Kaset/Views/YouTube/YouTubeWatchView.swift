@@ -15,6 +15,7 @@ struct YouTubeWatchView: View {
 
     @Environment(AuthService.self) private var authService
     @Environment(YouTubePlayerService.self) private var youtubePlayer
+    @Environment(\.openURL) private var openURL
     @State private var viewModel: YouTubeWatchViewModel
 
     init(video: YouTubeVideo, client: any YouTubeClientProtocol) {
@@ -241,8 +242,13 @@ struct YouTubeWatchView: View {
                 }
                 // Loading state: the WebView surface is black until the stream
                 // is ready, so show a spinner over it instead of a blank frame.
+                // For a members-only video the user can't play, no stream ever
+                // arrives — show YouTube's real gate notice instead of spinning.
                 .overlay {
-                    if self.youtubePlayer.isPlaybackLoading {
+                    if let gate = self.viewModel.membersGate {
+                        self.membersGateCard(gate)
+                            .transition(.opacity)
+                    } else if self.youtubePlayer.isPlaybackLoading {
                         ZStack {
                             Rectangle().fill(.black)
                             ProgressView()
@@ -253,6 +259,7 @@ struct YouTubeWatchView: View {
                     }
                 }
                 .animation(.easeInOut(duration: 0.25), value: self.youtubePlayer.isPlaybackLoading)
+                .animation(.easeInOut(duration: 0.25), value: self.viewModel.membersGate == nil)
                 // "Ad" badge: a server-side (SSAI) ad can still slip past the
                 // blocker; label it so it's clear this isn't the content.
                 .overlay(alignment: .topLeading) {
@@ -545,6 +552,7 @@ struct YouTubeWatchView: View {
 
                     if self.hasPersonalAccount {
                         self.subscribeButton
+                        self.membershipButton
                         self.notificationBellButton
                     }
 
@@ -1000,6 +1008,81 @@ struct YouTubeWatchView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(AccessibilityID.YouTubeContent.subscribeButton)
+    }
+
+    /// The channel to open a membership (Join / Abbonati) page for: the watch
+    /// page's parsed owner, falling back to the source card's channel.
+    private var membershipChannelId: String? {
+        self.viewModel.data.channel?.channelId ?? self.video.channelId
+    }
+
+    /// "Join" (Abbonati) button shown next to Subscribe when the channel offers a
+    /// paid membership. Paid flows aren't handled in-app — it opens YouTube.
+    @ViewBuilder
+    private var membershipButton: some View {
+        if self.viewModel.data.channelOffersMembership, let channelId = self.membershipChannelId {
+            self.abbonatiButton(channelId: channelId)
+        }
+    }
+
+    /// The Join / Abbonati capsule that opens the channel's YouTube membership
+    /// page in the browser (no in-app payment flow). Reused by the members-only
+    /// gate card so joining is one click from the blocked video.
+    private func abbonatiButton(channelId: String) -> some View {
+        Button {
+            self.openMembership(channelId: channelId)
+        } label: {
+            Text("Join", comment: "Button to join a channel's paid membership (Abbonati)")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 16)
+                .frame(height: 36)
+                .compatGlass(interactive: true, tint: Self.brandAccent, in: Capsule())
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Opens the channel's YouTube membership page. Membership/payment is handled
+    /// on YouTube, never in-app.
+    private func openMembership(channelId: String) {
+        guard let url = URL(string: "https://www.youtube.com/channel/\(channelId)/join") else { return }
+        self.openURL(url)
+    }
+
+    /// Members-only gate: replaces the endless spinner for a members-only video
+    /// the signed-in user can't play. Shows YouTube's own dynamic reason /
+    /// subreason plus a Join (Abbonati) action.
+    private func membersGateCard(_ gate: YouTubePlayability) -> some View {
+        ZStack {
+            Rectangle().fill(.black)
+            VStack(spacing: 12) {
+                Image(systemName: "star.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(Color(red: 0.18, green: 0.55, blue: 0.34))
+
+                if let reason = gate.reason {
+                    Text(reason)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                }
+
+                if let subreason = gate.subreason {
+                    Text(subreason)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+
+                if let channelId = self.membershipChannelId {
+                    self.abbonatiButton(channelId: channelId)
+                        .padding(.top, 4)
+                }
+            }
+            .padding(.horizontal, 40)
+            .frame(maxWidth: 520)
+        }
     }
 
     /// The subscription notification "bell": a menu to pick the notification

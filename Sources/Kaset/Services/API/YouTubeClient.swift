@@ -260,6 +260,20 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
         return WatchNextParser.parse(data)
     }
 
+    /// Fetches the `player` playability status for a members-only gate. Signed-in
+    /// (auth `.required`) because membership access is per-account, and uncached
+    /// so a freshly-joined member sees the video unlock on the next open.
+    func getPlayability(videoId: String) async throws -> YouTubePlayability {
+        self.logger.info("Fetching playability status")
+
+        let data = try await self.request(
+            "player",
+            body: ["videoId": videoId],
+            authPolicy: .required
+        )
+        return WatchNextParser.playability(data)
+    }
+
     func getComments(continuation: String) async throws -> YouTubeCommentsPage {
         self.logger.info("Fetching YouTube comments page")
 
