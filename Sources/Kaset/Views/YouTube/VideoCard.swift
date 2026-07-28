@@ -12,14 +12,16 @@ struct VideoCard: View {
             VideoThumbnailView(video: self.video)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(DearrowCache.shared.displayTitle(
-                    for: self.video.videoId, original: self.video.title))
+                Text(self.displayTitle)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.primary)
                     // Always reserve two lines so 1- vs 2-line titles don't make
                     // cards in a row different heights (they're top-aligned).
                     .lineLimit(2, reservesSpace: true)
                     .multilineTextAlignment(.leading)
+                    // Long titles truncate to two lines — surface the full title
+                    // as a native hover tooltip.
+                    .help(self.displayTitle)
                     .id("dearrow-\(self.video.videoId)-\(DearrowCache.shared.hasDearrow(for: self.video.videoId))")
 
                 if let channelName = self.video.channelName {
@@ -44,6 +46,10 @@ struct VideoCard: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(self.accessibilityText)
+    }
+
+    private var displayTitle: String {
+        DearrowCache.shared.displayTitle(for: self.video.videoId, original: self.video.title)
     }
 
     private var metaText: String? {
