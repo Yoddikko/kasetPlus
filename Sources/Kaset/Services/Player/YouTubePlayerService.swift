@@ -605,6 +605,42 @@ final class YouTubePlayerService {
         self.isPlaybackLoading = true
     }
 
+    // MARK: - Refresh (⌘R) & network auto-retry
+
+    /// User-triggered refresh (⌘R): reloads the current video's playback surface
+    /// at its last position, to recover a stuck/black player after a network
+    /// interruption without losing the user's place. No-op when nothing is loaded.
+    ///
+    /// ponytail: a reload autoplays the watch page, so hitting this on a
+    /// deliberately-paused video resumes it — acceptable for a "refresh" action,
+    /// and the auto-retry path below only calls it when playback should be running.
+    func refreshCurrentVideo() {
+        guard let currentVideo = self.currentVideo else { return }
+        self.logger.info("Manual refresh: reloading current video")
+        self.beginYouTubePlaybackIntent()
+        let resumeAt = self.interruptionResumeAt(for: currentVideo.videoId)
+        self.playbackController.prepare(
+            webKitManager: self.webKitManager,
+            playerService: self,
+            usesCookieFreeDataStore: self.usesCookieFreePlaybackDataStore
+        )
+        self.playbackController.reloadVideo(videoId: currentVideo.videoId, resumeAt: resumeAt)
+        self.isPlaybackLoading = true
+    }
+
+    /// Auto-retry when connectivity returns (issue #19): if a video was meant to
+    /// be playing but stalled during a network drop — still "loading", or not
+    /// playing while the user intends to — reload it. Deliberately-paused
+    /// playback is left alone so a network blip never yanks it back to life.
+    func handleNetworkRestored() {
+        guard self.currentVideo != nil else { return }
+        let stalled = self.isPlaybackLoading
+            || (self.desiredPlaybackIntent == .playing && !self.isPlaying)
+        guard stalled else { return }
+        self.logger.info("Network restored: auto-reloading stalled video")
+        self.refreshCurrentVideo()
+    }
+
     /// Returns the best native resume target for an interrupted document.
     /// Native seek intent wins until the observer proves it was applied;
     /// otherwise use the last genuine content clock.

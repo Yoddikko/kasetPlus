@@ -218,6 +218,54 @@ struct YouTubePlayerServiceTests {
         #expect(self.controller.reloadedVideoIds.isEmpty)
     }
 
+    @Test("Manual refresh (⌘R) reloads the current video")
+    func refreshReloadsCurrentVideo() {
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        self.sut.updatePlaybackState(.init(isPlaying: true, progress: 12, duration: 60, videoId: "abc"))
+
+        self.sut.refreshCurrentVideo()
+
+        // A forced reload of the same id (not a no-op loadVideo). The resume
+        // target is the existing interruption-resume machinery, covered above.
+        #expect(self.controller.reloadedVideoIds == ["abc"])
+    }
+
+    @Test("Manual refresh is a no-op when nothing is playing")
+    func refreshNoOpWhenIdle() {
+        self.sut.refreshCurrentVideo()
+        #expect(self.controller.reloadedVideoIds.isEmpty)
+    }
+
+    @Test("Network restored reloads a stalled (still-loading) video")
+    func networkRestoredReloadsStalledVideo() {
+        // play() leaves the surface loading (no playback update yet) — the
+        // stuck-after-network-drop state.
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        #expect(self.sut.isPlaybackLoading)
+
+        self.sut.handleNetworkRestored()
+
+        #expect(self.controller.reloadedVideoIds == ["abc"])
+    }
+
+    @Test("Network restored leaves a normally-playing video alone")
+    func networkRestoredIgnoresHealthyPlayback() {
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        // A playback update clears the loading state and marks it playing.
+        self.sut.updatePlaybackState(.init(isPlaying: true, progress: 5, duration: 60, videoId: "abc"))
+        #expect(!self.sut.isPlaybackLoading)
+
+        self.sut.handleNetworkRestored()
+
+        #expect(self.controller.reloadedVideoIds.isEmpty)
+    }
+
+    @Test("Network restored is a no-op when nothing is playing")
+    func networkRestoredNoOpWhenIdle() {
+        self.sut.handleNetworkRestored()
+        #expect(self.controller.reloadedVideoIds.isEmpty)
+    }
+
     @Test("Identity-switch during an ad resumes the content, not the ad position")
     func reloadDuringAdUsesContentProgress() {
         self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))

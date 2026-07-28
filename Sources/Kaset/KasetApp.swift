@@ -322,6 +322,13 @@ struct KasetApp: App {
                         arbiter: self.playbackArbiter
                     )
                 }
+                .onChange(of: NetworkMonitor.shared.isConnected) { _, isConnected in
+                    // Auto-retry (issue #19): when connectivity returns, revive a
+                    // video that stalled during the outage instead of leaving it stuck.
+                    if isConnected {
+                        self.youtubePlayerService.handleNetworkRestored()
+                    }
+                }
                 .onChange(of: self.playerService.isMiniPlayerVisible) { _, isVisible in
                     self.handleMiniPlayerVisibilityChange(isVisible)
                 }
@@ -449,9 +456,16 @@ struct KasetApp: App {
                 }
                 .keyboardShortcut("s", modifiers: .command)
 
-                // Repeat - ⌘R
+                // Repeat - ⌘⇧R (⌘R is Refresh, below)
                 Button(self.repeatModeLabel) {
                     self.playerService.cycleRepeatMode()
+                }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+
+                // Refresh video playback - ⌘R. Recovers a stuck/black player
+                // after a network interruption, reloading at the same position.
+                Button(String(localized: "Refresh")) {
+                    self.youtubePlayerService.refreshCurrentVideo()
                 }
                 .keyboardShortcut("r", modifiers: .command)
 
