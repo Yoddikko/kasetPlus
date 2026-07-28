@@ -31,6 +31,11 @@ final class YouTubeWatchViewModel {
 
     /// Whether the user is subscribed to the channel (seeded from watch-next).
     private(set) var isSubscribed = false
+
+    /// Members-only gate: YouTube's real "unplayable" notice for a members-only
+    /// video the signed-in user can't watch. Nil when the video is playable or
+    /// isn't members-only, so the watch surface shows the video (or its spinner).
+    private(set) var membersGate: YouTubePlayability?
     /// The channel's notification "bell" preference, when subscribed.
     private(set) var notificationPreference: ChannelNotificationPreference?
 
@@ -113,6 +118,7 @@ final class YouTubeWatchViewModel {
         self.loadGeneration += 1
         let generation = self.loadGeneration
         self.loadingState = .loading
+        self.membersGate = nil
         do {
             let data = try await self.client.getWatchNext(videoId: self.video.videoId, playlistId: self.video.mixPlaylistId)
             guard generation == self.loadGeneration else { return }
@@ -135,6 +141,12 @@ final class YouTubeWatchViewModel {
             if self.isLive, let liveChat = data.liveChatContinuation {
                 self.startLiveChat(continuation: liveChat, generation: generation)
             }
+            // Members-only videos never serve a stream to non-members, so the
+            // player just spins forever. Ask YouTube's `player` endpoint for the
+            // real reason and surface it as a gate instead.
+            if self.video.isMembersOnly {
+                await self.loadMembersGate(generation: generation)
+            }
             await self.loadMoreComments()
         } catch {
             guard generation == self.loadGeneration else { return }
@@ -146,6 +158,20 @@ final class YouTubeWatchViewModel {
             }
             self.logger.error("Failed to load watch-next data: \(error.localizedDescription)")
             self.loadingState = .error(LoadingError(from: error))
+        }
+    }
+
+    /// Fetches YouTube's playability status for a members-only video and, if the
+    /// signed-in user can't play it, stores the gate so the surface shows the
+    /// real notice + a "Join" (Abbonati) action instead of an endless spinner.
+    /// Non-fatal: any failure just falls back to the existing loading state.
+    private func loadMembersGate(generation: Int) async {
+        do {
+            let playability = try await self.client.getPlayability(videoId: self.video.videoId)
+            guard generation == self.loadGeneration else { return }
+            self.membersGate = playability.isPlayable ? nil : playability
+        } catch {
+            self.logger.debug("Members-only playability check failed: \(error.localizedDescription)")
         }
     }
 

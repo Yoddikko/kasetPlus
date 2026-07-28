@@ -388,6 +388,42 @@ struct WatchNextParserTests {
         #expect(watchNext.related.isEmpty)
     }
 
+    @Test("Detects a channel's paid membership from the owner's membershipButton")
+    func detectsChannelMembership() {
+        func data(withMembership: Bool) -> [String: Any] {
+            var owner: [String: Any] = [
+                "title": ["runs": [["text": "Some Channel"]]],
+                "navigationEndpoint": ["browseEndpoint": ["browseId": "UC_channel_123"]],
+            ]
+            if withMembership { owner["membershipButton"] = ["timedAnimationButtonRenderer": [:]] }
+            return ["contents": ["twoColumnWatchNextResults": ["results": ["results": ["contents": [
+                ["videoSecondaryInfoRenderer": ["owner": ["videoOwnerRenderer": owner]]],
+            ]]]]]]
+        }
+        #expect(WatchNextParser.parse(data(withMembership: true)).channelOffersMembership)
+        #expect(!WatchNextParser.parse(data(withMembership: false)).channelOffersMembership)
+    }
+
+    @Test("Members-only gate reads YouTube's reason/subreason and treats OK as playable")
+    func parsesPlayability() {
+        let unplayable: [String: Any] = ["playabilityStatus": [
+            "status": "UNPLAYABLE",
+            "reason": "Video unavailable",
+            "errorScreen": ["playerErrorMessageRenderer": [
+                "reason": ["simpleText": "Members-only video"],
+                "subreason": ["runs": [["text": "Join this channel to get access."]]],
+            ]],
+        ]]
+        let gate = WatchNextParser.playability(unplayable)
+        #expect(!gate.isPlayable)
+        #expect(gate.reason == "Members-only video")
+        #expect(gate.subreason == "Join this channel to get access.")
+
+        // A servable stream (streamingData present) is playable regardless of status text.
+        let ok: [String: Any] = ["playabilityStatus": ["status": "OK"], "streamingData": [:]]
+        #expect(WatchNextParser.playability(ok).isPlayable)
+    }
+
     @Test("Parses canonical chapters and merges macro-marker end bounds")
     func parsesPlayerOverlayChapters() throws {
         let watchNext = WatchNextParser.parse(Self.chapterRendererResponse())

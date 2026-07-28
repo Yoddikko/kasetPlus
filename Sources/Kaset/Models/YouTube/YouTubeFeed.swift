@@ -228,6 +228,9 @@ struct WatchNextData {
     var mixDescription: String?
     /// Current position in a finite playlist queue, "N/total" (nil for endless mixes).
     var mixPosition: String?
+    /// Whether the channel offers a paid membership (the watch page's owner
+    /// exposes a `membershipButton`), so we can show a "Join" (Abbonati) button.
+    var channelOffersMembership: Bool
 
     init(
         videoTitle: String?,
@@ -247,7 +250,8 @@ struct WatchNextData {
         mixPlaylistId: String? = nil,
         mixTitle: String? = nil,
         mixDescription: String? = nil,
-        mixPosition: String? = nil
+        mixPosition: String? = nil,
+        channelOffersMembership: Bool = false
     ) {
         self.videoTitle = videoTitle
         self.viewCountText = viewCountText
@@ -267,6 +271,7 @@ struct WatchNextData {
         self.mixTitle = mixTitle
         self.mixDescription = mixDescription
         self.mixPosition = mixPosition
+        self.channelOffersMembership = channelOffersMembership
     }
 
     static let empty = WatchNextData(
@@ -276,6 +281,24 @@ struct WatchNextData {
         channel: nil,
         related: []
     )
+}
+
+// MARK: - YouTubePlayability
+
+/// The `player` endpoint's `playabilityStatus`, used to show a real gate — with
+/// YouTube's own dynamic wording — for a members-only video the signed-in user
+/// can't play, instead of an endless loading spinner. YouTube gates the stream
+/// server-side (no `streamingData` is served to non-members), so this only
+/// surfaces YouTube's notice; it never bypasses the restriction.
+struct YouTubePlayability {
+    /// Whether YouTube will serve a stream (`status == "OK"`).
+    let isPlayable: Bool
+    /// YouTube's headline for why not, already localized (e.g. the members-only notice).
+    let reason: String?
+    /// YouTube's secondary explanation, already localized (e.g. the "join to get access" line).
+    let subreason: String?
+
+    static let playable = YouTubePlayability(isPlayable: true, reason: nil, subreason: nil)
 }
 
 // MARK: - YouTubeLiveChatMessage

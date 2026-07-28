@@ -44812,6 +44812,17 @@
         }
       }
     },
+    "Join" : {
+      "comment" : "Button to join a channel's paid membership (it: 'Abbonati'). Opens the YouTube membership page; no in-app payment.",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbonati"
+          }
+        }
+      }
+    },
     "Jump to chapter: %@" : {
       "comment" : "YouTube video watch page (below the player: title, channel, subscribe/bell, description, chapters, comments, related).",
       "localizations" : {

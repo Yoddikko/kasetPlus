@@ -58,6 +58,10 @@ protocol YouTubeClientProtocol: Sendable {
     /// Fetches watch-page companion data (metadata + related videos).
     func getWatchNext(videoId: String, playlistId: String?) async throws -> WatchNextData
 
+    /// Fetches the `player` playability status, used to gate members-only videos
+    /// the signed-in user can't watch (shows YouTube's own notice, not a spinner).
+    func getPlayability(videoId: String) async throws -> YouTubePlayability
+
     /// Fetches a page of comments by continuation token.
     func getComments(continuation: String) async throws -> YouTubeCommentsPage
 
@@ -161,5 +165,11 @@ extension YouTubeClientProtocol {
     /// Default so the mock/UI-test client compiles without a notifications backend.
     func getNotifications() async throws -> [YouTubeNotification] {
         []
+    }
+
+    /// Default so mocks/UI-test clients compile; the real client overrides this.
+    /// Assuming "playable" means members-only gating is simply inactive there.
+    func getPlayability(videoId _: String) async throws -> YouTubePlayability {
+        .playable
     }
 }
