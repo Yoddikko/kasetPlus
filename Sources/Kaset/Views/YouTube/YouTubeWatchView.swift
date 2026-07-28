@@ -260,6 +260,12 @@ struct YouTubeWatchView: View {
                 }
                 .animation(.easeInOut(duration: 0.25), value: self.youtubePlayer.isPlaybackLoading)
                 .animation(.easeInOut(duration: 0.25), value: self.viewModel.membersGate == nil)
+                // YouTube-style "up next" countdown card when a finished video is
+                // about to autoplay the next one.
+                .overlay {
+                    YouTubeAutoplayCountdownOverlay()
+                }
+                .animation(.easeInOut(duration: 0.25), value: self.youtubePlayer.autoplayPendingVideo == nil)
                 // "Ad" badge: a server-side (SSAI) ad can still slip past the
                 // blocker; label it so it's clear this isn't the content.
                 .overlay(alignment: .topLeading) {
@@ -1265,8 +1271,29 @@ struct YouTubeWatchView: View {
     }
 
     private var relatedHeader: some View {
-        Text("Related", comment: "Related videos section header")
-            .font(.title3.bold())
+        HStack(alignment: .firstTextBaseline) {
+            Text("Related", comment: "Related videos section header")
+                .font(.title3.bold())
+            Spacer(minLength: 12)
+            self.autoplayToggle
+        }
+    }
+
+    /// YouTube-style "Autoplay" switch: when on, a finished video advances to the
+    /// next suggested video. Off by default. Lives in the related header, like
+    /// YouTube's up-next autoplay toggle.
+    private var autoplayToggle: some View {
+        Toggle(isOn: Binding(
+            get: { self.settings.youtubeAutoplayEnabled },
+            set: { self.settings.youtubeAutoplayEnabled = $0 }
+        )) {
+            Text("Autoplay", comment: "Toggle: automatically play the next suggested video")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .toggleStyle(.switch)
+        .controlSize(.mini)
+        .fixedSize()
     }
 
     private var relatedSkeleton: some View {

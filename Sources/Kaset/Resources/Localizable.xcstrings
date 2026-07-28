@@ -11669,6 +11669,17 @@
         }
       }
     },
+    "Autoplay" : {
+      "comment" : "Toggle: automatically play the next suggested video (it: 'Riproduzione automatica').",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riproduzione automatica"
+          }
+        }
+      }
+    },
     "Available" : {
       "comment" : "Reusable label shown in the Foundation Models screen, Intelligence settings.",
       "localizations" : {
@@ -73135,6 +73146,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Play songs from a playlist or album to build your queue."
+          }
+        }
+      }
+    },
+    "Play now" : {
+      "comment" : "Tooltip on the autoplay countdown play button (it: 'Riproduci ora').",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riproduci ora"
           }
         }
       }

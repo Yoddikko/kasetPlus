@@ -794,6 +794,82 @@ struct YouTubePlayerServiceTests {
         #expect(didAcceptEnd)
     }
 
+    @Test("Autoplay off: a finished video queues nothing and does not advance")
+    func autoplayOffDoesNotQueueNext() {
+        let settings = SettingsManager.shared
+        let original = settings.youtubeAutoplayEnabled
+        defer { settings.youtubeAutoplayEnabled = original }
+        settings.youtubeAutoplayEnabled = false
+
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "a"))
+        self.sut.updatePlaybackState(.init(isPlaying: true, progress: 9, duration: 10, videoId: "a"))
+        self.sut.setUpNext([MockYouTubeClient.makeVideo(videoId: "b")])
+
+        _ = self.sut.handleVideoEnded(videoId: "a")
+
+        #expect(self.sut.autoplayPendingVideo == nil)
+        #expect(self.sut.currentVideo?.videoId == "a")
+        #expect(!self.controller.loadedVideoIds.contains("b"))
+    }
+
+    @Test("Autoplay on: a finished video queues the next behind a countdown, not an instant switch")
+    func autoplayOnQueuesCountdown() {
+        let settings = SettingsManager.shared
+        let original = settings.youtubeAutoplayEnabled
+        defer { settings.youtubeAutoplayEnabled = original }
+        settings.youtubeAutoplayEnabled = true
+
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "a"))
+        self.sut.updatePlaybackState(.init(isPlaying: true, progress: 9, duration: 10, videoId: "a"))
+        self.sut.setUpNext([MockYouTubeClient.makeVideo(videoId: "b")])
+
+        _ = self.sut.handleVideoEnded(videoId: "a")
+
+        // Queued, not switched: the card counts down before advancing.
+        #expect(self.sut.autoplayPendingVideo?.videoId == "b")
+        #expect(self.sut.autoplayCountdownRemaining == YouTubePlayerService.autoplayCountdownSeconds)
+        #expect(self.sut.currentVideo?.videoId == "a")
+        #expect(!self.controller.loadedVideoIds.contains("b"))
+    }
+
+    @Test("Confirming the countdown plays the next video immediately")
+    func autoplayConfirmAdvancesNow() {
+        let settings = SettingsManager.shared
+        let original = settings.youtubeAutoplayEnabled
+        defer { settings.youtubeAutoplayEnabled = original }
+        settings.youtubeAutoplayEnabled = true
+
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "a"))
+        self.sut.updatePlaybackState(.init(isPlaying: true, progress: 9, duration: 10, videoId: "a"))
+        self.sut.setUpNext([MockYouTubeClient.makeVideo(videoId: "b")])
+        _ = self.sut.handleVideoEnded(videoId: "a")
+
+        self.sut.confirmAutoplayNow()
+
+        #expect(self.sut.currentVideo?.videoId == "b")
+        #expect(self.controller.loadedVideoIds.contains("b"))
+        #expect(self.sut.autoplayPendingVideo == nil)
+    }
+
+    @Test("Cancelling the countdown clears it without advancing")
+    func autoplayCancelClears() {
+        let settings = SettingsManager.shared
+        let original = settings.youtubeAutoplayEnabled
+        defer { settings.youtubeAutoplayEnabled = original }
+        settings.youtubeAutoplayEnabled = true
+
+        self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "a"))
+        self.sut.updatePlaybackState(.init(isPlaying: true, progress: 9, duration: 10, videoId: "a"))
+        self.sut.setUpNext([MockYouTubeClient.makeVideo(videoId: "b")])
+        _ = self.sut.handleVideoEnded(videoId: "a")
+
+        self.sut.cancelAutoplay()
+
+        #expect(self.sut.autoplayPendingVideo == nil)
+        #expect(self.sut.currentVideo?.videoId == "a")
+        #expect(!self.controller.loadedVideoIds.contains("b"))
+    }
+
     @Test("Duplicate ended callbacks run one-shot effects once and later autoplay can end")
     func duplicateEndedCallbacksAreIdempotentPerWatch() {
         self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "a"))

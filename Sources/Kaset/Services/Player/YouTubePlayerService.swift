@@ -416,6 +416,16 @@ final class YouTubePlayerService {
     /// Up-next candidates for skip-forward (related videos from the watch page).
     private(set) var upNext: [YouTubeVideo] = []
 
+    /// The video queued to autoplay next, shown behind a countdown card after the
+    /// current video finishes (YouTube-style). Nil when no autoplay is pending.
+    private(set) var autoplayPendingVideo: YouTubeVideo?
+    /// Whole seconds left on the autoplay countdown (counts `autoplayCountdownSeconds`→0);
+    /// meaningful only while `autoplayPendingVideo` is set.
+    private(set) var autoplayCountdownRemaining = 0
+    @ObservationIgnored private var autoplayCountdownTask: Task<Void, Never>?
+    /// How long the "up next" countdown card lingers before advancing.
+    static let autoplayCountdownSeconds = 5
+
     /// Navigation chapters for the current video, loaded from the watch page's
     /// companion `next` response.
     private(set) var chapters: [YouTubeChapter] = []
@@ -516,6 +526,7 @@ final class YouTubePlayerService {
     /// Starts playback of a video, docked inline.
     func play(video: YouTubeVideo, usesCookieFreeDataStore: Bool = false, startAt: Double? = nil) {
         self.beginYouTubePlaybackIntent()
+        self.clearAutoplayCountdown()
         self.autoplayRecoveryRequestGeneration &+= 1
         self.shouldRecoverAutoplayTransitionOnResume = false
         let normalizedStartAt = Self.normalizedExplicitStartAt(startAt)
@@ -935,6 +946,7 @@ final class YouTubePlayerService {
     /// Stops playback entirely and releases the surface.
     func stop() {
         self.beginYouTubePlaybackIntent()
+        self.clearAutoplayCountdown()
         self.autoplayRecoveryRequestGeneration &+= 1
         self.shouldRecoverAutoplayTransitionOnResume = false
         self.logger.info("YouTubePlayer: stop")
@@ -1076,6 +1088,7 @@ final class YouTubePlayerService {
     }
 
     private func advance(to video: YouTubeVideo, recordingHistory: Bool = true) {
+        self.clearAutoplayCountdown()
         self.autoplayRecoveryRequestGeneration &+= 1
         self.shouldRecoverAutoplayTransitionOnResume = false
         self.logger.info("YouTubePlayer: advancing to another video")
@@ -1990,7 +2003,78 @@ extension YouTubePlayerService {
             self.watchActivityGeneration += 1
             self.onVideoEnded?(videoId)
         }
+        self.autoplayNextIfEnabled()
         return true
+    }
+
+    /// YouTube-style autoplay: when the setting is on, a finished video queues the
+    /// next suggested video (the first up-next candidate, or a freshly fetched
+    /// related video when none are known — e.g. a floating-window finish) behind a
+    /// countdown card, rather than switching immediately. Off by default, so
+    /// playback otherwise stops at the end. Mixes and playlists advance through
+    /// their own queue via page drift and are unaffected by this.
+    private func autoplayNextIfEnabled() {
+        guard SettingsManager.shared.youtubeAutoplayEnabled,
+              let current = self.currentVideo
+        else { return }
+
+        if let next = self.upNext.first {
+            self.startAutoplayCountdown(to: next)
+            return
+        }
+        let expectedVideoId = current.videoId
+        Task { @MainActor in
+            guard let client = self.youtubeClient,
+                  let next = try? await client.getWatchNext(videoId: expectedVideoId, playlistId: nil)
+                  .related.first(where: { !$0.isShort }),
+                  SettingsManager.shared.youtubeAutoplayEnabled,
+                  self.currentVideo?.videoId == expectedVideoId,
+                  self.autoplayPendingVideo == nil
+            else { return }
+            self.startAutoplayCountdown(to: next)
+        }
+    }
+
+    private func startAutoplayCountdown(to next: YouTubeVideo) {
+        self.autoplayCountdownTask?.cancel()
+        self.autoplayPendingVideo = next
+        self.autoplayCountdownRemaining = Self.autoplayCountdownSeconds
+        self.autoplayCountdownTask = Task { [weak self] in
+            while true {
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch {
+                    return
+                }
+                guard let self, self.autoplayPendingVideo?.videoId == next.videoId else { return }
+                self.autoplayCountdownRemaining -= 1
+                if self.autoplayCountdownRemaining <= 0 {
+                    self.confirmAutoplayNow()
+                    return
+                }
+            }
+        }
+    }
+
+    /// Plays the queued autoplay video right away (the countdown card's play
+    /// button — "speed it up").
+    func confirmAutoplayNow() {
+        guard let next = self.autoplayPendingVideo else { return }
+        self.clearAutoplayCountdown()
+        self.advance(to: next)
+    }
+
+    /// Dismisses the autoplay countdown without advancing (the card's cancel
+    /// button, or any explicit playback the user starts instead).
+    func cancelAutoplay() {
+        self.clearAutoplayCountdown()
+    }
+
+    private func clearAutoplayCountdown() {
+        self.autoplayCountdownTask?.cancel()
+        self.autoplayCountdownTask = nil
+        self.autoplayPendingVideo = nil
+        self.autoplayCountdownRemaining = 0
     }
 
     nonisolated static func isEndEventStale(
