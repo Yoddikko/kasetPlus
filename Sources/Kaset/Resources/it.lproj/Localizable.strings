@@ -549,11 +549,11 @@
 "Style" = "Stile";
 "Submit" = "Invia";
 "Subscribe" = "Iscriviti";
-"Subscribe %@" = "Abbonati a %@";
-"Subscribe to podcasts on YouTube Music to see them here." = "Abbonati ai podcast su YouTube Music per vederli qui.";
+"Subscribe %@" = "Iscriviti a %@";
+"Subscribe to podcasts on YouTube Music to see them here." = "Iscriviti ai podcast su YouTube Music per vederli qui.";
 "Subscribed" = "Iscritto";
-"Subscription Error" = "Errore nell'abbonamento";
-"Subscriptions" = "Abbonamenti";
+"Subscription Error" = "Errore di iscrizione";
+"Subscriptions" = "Iscrizioni";
 "Suggested" = "Suggerito";
 "Suggested Removals" = "Rimozioni suggerite";
 "Suggestions per insertion" = "Suggerimenti per inserimento";
