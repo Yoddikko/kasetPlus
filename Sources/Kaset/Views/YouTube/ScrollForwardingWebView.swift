@@ -15,11 +15,12 @@ final class ScrollForwardingWebView: WKWebView {
             super.scrollWheel(with: event)
             return
         }
-        if let scrollView = self.enclosingScrollView {
-            scrollView.scrollWheel(with: event)
-        } else {
-            self.nextResponder?.scrollWheel(with: event)
-        }
+        // Forward down the responder chain rather than to `enclosingScrollView`:
+        // this fork hosts the surface inside a SwiftUI ScrollView whose backing
+        // scroller a direct call bypasses, adding scroll lag on the watch page.
+        // The next responder reaches the right scroller smoothly (the fork's
+        // long-standing behaviour).
+        self.nextResponder?.scrollWheel(with: event)
     }
 
     /// Only the extracted watch document is unscrollable. A revealed

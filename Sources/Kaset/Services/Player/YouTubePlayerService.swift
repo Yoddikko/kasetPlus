@@ -1614,10 +1614,9 @@ extension YouTubePlayerService {
             self.isAtLiveEdge = update.isAtLiveEdge
         }
         // Runtime liveness from the bound media element (URL launches, SPA drift
-        // whose feed model lacked liveness). The loading spinner is now cleared
-        // by `finishPlaybackLoadingIfReady` and media errors handled by
-        // `deferMediaErrorIfNeeded` from the STATE_UPDATE handler (#408), rather
-        // than by a `duration > 0` proxy here.
+        // whose feed model lacked liveness). The loading spinner is cleared by
+        // `finishPlaybackLoadingIfReady` and media errors handled by
+        // `deferMediaErrorIfNeeded` from the STATE_UPDATE handler (#408).
         if !update.isAd,
            update.hasReadyMedia,
            let metadataVideoId = update.videoId,
@@ -1632,8 +1631,28 @@ extension YouTubePlayerService {
     }
 
     private func finishPlaybackLoadingIfReady(_ update: PlaybackUpdate) {
-        guard self.readyMediaBelongsToCurrentPlayback(update) else { return }
+        guard self.readyMediaBelongsToCurrentPlayback(update)
+            || self.metadataReadyForCurrentPlayback(update)
+        else { return }
         self.finishPlaybackLoading()
+    }
+
+    /// The fork's original loading-finish signal: a known duration means metadata
+    /// loaded and a frame is imminent. Kept alongside #408's stricter ready-media
+    /// check so surfaces that gate on `isPlaybackLoading` — notably the Shorts
+    /// thumbnail cover — still clear when a video reports its duration before the
+    /// bridge flags ready media. Ads and media-error frames are excluded so the
+    /// ad surface and error recovery are unaffected.
+    private func metadataReadyForCurrentPlayback(_ update: PlaybackUpdate) -> Bool {
+        guard update.duration > 0, !update.hasMediaError, !update.isAd,
+              let currentVideoId = self.currentVideo?.videoId
+        else { return false }
+        // The first frames may not have bound the media id yet; accept a matching
+        // or not-yet-known id, but never another video's snapshot.
+        if let boundVideoId = update.boundVideoId, boundVideoId != currentVideoId {
+            return false
+        }
+        return update.videoId == nil || update.videoId == currentVideoId
     }
 
     private func readyMediaBelongsToCurrentPlayback(_ update: PlaybackUpdate) -> Bool {
