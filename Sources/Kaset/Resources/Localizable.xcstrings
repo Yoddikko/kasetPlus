@@ -812,7 +812,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%a morceaux écoutés aujourd'hui"
+            "value" : "%arg morceaux écoutés aujourd'hui"
           }
         },
         "he" : {
@@ -11669,6 +11669,191 @@
         }
       }
     },
+    "Autoplay" : {
+      "comment" : "Toggle: automatically play the next suggested video (it: 'Riproduzione automatica').",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riproduzione automatica"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        }
+      }
+    },
     "Available" : {
       "comment" : "Reusable label shown in the Foundation Models screen, Intelligence settings.",
       "localizations" : {
@@ -12339,7 +12524,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : ""
+            "value" : "Basy"
           }
         },
         "pt" : {
@@ -73309,6 +73494,191 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Play songs from a playlist or album to build your queue."
+          }
+        }
+      }
+    },
+    "Play now" : {
+      "comment" : "Tooltip on the autoplay countdown play button (it: 'Riproduci ora').",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riproduci ora"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
           }
         }
       }
