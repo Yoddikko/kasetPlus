@@ -34,6 +34,9 @@ protocol YouTubeWatchPlaybackControlling: AnyObject {
     func availableCaptionTracks() async -> [YouTubeCaptionTrack]
     func currentCaptionLanguageCode() async -> String?
     func setCaptionTrack(languageCode: String?)
+    func availableAudioTracks() async -> [YouTubeAudioTrack]
+    func currentAudioTrackId() async -> String?
+    func setAudioTrack(id: String)
     func availableQualityLevels() async -> [String]
     func currentQualityLevel() async -> String?
     func setQualityLevel(_ level: String)
@@ -452,6 +455,13 @@ final class YouTubePlayerService {
 
     /// Language code of the active caption track (nil = captions off).
     private(set) var activeCaptionLanguageCode: String?
+
+    /// Alternate audio tracks (dubbed languages) on the current watch page.
+    /// Empty when the video has a single audio track.
+    private(set) var audioTracks: [YouTubeAudioTrack] = []
+
+    /// Id of the active audio track (nil until resolved).
+    private(set) var activeAudioTrackId: String?
 
     /// Quality levels available on the current watch page.
     private(set) var qualityLevels: [String] = []
@@ -1171,6 +1181,8 @@ final class YouTubePlayerService {
         self.heatmap = []
         self.captionTracks = []
         self.activeCaptionLanguageCode = nil
+        self.audioTracks = []
+        self.activeAudioTrackId = nil
         self.qualityLevels = []
         self.currentQuality = nil
         self.userPinnedQuality = nil
@@ -1247,6 +1259,8 @@ final class YouTubePlayerService {
                 : levels + ["auto"]
             self.currentQuality = await self.playbackController.currentQualityLevel()
             self.activeCaptionLanguageCode = await self.playbackController.currentCaptionLanguageCode()
+            self.audioTracks = await self.playbackController.availableAudioTracks()
+            self.activeAudioTrackId = await self.playbackController.currentAudioTrackId()
 
             if !tracks.isEmpty || attempt == 2 {
                 return
@@ -1305,6 +1319,13 @@ final class YouTubePlayerService {
     func selectCaptionTrack(languageCode: String?) {
         self.activeCaptionLanguageCode = languageCode
         self.playbackController.setCaptionTrack(languageCode: languageCode)
+        HapticService.toggle()
+    }
+
+    /// Selects an alternate audio track (dubbed language) by id.
+    func selectAudioTrack(id: String) {
+        self.activeAudioTrackId = id
+        self.playbackController.setAudioTrack(id: id)
         HapticService.toggle()
     }
 

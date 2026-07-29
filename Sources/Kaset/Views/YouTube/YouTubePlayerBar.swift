@@ -579,6 +579,7 @@ struct YouTubePlayerBar: View {
                     self.downloadButton
                 }
                 self.compactCaptionsMenu
+                self.compactAudioMenu
                 self.compactQualityMenu
             case .reduced:
                 self.overflowMenu
@@ -719,6 +720,14 @@ struct YouTubePlayerBar: View {
                 Label(String(localized: "Captions"), systemImage: "captions.bubble")
             }
 
+            if self.hasAlternateAudio {
+                Menu {
+                    self.audioMenuItems
+                } label: {
+                    Label(String(localized: "Audio"), systemImage: "waveform.circle")
+                }
+            }
+
             Menu {
                 self.qualityMenuItems
             } label: {
@@ -775,6 +784,43 @@ struct YouTubePlayerBar: View {
         .buttonStyle(.plain)
         .frame(width: 28, height: 28)
         .disabled(self.youtubePlayer.currentVideo == nil)
+    }
+
+    /// True only for multi-audio videos; single-track videos hide the control.
+    private var hasAlternateAudio: Bool {
+        self.youtubePlayer.audioTracks.count > 1
+    }
+
+    @ViewBuilder private var audioMenuItems: some View {
+        ForEach(self.youtubePlayer.audioTracks) { track in
+            Button {
+                self.youtubePlayer.selectAudioTrack(id: track.id)
+            } label: {
+                if self.youtubePlayer.activeAudioTrackId == track.id {
+                    Label(track.displayName, systemImage: "checkmark")
+                } else {
+                    Text(track.displayName)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var compactAudioMenu: some View {
+        if self.hasAlternateAudio {
+            Menu {
+                self.audioMenuItems
+            } label: {
+                Image(systemName: "waveform.circle")
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(.primary)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .buttonStyle(.plain)
+            .frame(width: 28, height: 28)
+            .disabled(self.youtubePlayer.currentVideo == nil)
+        }
     }
 
     @ViewBuilder private var qualityMenuItems: some View {

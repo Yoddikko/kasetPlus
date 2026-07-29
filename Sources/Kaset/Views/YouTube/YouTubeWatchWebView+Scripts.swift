@@ -1301,6 +1301,124 @@ extension YouTubeWatchWebView {
         """
     }
 
+    /// Fetches the alternate audio tracks (dubbed languages) the player offers.
+    /// Switching is by index into the player's live track array, so the opaque
+    /// player track objects never have to cross the JS bridge.
+    func availableAudioTracks() async -> [YouTubeAudioTrack] {
+        guard let json = await self.evaluateForString(Self.availableAudioTracksScript),
+              let data = json.data(using: .utf8),
+              let entries = try? JSONSerialization.jsonObject(with: data) as? [[String: String]]
+        else {
+            return []
+        }
+        return entries.compactMap { entry in
+            guard let id = entry["id"], !id.isEmpty,
+                  let name = entry["name"], !name.isEmpty
+            else {
+                return nil
+            }
+            return YouTubeAudioTrack(id: id, displayName: name)
+        }
+    }
+
+    /// The index (as a string) of the player's active audio track, or nil.
+    func currentAudioTrackId() async -> String? {
+        let script = """
+        (function() {
+            try {
+                const p = document.getElementById('movie_player');
+                if (!p || typeof p.getAvailableAudioTracks !== 'function') { return ''; }
+                const tracks = p.getAvailableAudioTracks() || [];
+                let cur = null;
+                try { cur = p.getAudioTrack(); } catch (e) {}
+                for (let i = 0; i < tracks.length; i++) {
+                    if (tracks[i] === cur) { return String(i); }
+                }
+                return '';
+            } catch (e) { return ''; }
+        })();
+        """
+        let id = await self.evaluateForString(script)
+        return (id?.isEmpty == false) ? id : nil
+    }
+
+    /// Activates the audio track at the given index in the player's live array.
+    func setAudioTrack(id: String) {
+        self.webView?.evaluateJavaScript(Self.setAudioTrackScript(id: id), completionHandler: nil)
+    }
+
+    static var availableAudioTracksScript: String {
+        // ponytail: display names are heuristic — first from the opaque track
+        // object, else the player-response `audioTrack.displayName` by order,
+        // else a generic "Audio N". Switching (by index) is exact regardless.
+        // If names come out wrong on a multi-audio video, dump
+        // JSON.stringify(getAvailableAudioTracks()) and map the real name key.
+        """
+        (function() {
+            try {
+                const p = document.getElementById('movie_player');
+                if (!p || typeof p.getAvailableAudioTracks !== 'function') { return '[]'; }
+                let tracks = [];
+                try { tracks = p.getAvailableAudioTracks() || []; } catch (e) { return '[]'; }
+                if (tracks.length < 2) { return '[]'; }
+
+                function playerResponse() {
+                    if (typeof p.getPlayerResponse === 'function') {
+                        try { const r = p.getPlayerResponse(); if (r) { return r; } } catch (e) {}
+                    }
+                    return window.ytInitialPlayerResponse || null;
+                }
+                const responseNames = [];
+                const seenName = {};
+                const resp = playerResponse();
+                const fmts = (resp && resp.streamingData && resp.streamingData.adaptiveFormats) || [];
+                fmts.forEach(function(f) {
+                    const dn = f && f.audioTrack && f.audioTrack.displayName;
+                    if (dn && !seenName[dn]) { seenName[dn] = true; responseNames.push(dn); }
+                });
+
+                function nameFrom(track, i) {
+                    try {
+                        for (const k in track) {
+                            const v = track[k];
+                            if (v && typeof v === 'object') {
+                                if (typeof v.name === 'string' && v.name) { return v.name; }
+                                if (v.name && typeof v.name.simpleText === 'string' && v.name.simpleText) {
+                                    return v.name.simpleText;
+                                }
+                            }
+                        }
+                    } catch (e) {}
+                    if (responseNames[i]) { return responseNames[i]; }
+                    return 'Audio ' + (i + 1);
+                }
+
+                return JSON.stringify(tracks.map(function(track, i) {
+                    return { id: String(i), name: nameFrom(track, i) };
+                }));
+            } catch (e) { return '[]'; }
+        })();
+        """
+    }
+
+    static func setAudioTrackScript(id: String) -> String {
+        let idLiteral = Self.jsStringLiteral(id)
+        return """
+        (function() {
+            try {
+                const p = document.getElementById('movie_player');
+                if (!p || typeof p.getAvailableAudioTracks !== 'function'
+                    || typeof p.setAudioTrack !== 'function') { return; }
+                const tracks = p.getAvailableAudioTracks() || [];
+                const idx = parseInt(\(idLiteral), 10);
+                if (idx >= 0 && idx < tracks.length) {
+                    try { p.setAudioTrack(tracks[idx]); } catch (e) {}
+                }
+            } catch (e) {}
+        })();
+        """
+    }
+
     /// The storyboard spec string for the current video, read from the player
     /// response. Drives the ambient backdrop's fine-grained live color.
     ///
