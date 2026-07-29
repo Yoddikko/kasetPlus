@@ -145,6 +145,9 @@ struct YouTubePlaylistRowView: View {
                     }
                 }
                 .stackedPoster()
+                // Clamp the stack slivers to the poster width; otherwise the
+                // flexible sliver strip stretches across the whole row.
+                .frame(width: 160)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(self.playlist.title)

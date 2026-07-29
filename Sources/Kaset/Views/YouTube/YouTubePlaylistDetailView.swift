@@ -65,7 +65,9 @@ struct YouTubePlaylistDetailView: View {
                 } else {
                     LazyVGrid(columns: Self.columns, spacing: 20) {
                         ForEach(detail.videos) { video in
-                            NavigationLink(value: YouTubeRoute.watch(video)) {
+                            // Carry the playlist as queue context so the watch
+                            // page shows the playlist in its up-next panel.
+                            NavigationLink(value: YouTubeRoute.watch(video.inMix(detail.playlist.playlistId))) {
                                 VideoCard(video: video)
                             }
                             .buttonStyle(.interactiveCard)
