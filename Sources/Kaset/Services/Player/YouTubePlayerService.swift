@@ -34,6 +34,9 @@ protocol YouTubeWatchPlaybackControlling: AnyObject {
     func availableCaptionTracks() async -> [YouTubeCaptionTrack]
     func currentCaptionLanguageCode() async -> String?
     func setCaptionTrack(languageCode: String?)
+    func availableAudioTracks() async -> [YouTubeAudioTrack]
+    func currentAudioTrackId() async -> String?
+    func setAudioTrack(id: String)
     func availableQualityLevels() async -> [String]
     func currentQualityLevel() async -> String?
     func setQualityLevel(_ level: String)
@@ -207,6 +210,13 @@ final class YouTubePlayerService {
 
     /// Whether the current video is waiting for the WebView to report playable media.
     private(set) var isPlaybackLoading = false
+
+    /// Runtime liveness from the active media element. This covers videos whose
+    /// feed model is incomplete, including URL launches and SPA drift.
+    @ObservationIgnored var currentMediaIsLive = false
+
+    @ObservationIgnored private var playbackLoadingTimeoutTask: Task<Void, Never>?
+    @ObservationIgnored private var playbackLoadingGeneration: UInt64 = 0
 
     /// SponsorBlock segments for the current video ([start, end] in seconds, by category).
     /// Updated by the WebView observer when segments are fetched from the SponsorBlock API.
@@ -409,6 +419,16 @@ final class YouTubePlayerService {
     /// Up-next candidates for skip-forward (related videos from the watch page).
     private(set) var upNext: [YouTubeVideo] = []
 
+    /// The video queued to autoplay next, shown behind a countdown card after the
+    /// current video finishes (YouTube-style). Nil when no autoplay is pending.
+    private(set) var autoplayPendingVideo: YouTubeVideo?
+    /// Whole seconds left on the autoplay countdown (counts `autoplayCountdownSeconds`→0);
+    /// meaningful only while `autoplayPendingVideo` is set.
+    private(set) var autoplayCountdownRemaining = 0
+    @ObservationIgnored private var autoplayCountdownTask: Task<Void, Never>?
+    /// How long the "up next" countdown card lingers before advancing.
+    static let autoplayCountdownSeconds = 5
+
     /// Navigation chapters for the current video, loaded from the watch page's
     /// companion `next` response.
     private(set) var chapters: [YouTubeChapter] = []
@@ -435,6 +455,13 @@ final class YouTubePlayerService {
 
     /// Language code of the active caption track (nil = captions off).
     private(set) var activeCaptionLanguageCode: String?
+
+    /// Alternate audio tracks (dubbed languages) on the current watch page.
+    /// Empty when the video has a single audio track.
+    private(set) var audioTracks: [YouTubeAudioTrack] = []
+
+    /// Id of the active audio track (nil until resolved).
+    private(set) var activeAudioTrackId: String?
 
     /// Quality levels available on the current watch page.
     private(set) var qualityLevels: [String] = []
@@ -483,6 +510,7 @@ final class YouTubePlayerService {
     private let webKitManager: WebKitManager
     let playbackController: any YouTubeWatchPlaybackControlling
     private var usesCookieFreePlaybackDataStore = false
+    private let playbackLoadingTimeout: Duration
     private let logger = DiagnosticsLogger.player
 
     /// Whether a playing video should pop out into the floating window when the
@@ -494,11 +522,13 @@ final class YouTubePlayerService {
     init(
         webKitManager: WebKitManager = .shared,
         playbackController: (any YouTubeWatchPlaybackControlling)? = nil,
-        shouldPopOutOnNavigateAway: @escaping @MainActor () -> Bool = { SettingsManager.shared.popOutVideoOnNavigateAway }
+        shouldPopOutOnNavigateAway: @escaping @MainActor () -> Bool = { SettingsManager.shared.popOutVideoOnNavigateAway },
+        playbackLoadingTimeout: Duration = .seconds(15)
     ) {
         self.webKitManager = webKitManager
         self.playbackController = playbackController ?? YouTubeWatchWebView.shared
         self.shouldPopOutOnNavigateAway = shouldPopOutOnNavigateAway
+        self.playbackLoadingTimeout = playbackLoadingTimeout
     }
 
     // MARK: - Commands
@@ -506,6 +536,7 @@ final class YouTubePlayerService {
     /// Starts playback of a video, docked inline.
     func play(video: YouTubeVideo, usesCookieFreeDataStore: Bool = false, startAt: Double? = nil) {
         self.beginYouTubePlaybackIntent()
+        self.clearAutoplayCountdown()
         self.autoplayRecoveryRequestGeneration &+= 1
         self.shouldRecoverAutoplayTransitionOnResume = false
         let normalizedStartAt = Self.normalizedExplicitStartAt(startAt)
@@ -532,7 +563,7 @@ final class YouTubePlayerService {
                 seconds: normalizedStartAt
             )
         }
-        self.isPlaybackLoading = true
+        self.beginPlaybackLoading()
         self.surfaceLocation = .inline
 
         // Create the WebView on demand; containers reparent it on appear.
@@ -602,7 +633,43 @@ final class YouTubePlayerService {
             resumeAt: resumeAt
         )
         self.isIdentityReloadInFlight = true
+        self.beginPlaybackLoading()
+    }
+
+    // MARK: - Refresh (⌘R) & network auto-retry
+
+    /// User-triggered refresh (⌘R): reloads the current video's playback surface
+    /// at its last position, to recover a stuck/black player after a network
+    /// interruption without losing the user's place. No-op when nothing is loaded.
+    ///
+    /// ponytail: a reload autoplays the watch page, so hitting this on a
+    /// deliberately-paused video resumes it — acceptable for a "refresh" action,
+    /// and the auto-retry path below only calls it when playback should be running.
+    func refreshCurrentVideo() {
+        guard let currentVideo = self.currentVideo else { return }
+        self.logger.info("Manual refresh: reloading current video")
+        self.beginYouTubePlaybackIntent()
+        let resumeAt = self.interruptionResumeAt(for: currentVideo.videoId)
+        self.playbackController.prepare(
+            webKitManager: self.webKitManager,
+            playerService: self,
+            usesCookieFreeDataStore: self.usesCookieFreePlaybackDataStore
+        )
+        self.playbackController.reloadVideo(videoId: currentVideo.videoId, resumeAt: resumeAt)
         self.isPlaybackLoading = true
+    }
+
+    /// Auto-retry when connectivity returns (issue #19): if a video was meant to
+    /// be playing but stalled during a network drop — still "loading", or not
+    /// playing while the user intends to — reload it. Deliberately-paused
+    /// playback is left alone so a network blip never yanks it back to life.
+    func handleNetworkRestored() {
+        guard self.currentVideo != nil else { return }
+        let stalled = self.isPlaybackLoading
+            || (self.desiredPlaybackIntent == .playing && !self.isPlaying)
+        guard stalled else { return }
+        self.logger.info("Network restored: auto-reloading stalled video")
+        self.refreshCurrentVideo()
     }
 
     /// Returns the best native resume target for an interrupted document.
@@ -689,7 +756,7 @@ final class YouTubePlayerService {
             self.autoplayRecoveryRequestGeneration &+= 1
             self.isPlaying = false
             self.isIdentityReloadInFlight = false
-            self.isPlaybackLoading = false
+            self.finishPlaybackLoading()
             self.hasObservedPausedMedia = true
             return
         }
@@ -702,14 +769,14 @@ final class YouTubePlayerService {
             self.userUpdatedPendingPausedIdentityReloadSeek = false
             self.isIdentityReloadInFlight = false
             self.isPlaying = false
-            self.isPlaybackLoading = false
+            self.finishPlaybackLoading()
             return
         }
 
         self.playbackController.reloadVideo(videoId: currentVideo.videoId, resumeAt: resumeAt)
         self.isPlaying = false
         self.isIdentityReloadInFlight = true
-        self.isPlaybackLoading = true
+        self.beginPlaybackLoading()
     }
 
     /// Leaves a failed watch-page navigation in an explicitly retryable paused
@@ -734,9 +801,15 @@ final class YouTubePlayerService {
         self.userUpdatedPendingPausedIdentityReloadSeek = false
         self.isIdentityReloadInFlight = false
         self.desiredPlaybackIntent = .paused
+        // A navigation may have finished before its media became ready, leaving
+        // no tracked load for the controller to cancel. Keep late playing
+        // samples from re-authorizing that document or consuming the deferred
+        // reload before an explicit user resume.
+        self.isExplicitPauseIntentActive = true
         self.isAwaitingResumeConfirmation = false
+        self.hasObservedPausedMedia = true
         self.isPlaying = false
-        self.isPlaybackLoading = false
+        self.finishPlaybackLoading()
     }
 
     /// Toggles play/pause.
@@ -838,7 +911,7 @@ final class YouTubePlayerService {
         self.desiredPlaybackIntent = .playing
         self.isExplicitPauseIntentActive = false
         self.isIdentityReloadInFlight = true
-        self.isPlaybackLoading = true
+        self.beginPlaybackLoading()
         return true
     }
 
@@ -877,12 +950,13 @@ final class YouTubePlayerService {
             self.isIdentityReloadInFlight = false
         }
         self.isPlaying = false
-        self.isPlaybackLoading = false
+        self.finishPlaybackLoading()
     }
 
     /// Stops playback entirely and releases the surface.
     func stop() {
         self.beginYouTubePlaybackIntent()
+        self.clearAutoplayCountdown()
         self.autoplayRecoveryRequestGeneration &+= 1
         self.shouldRecoverAutoplayTransitionOnResume = false
         self.logger.info("YouTubePlayer: stop")
@@ -907,7 +981,7 @@ final class YouTubePlayerService {
         self.isExplicitPauseIntentActive = true
         self.isAwaitingResumeConfirmation = false
         self.isPlaying = false
-        self.isPlaybackLoading = false
+        self.finishPlaybackLoading()
         self.isIdentityReloadInFlight = false
         self.progress = 0
         self.duration = 0
@@ -1024,6 +1098,7 @@ final class YouTubePlayerService {
     }
 
     private func advance(to video: YouTubeVideo, recordingHistory: Bool = true) {
+        self.clearAutoplayCountdown()
         self.autoplayRecoveryRequestGeneration &+= 1
         self.shouldRecoverAutoplayTransitionOnResume = false
         self.logger.info("YouTubePlayer: advancing to another video")
@@ -1043,7 +1118,7 @@ final class YouTubePlayerService {
         self.currentWatchConcluded = false
         self.isIdentityReloadInFlight = false
         self.resetPerVideoState()
-        self.isPlaybackLoading = true
+        self.beginPlaybackLoading()
         self.playbackController.prepare(
             webKitManager: self.webKitManager,
             playerService: self,
@@ -1106,8 +1181,12 @@ final class YouTubePlayerService {
         self.heatmap = []
         self.captionTracks = []
         self.activeCaptionLanguageCode = nil
+        self.audioTracks = []
+        self.activeAudioTrackId = nil
         self.qualityLevels = []
         self.currentQuality = nil
+        self.userPinnedQuality = nil
+        self.currentMediaIsLive = false
         self.storyboardSpec = nil
         self.sponsorSegments = []
         self.dismissSponsorBlockSkipNotice()
@@ -1172,9 +1251,16 @@ final class YouTubePlayerService {
             guard self.currentVideo?.videoId == videoId else { return }
 
             self.captionTracks = tracks
-            self.qualityLevels = await self.playbackController.availableQualityLevels()
+            let levels = await self.playbackController.availableQualityLevels()
+            // The player accepts "auto" even when it does not advertise it, and
+            // the menu needs that row to represent an unpinned quality.
+            self.qualityLevels = levels.isEmpty || levels.contains("auto")
+                ? levels
+                : levels + ["auto"]
             self.currentQuality = await self.playbackController.currentQualityLevel()
             self.activeCaptionLanguageCode = await self.playbackController.currentCaptionLanguageCode()
+            self.audioTracks = await self.playbackController.availableAudioTracks()
+            self.activeAudioTrackId = await self.playbackController.currentAudioTrackId()
 
             if !tracks.isEmpty || attempt == 2 {
                 return
@@ -1236,6 +1322,13 @@ final class YouTubePlayerService {
         HapticService.toggle()
     }
 
+    /// Selects an alternate audio track (dubbed language) by id.
+    func selectAudioTrack(id: String) {
+        self.activeAudioTrackId = id
+        self.playbackController.setAudioTrack(id: id)
+        HapticService.toggle()
+    }
+
     /// Selects a playback quality level.
     func selectQuality(_ level: String) {
         self.currentQuality = level
@@ -1281,6 +1374,41 @@ final class YouTubePlayerService {
     /// source: the inline surface pauses in place (no pop-out window) and
     /// the restored watch view re-adopts it when the user comes back.
     private var pauseInPlaceOnDisappear = false
+}
+
+extension YouTubePlayerService {
+    private func beginPlaybackLoading() {
+        self.playbackLoadingTimeoutTask?.cancel()
+        self.playbackLoadingGeneration &+= 1
+        let loadingGeneration = self.playbackLoadingGeneration
+        self.isPlaybackLoading = true
+
+        let timeout = self.playbackLoadingTimeout
+        let videoId = self.currentVideo?.videoId
+        self.playbackLoadingTimeoutTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: timeout)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled,
+                  let self,
+                  self.playbackLoadingGeneration == loadingGeneration,
+                  self.isPlaybackLoading,
+                  self.currentVideo?.videoId == videoId
+            else { return }
+            if !self.playbackController.cancelPendingLoad() {
+                self.deferCurrentVideoReload()
+            }
+        }
+    }
+
+    private func finishPlaybackLoading() {
+        self.playbackLoadingGeneration &+= 1
+        self.isPlaybackLoading = false
+        self.playbackLoadingTimeoutTask?.cancel()
+        self.playbackLoadingTimeoutTask = nil
+    }
 
     /// Prepares the inline surface for a switch to the music source:
     /// pause in place, keep everything loaded for restore.
@@ -1319,9 +1447,7 @@ final class YouTubePlayerService {
             self.stop()
         }
     }
-}
 
-extension YouTubePlayerService {
     // MARK: - Bridge Callbacks
 
     /// A `STATE_UPDATE` payload from the watch page observer script.
@@ -1330,6 +1456,7 @@ extension YouTubePlayerService {
         let progress: Double
         let duration: Double
         var hasReadyMedia = false
+        var hasMediaError = false
         var videoId: String?
         var boundVideoId: String?
         var title: String?
@@ -1395,6 +1522,8 @@ extension YouTubePlayerService {
         self.reopenConcludedWatchIfNeeded(update, effectiveIsPlaying: effectiveIsPlaying)
         self.refreshPlaybackMetadataIfNeeded(update, effectiveIsPlaying: effectiveIsPlaying)
         self.followPageDriftIfNeeded(update)
+        self.finishPlaybackLoadingIfReady(update)
+        self.deferMediaErrorIfNeeded(update)
         self.completeAutoplayTransitionIfNeeded(update)
         self.recordReadyContentProgressIfPossible(update)
 
@@ -1518,13 +1647,77 @@ extension YouTubePlayerService {
         if self.isAtLiveEdge != update.isAtLiveEdge {
             self.isAtLiveEdge = update.isAtLiveEdge
         }
-        // Keep the loading spinner up until the video actually has media — the
-        // first STATE_UPDATE arrives while the <video> is still at 0:00 with no
-        // frame, so clearing then leaves a black gap after the spinner vanishes.
-        // A known duration means metadata loaded and a frame is imminent.
-        if self.isPlaybackLoading, update.duration > 0 {
-            self.isPlaybackLoading = false
+        // Runtime liveness from the bound media element (URL launches, SPA drift
+        // whose feed model lacked liveness). The loading spinner is cleared by
+        // `finishPlaybackLoadingIfReady` and media errors handled by
+        // `deferMediaErrorIfNeeded` from the STATE_UPDATE handler (#408).
+        if !update.isAd,
+           update.hasReadyMedia,
+           let metadataVideoId = update.videoId,
+           update.boundVideoId == metadataVideoId
+        {
+            let resolvedIsLive = update.isLive || self.currentVideo?.isLive == true
+            self.currentMediaIsLive = resolvedIsLive
+            if resolvedIsLive {
+                self.updateCurrentVideoLiveness(true, videoId: metadataVideoId)
+            }
         }
+    }
+
+    private func finishPlaybackLoadingIfReady(_ update: PlaybackUpdate) {
+        guard self.readyMediaBelongsToCurrentPlayback(update)
+            || self.metadataReadyForCurrentPlayback(update)
+        else { return }
+        self.finishPlaybackLoading()
+    }
+
+    /// The fork's original loading-finish signal: a known duration means metadata
+    /// loaded and a frame is imminent. Kept alongside #408's stricter ready-media
+    /// check so surfaces that gate on `isPlaybackLoading` — notably the Shorts
+    /// thumbnail cover — still clear when a video reports its duration before the
+    /// bridge flags ready media. Ads and media-error frames are excluded so the
+    /// ad surface and error recovery are unaffected.
+    private func metadataReadyForCurrentPlayback(_ update: PlaybackUpdate) -> Bool {
+        guard update.duration > 0, !update.hasMediaError, !update.isAd,
+              let currentVideoId = self.currentVideo?.videoId
+        else { return false }
+        // The first frames may not have bound the media id yet; accept a matching
+        // or not-yet-known id, but never another video's snapshot.
+        if let boundVideoId = update.boundVideoId, boundVideoId != currentVideoId {
+            return false
+        }
+        return update.videoId == nil || update.videoId == currentVideoId
+    }
+
+    private func readyMediaBelongsToCurrentPlayback(_ update: PlaybackUpdate) -> Bool {
+        guard update.hasReadyMedia, !update.hasMediaError else { return false }
+        // Preroll and midroll ads use the selected video's media element and are
+        // sufficient to replace the initial black loading surface, but a queued
+        // ad snapshot from outgoing media must not finish a newer video's load.
+        if update.isAd {
+            return update.boundVideoId == self.currentVideo?.videoId
+        }
+        guard let currentVideoId = self.currentVideo?.videoId else { return false }
+        return update.videoId == currentVideoId && update.boundVideoId == currentVideoId
+    }
+
+    private func deferMediaErrorIfNeeded(_ update: PlaybackUpdate) {
+        guard self.mediaErrorBelongsToCurrentContent(update) else { return }
+        self.deferCurrentVideoReload()
+    }
+
+    private func mediaErrorBelongsToCurrentContent(_ update: PlaybackUpdate) -> Bool {
+        guard update.hasMediaError,
+              !update.isAd,
+              let currentVideoId = self.currentVideo?.videoId
+        else { return false }
+
+        if let boundVideoId = update.boundVideoId,
+           boundVideoId != currentVideoId
+        {
+            return false
+        }
+        return update.videoId == nil || update.videoId == currentVideoId
     }
 
     private func reopenConcludedWatchIfNeeded(
@@ -1635,14 +1828,28 @@ extension YouTubePlayerService {
         // Preserve any SponsorBlock segments already fetched for the drifted-to
         // video (fork feature): reset per-video state without clobbering pending
         // SponsorBlock state, then reapply it for the new video id.
+        let driftedIsLive = update.hasReadyMedia
+            && update.boundVideoId == videoId
+            && update.isLive
         self.resetPerVideoState(preservingPendingSponsorBlockState: true)
+        self.currentMediaIsLive = driftedIsLive
         self.currentVideo = YouTubeVideo(
             videoId: videoId,
             title: update.title ?? current.title,
             channelName: current.channelName,
-            channelId: current.channelId
+            channelId: current.channelId,
+            isLive: driftedIsLive
         )
         self.applyPendingSponsorBlockState(for: videoId)
+        let readyMediaBelongsToDriftedVideo = update.hasReadyMedia
+            && !update.hasMediaError
+            && update.boundVideoId == videoId
+        if !readyMediaBelongsToDriftedVideo {
+            // The previous timeout was keyed to the outgoing video. Start a
+            // fresh bound for the drifted document so an empty replacement
+            // cannot strand loading indefinitely.
+            self.beginPlaybackLoading()
+        }
         if let driftedContentProgress {
             self.lastNonAdContentProgress = driftedContentProgress
             self.lastNonAdContentVideoId = videoId
@@ -1672,6 +1879,27 @@ extension YouTubePlayerService {
             self.lastNonAdContentProgress = update.progress
             self.lastNonAdContentVideoId = boundVideoId
         }
+    }
+
+    private func updateCurrentVideoLiveness(_ isLive: Bool, videoId: String?) {
+        guard let videoId,
+              let current = self.currentVideo,
+              current.videoId == videoId,
+              current.isLive != isLive
+        else { return }
+        self.currentVideo = YouTubeVideo(
+            videoId: current.videoId,
+            title: current.title,
+            channelName: current.channelName,
+            channelId: current.channelId,
+            lengthText: current.lengthText,
+            viewCountText: current.viewCountText,
+            publishedText: current.publishedText,
+            thumbnailURL: current.thumbnailURL,
+            isLive: isLive,
+            isShort: current.isShort,
+            watchedPercent: current.watchedPercent
+        )
     }
 
     private func reconciledPlayingState(for update: PlaybackUpdate) -> (
@@ -1787,7 +2015,7 @@ extension YouTubePlayerService {
         self.lastResumeIssuedAtMilliseconds = nil
         self.pendingExplicitStartTarget = nil
         self.pendingUserSeekTarget = nil
-        self.isPlaybackLoading = false
+        self.finishPlaybackLoading()
         // A finish changes watch history (the video crosses into "finished"), so
         // signal it — this lets Home drop a just-finished video from Continue
         // Watching even when the video ended in the floating window while the
@@ -1796,7 +2024,78 @@ extension YouTubePlayerService {
             self.watchActivityGeneration += 1
             self.onVideoEnded?(videoId)
         }
+        self.autoplayNextIfEnabled()
         return true
+    }
+
+    /// YouTube-style autoplay: when the setting is on, a finished video queues the
+    /// next suggested video (the first up-next candidate, or a freshly fetched
+    /// related video when none are known — e.g. a floating-window finish) behind a
+    /// countdown card, rather than switching immediately. Off by default, so
+    /// playback otherwise stops at the end. Mixes and playlists advance through
+    /// their own queue via page drift and are unaffected by this.
+    private func autoplayNextIfEnabled() {
+        guard SettingsManager.shared.youtubeAutoplayEnabled,
+              let current = self.currentVideo
+        else { return }
+
+        if let next = self.upNext.first {
+            self.startAutoplayCountdown(to: next)
+            return
+        }
+        let expectedVideoId = current.videoId
+        Task { @MainActor in
+            guard let client = self.youtubeClient,
+                  let next = try? await client.getWatchNext(videoId: expectedVideoId, playlistId: nil)
+                  .related.first(where: { !$0.isShort }),
+                  SettingsManager.shared.youtubeAutoplayEnabled,
+                  self.currentVideo?.videoId == expectedVideoId,
+                  self.autoplayPendingVideo == nil
+            else { return }
+            self.startAutoplayCountdown(to: next)
+        }
+    }
+
+    private func startAutoplayCountdown(to next: YouTubeVideo) {
+        self.autoplayCountdownTask?.cancel()
+        self.autoplayPendingVideo = next
+        self.autoplayCountdownRemaining = Self.autoplayCountdownSeconds
+        self.autoplayCountdownTask = Task { [weak self] in
+            while true {
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch {
+                    return
+                }
+                guard let self, self.autoplayPendingVideo?.videoId == next.videoId else { return }
+                self.autoplayCountdownRemaining -= 1
+                if self.autoplayCountdownRemaining <= 0 {
+                    self.confirmAutoplayNow()
+                    return
+                }
+            }
+        }
+    }
+
+    /// Plays the queued autoplay video right away (the countdown card's play
+    /// button — "speed it up").
+    func confirmAutoplayNow() {
+        guard let next = self.autoplayPendingVideo else { return }
+        self.clearAutoplayCountdown()
+        self.advance(to: next)
+    }
+
+    /// Dismisses the autoplay countdown without advancing (the card's cancel
+    /// button, or any explicit playback the user starts instead).
+    func cancelAutoplay() {
+        self.clearAutoplayCountdown()
+    }
+
+    private func clearAutoplayCountdown() {
+        self.autoplayCountdownTask?.cancel()
+        self.autoplayCountdownTask = nil
+        self.autoplayPendingVideo = nil
+        self.autoplayCountdownRemaining = 0
     }
 
     nonisolated static func isEndEventStale(

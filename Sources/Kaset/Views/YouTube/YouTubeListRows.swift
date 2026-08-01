@@ -12,12 +12,15 @@ struct VideoRowView: View {
                 .frame(width: 160)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(DearrowCache.shared.displayTitle(
-                    for: self.video.videoId, original: self.video.title))
+                let displayTitle = DearrowCache.shared.displayTitle(
+                    for: self.video.videoId, original: self.video.title)
+                Text(displayTitle)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
+                    // Full title as a hover tooltip when truncated.
+                    .help(displayTitle)
 
                 if let channelName = self.video.channelName {
                     Text(channelName)
@@ -142,6 +145,9 @@ struct YouTubePlaylistRowView: View {
                     }
                 }
                 .stackedPoster()
+                // Clamp the stack slivers to the poster width; otherwise the
+                // flexible sliver strip stretches across the whole row.
+                .frame(width: 160)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(self.playlist.title)

@@ -444,6 +444,17 @@ struct YouTubeCaptionTrack: Identifiable, Hashable {
     }
 }
 
+// MARK: - YouTubeAudioTrack
+
+/// An alternate audio track (dubbed language) offered by the watch page player.
+/// `id` is the track's index in the player's live audio-track array, which is
+/// all `setAudioTrack` needs — the opaque player track objects never cross the
+/// JS bridge.
+struct YouTubeAudioTrack: Identifiable, Hashable {
+    let id: String
+    let displayName: String
+}
+
 // MARK: - YouTubeQuality
 
 /// Display helpers for YouTube's quality-level identifiers.

@@ -102268,7 +102268,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abbonati a %@"
+            "value" : "Iscriviti a %@"
           }
         },
         "ja" : {
@@ -102453,7 +102453,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abbonati ai podcast su YouTube Music per vederli qui."
+            "value" : "Iscriviti ai podcast su YouTube Music per vederli qui."
           }
         },
         "ja" : {
@@ -102823,7 +102823,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Errore nell'abbonamento"
+            "value" : "Errore di iscrizione"
           }
         },
         "ja" : {

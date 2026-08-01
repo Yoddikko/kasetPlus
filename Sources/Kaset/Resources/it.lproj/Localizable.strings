@@ -62,6 +62,7 @@
 "Auto" = "Automatico";
 "Auto-skips sponsored segments in videos." = "Auto-skips sponsored segments in videos.";
 "Automatically check for updates" = "Controlla automaticamente gli aggiornamenti";
+"Autoplay" = "Riproduzione automatica";
 "Available" = "Disponibile";
 "Back 30 seconds" = "Indietro di 30 secondi";
 "Background Playback" = "Riproduzione in background";
@@ -395,6 +396,7 @@
 "Play Next" = "Riproduci dopo";
 "Play a song to view its lyrics here." = "Riproduci un brano per vederne qui il testo.";
 "Play songs from a playlist or album to build your queue." = "Riproduci brani da una playlist o da un album per creare la tua coda.";
+"Play now" = "Riproduci ora";
 "Play video" = "Riproduci video";
 "Playback" = "Riproduzione";
 "Playback Audio Quality" = "Qualità audio di riproduzione";
@@ -549,11 +551,11 @@
 "Style" = "Stile";
 "Submit" = "Invia";
 "Subscribe" = "Iscriviti";
-"Subscribe %@" = "Abbonati a %@";
-"Subscribe to podcasts on YouTube Music to see them here." = "Abbonati ai podcast su YouTube Music per vederli qui.";
+"Subscribe %@" = "Iscriviti a %@";
+"Subscribe to podcasts on YouTube Music to see them here." = "Iscriviti ai podcast su YouTube Music per vederli qui.";
 "Subscribed" = "Iscritto";
-"Subscription Error" = "Errore nell'abbonamento";
-"Subscriptions" = "Abbonamenti";
+"Subscription Error" = "Errore di iscrizione";
+"Subscriptions" = "Iscrizioni";
 "Suggested" = "Suggerito";
 "Suggested Removals" = "Rimozioni suggerite";
 "Suggestions per insertion" = "Suggerimenti per inserimento";

@@ -44,6 +44,7 @@ final class SettingsManager {
         static let dearrowEnabled = "settings.dearrow.enabled"
         static let hasCompletedInitialOnboarding = "settings.onboarding.completed"
         static let distractionFreeEnabled = "settings.distractionFree.enabled"
+        static let youtubeAutoplayEnabled = "settings.youtube.autoplay.enabled"
         static let accentColorHex = "settings.accentColorHex"
         #if DEBUG
             static let useLegacyMacOS15UI = "settings.debug.useLegacyMacOS15UI"
@@ -569,6 +570,15 @@ final class SettingsManager {
         }
     }
 
+    /// YouTube-style autoplay: when a video finishes, automatically play the next
+    /// suggested (up-next) video. Off by default; the fork otherwise stops at the
+    /// end (YouTube's own autonav is always disabled).
+    var youtubeAutoplayEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.youtubeAutoplayEnabled, forKey: Keys.youtubeAutoplayEnabled)
+        }
+    }
+
     /// Whether the one-time first-launch onboarding (the addons walkthrough)
     /// has been completed. The full onboarding — changelog → Continue → Addons →
     /// Done — is shown only once, on first launch. Later versions surface just the
@@ -665,6 +675,7 @@ final class SettingsManager {
         self.dearrowEnabled = UserDefaults.standard.object(forKey: Keys.dearrowEnabled) as? Bool ?? false
         self.hasCompletedInitialOnboarding = UserDefaults.standard.object(forKey: Keys.hasCompletedInitialOnboarding) as? Bool ?? false
         self.distractionFreeEnabled = UserDefaults.standard.object(forKey: Keys.distractionFreeEnabled) as? Bool ?? false
+        self.youtubeAutoplayEnabled = UserDefaults.standard.object(forKey: Keys.youtubeAutoplayEnabled) as? Bool ?? false
         #if DEBUG
             self.useLegacyMacOS15UI = UserDefaults.standard.object(forKey: Keys.useLegacyMacOS15UI) as? Bool ?? false
         #endif

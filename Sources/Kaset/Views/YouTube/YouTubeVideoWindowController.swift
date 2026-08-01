@@ -383,6 +383,10 @@ private struct YouTubeVideoWindowContent: View {
             ZStack(alignment: .bottom) {
                 YouTubeWatchSurfaceView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .overlay {
+                        YouTubeAutoplayCountdownOverlay()
+                    }
+                    .animation(.easeInOut(duration: 0.25), value: self.youtubePlayer.autoplayPendingVideo == nil)
 
                 if self.isHovering {
                     // The full player bar — same items as the main window.
