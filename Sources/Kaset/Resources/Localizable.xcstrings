@@ -299,7 +299,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Na żywo\" zmienia kolory podczas odtwarzania filmu; pozostałe pozostają stałe"
+            "value" : "\"Na żywo\" zmienia kolory oświetlenia podczas odtwarzania filmu; pozostałe tryby mają stałe oświetlenie"
           }
         },
         "pt" : {
@@ -811,8 +811,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%arg songs listened today"
+            "state" : "translated",
+            "value" : "%arg morceaux écoutés aujourd'hui"
           }
         },
         "he" : {
@@ -866,7 +866,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%apiosenek słuchanych dzisiaj"
+            "value" : "%arg piosenek słuchanych dzisiaj"
           }
         },
         "pt" : {
@@ -1385,7 +1385,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld lagu didengarkan hari ini"
+            "value" : "%lld lagu yang didengarkan hari ini"
           }
         },
         "it" : {
@@ -1421,7 +1421,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dziś odsłuchano %lld utworów"
+            "value" : "Dziś przesłuchano %lld utworów"
           }
         },
         "pt" : {
@@ -1606,7 +1606,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Za odtwarzaczem wyświetla się delikatna poświata kolorów pobrana z filmu. Dotyczy filmów YouTube, nie Music."
+            "value" : "Za odtwarzaczem pojawia się delikatna poświata w kolorze odtwarzanego filmu. Dotyczy to filmów YouTube, nie Muzyki."
           }
         },
         "pt" : {
@@ -1791,7 +1791,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Odpowiedzi AI są zgodne z ustawieniami języka systemu."
+            "value" : "Odpowiedzi AI są w języku systemowym, który został przez ciebie ustawiony."
           }
         },
         "pt" : {
@@ -1922,7 +1922,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le résumé de l'IA nécessite macOS 26."
+            "value" : "Le résumé par l'IA nécessite macOS 26."
           }
         },
         "he" : {
@@ -2531,7 +2531,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uzyskaj dostęp do swoich playlist i polubionych utworów"
+            "value" : "Uzyskaj dostęp do swoich playlist i ulubionych utworów"
           }
         },
         "pt" : {
@@ -3273,7 +3273,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Blokowanie reklam"
+            "value" : "Bloker Reklam"
           }
         },
         "pt" : {
@@ -5308,7 +5308,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dodaje trzeci, „inteligentny” stan do przycisku losowania, który przeplata polecane utwory z Twoją kolejką"
+            "value" : "Dodaje trzeci stan przycisku losowania, ten stan jest „smart” i służy do przeplatania polecanych utworów w twojej kolekcji"
           }
         },
         "pt" : {
@@ -6603,7 +6603,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ambient"
+            "value" : "Oświetlenie"
           }
         },
         "pt" : {
@@ -6788,7 +6788,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tło ambient"
+            "value" : "Oświetlenie kinowe"
           }
         },
         "pt" : {
@@ -6973,7 +6973,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ambientowe tło kolorystyczne"
+            "value" : "Kolor kinowego oświetlenia"
           }
         },
         "pt" : {
@@ -7158,7 +7158,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Styl tła otoczenia"
+            "value" : "Styl kinowego oświetlenia"
           }
         },
         "pt" : {
@@ -7343,7 +7343,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Styl tła ambient (deweloper)"
+            "value" : "Styl kinowego oświetlenia (programistyczne)"
           }
         },
         "pt" : {
@@ -7713,7 +7713,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Analizowanie playlisty…"
+            "value" : "Analizowanie playlisty..."
           }
         },
         "pt" : {
@@ -7898,7 +7898,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Analizowanie…"
+            "value" : "Analizowanie..."
           }
         },
         "pt" : {
@@ -8638,7 +8638,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple Intelligence jest pobierane. Może to potrwać kilka minut."
+            "value" : "Pobieranie Apple Intelligence. Może to potrwać parę minut."
           }
         },
         "pt" : {
@@ -9008,7 +9008,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple Intelligence jest gotowe do użycia"
+            "value" : "Apple Intelligence jest gotowe do używania"
           }
         },
         "pt" : {
@@ -9193,7 +9193,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zastosuj zmiany"
+            "value" : "Zapisz Zmiany"
           }
         },
         "pt" : {
@@ -9933,7 +9933,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zapytaj AI (⌘K)"
+            "value" : "Zapytaj SI (⌘K)"
           }
         },
         "pt" : {
@@ -10303,7 +10303,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zapytaj o wszystko związane z muzyką…"
+            "value" : "Zapytaj o cokolwiek związanego z muzyką..."
           }
         },
         "pt" : {
@@ -10673,7 +10673,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się uruchomić silnika audio: %@"
+            "value" : "Błąd uruchamiania się silnika audio: %@"
           }
         },
         "pt" : {
@@ -10858,7 +10858,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uruchamianie silnika dźwiękowego nie powiodło się: %arg"
+            "value" : "Błąd uruchamiania się silnika audio: %arg"
           }
         },
         "pt" : {
@@ -11043,7 +11043,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dźwięk"
+            "value" : "Audiobook"
           }
         },
         "pt" : {
@@ -11413,7 +11413,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automatycznie pomija sponsorowane segmenty w filmach."
+            "value" : "Automatycznie pomijaj sponsorowane segmenty w filmach."
           }
         },
         "pt" : {
@@ -11598,7 +11598,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automatycznie sprawdzaj uaktualnienia"
+            "value" : "Automatycznie sprawdzaj aktualizacje"
           }
         },
         "pt" : {
@@ -11672,10 +11672,184 @@
     "Autoplay" : {
       "comment" : "Toggle: automatically play the next suggested video (it: 'Riproduzione automatica').",
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Riproduzione automatica"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Autoplay"
           }
         }
       }
@@ -12350,7 +12524,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pasma"
+            "value" : "Basy"
           }
         },
         "pt" : {
@@ -13462,7 +13636,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Przeglądaj i dołącz do dyskusji społeczności"
+            "value" : "Przeglądaj dyskusje w społeczności"
           }
         },
         "pt" : {
@@ -13832,7 +14006,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stworzone w SwiftUI dla prawdziwie macOS-owego doświadczenia"
+            "value" : "Stworzone w SwiftUI by doznać prawdziwego przeżycia YouTube dla użytkowników macOS"
           }
         },
         "pt" : {
@@ -14017,7 +14191,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obliczanie…"
+            "value" : "Kalkulacje..."
           }
         },
         "pt" : {
@@ -14757,7 +14931,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zmień język systemu na angielski lub inny obsługiwany język."
+            "value" : "Zmień swój systemowy język na angielski lub inny obsługiwany język."
           }
         },
         "pt" : {
@@ -15503,7 +15677,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listy przebojów"
+            "value" : "Przeboje"
           }
         },
         "pt" : {
@@ -16058,7 +16232,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sprawdź uaktualnienia"
+            "value" : "Sprawdź aktualizacje"
           }
         },
         "pt" : {
@@ -16243,7 +16417,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sprawdź uaktualnienia…"
+            "value" : "Sprawdzanie aktualizacji..."
           }
         },
         "pt" : {
@@ -16428,7 +16602,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wybierz język treści i wyników wyszukiwania z YouTube Music"
+            "value" : "Wybierz język treści i wyników z wyszukiwania na YouTube Music"
           }
         },
         "pt" : {
@@ -16613,7 +16787,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wybierz preferowaną jakość dźwięku dla odtwarzania YouTube Music"
+            "value" : "Wybierz preferowaną jakość dźwięku podczas słuchania YouTube Music"
           }
         },
         "pt" : {
@@ -16798,7 +16972,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wybierz, które przyciski pojawiają się w widżecie Teraz odtwarzane w Centrum sterowania"
+            "value" : "Wybierz, które przyciski chcesz widzieć w widżecie Odtwarzane Teraz w Centrum sterowania"
           }
         },
         "pt" : {
@@ -18649,7 +18823,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Czyszczenie…"
+            "value" : "Czyszczenie..."
           }
         },
         "pt" : {
@@ -19204,7 +19378,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zamknij komentarze"
+            "value" : "Zamknij sekcje komentarzy"
           }
         },
         "pt" : {
@@ -19759,8 +19933,8 @@
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Collaborators"
+            "state" : "translated",
+            "value" : "Kolaboracje"
           }
         },
         "pt" : {
@@ -20685,7 +20859,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Skonfiguruj rozszerzenie"
+            "value" : "Konfiguruj rozszerzenie"
           }
         },
         "pt" : {
@@ -21185,8 +21359,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connected as %arg"
+            "state" : "translated",
+            "value" : "Connecté en tant que %a"
           }
         },
         "he" : {
@@ -21610,7 +21784,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Treść może nie być dostępna w Twoim regionie."
+            "value" : "Ta treść może być niedostępna w Twoim regionie."
           }
         },
         "pt" : {
@@ -22165,7 +22339,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Steruj odtwarzaniem za pomocą klawiatury"
+            "value" : "Kontroluj odtwarzacz za pomocą klawiatury"
           }
         },
         "pt" : {
@@ -23278,7 +23452,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się utworzyć urządzenia audio korektora. Ponowne uruchomienie KasetPlus zwykle rozwiązuje ten problem."
+            "value" : "Nie udało utworzyć się korektora dźwięku. Ponowne uruchomienie KasetPlus zazwyczaj rozwiązuje problem."
           }
         },
         "pt" : {
@@ -23834,7 +24008,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się zainstalować wywołania zwrotnego renderowania audio (%lld)."
+            "value" : "Nie udało się zainstalować renderu zwrotnego audio (%lld)."
           }
         },
         "pt" : {
@@ -24019,7 +24193,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie można załadować powiadomień"
+            "value" : "Nie udało się wczytać powiadomień"
           }
         },
         "pt" : {
@@ -24391,7 +24565,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się skierować dźwięku KasetPlus do silnika korektora."
+            "value" : "Nie udało się skierować dźwięku z KasetPlus do silnika korektora dźwięku."
           }
         },
         "pt" : {
@@ -26984,7 +27158,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wyłącza Liquid Glass, pasek poleceń i elementy interfejsu Apple Intelligence, dopóki opcja nie zostanie wyłączona."
+            "value" : "Wyłącza Liquid Glass, pasek poleceń i interfejs UI Apple Intelligence, dopóki opcja ta nie zostanie wyłączona."
           }
         },
         "pt" : {
@@ -27724,7 +27898,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie lubię"
+            "value" : "Nie podoba mi się"
           }
         },
         "pt" : {
@@ -27909,7 +28083,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie lubię komentarza"
+            "value" : "Nie podoba mi się ten komentarz"
           }
         },
         "pt" : {
@@ -28094,7 +28268,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nielubiane"
+            "value" : "Nie upodobano"
           }
         },
         "pt" : {
@@ -29759,7 +29933,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pobieranie nie powiodło się. Czy zainstalowano yt-dlp? Try: brew install yt-dlp"
+            "value" : "Pobieranie się nie powiodło. Czy zainstalowałeś yt-dlp? Komenda: brew install yt-dlp"
           }
         },
         "pt" : {
@@ -31240,7 +31414,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Włącz Apple Intelligence w Ustawieniach systemowych, aby korzystać z funkcji AI."
+            "value" : "Włącz Apple Intelligence w Ustawieniach systemowych, aby skorzystać z funkcji AI."
           }
         },
         "pt" : {
@@ -31426,7 +31600,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Włącz korektor"
+            "value" : "Włącz korektor dźwięku"
           }
         },
         "pt" : {
@@ -31796,7 +31970,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Włącz zsynchronizowane teksty"
+            "value" : "Włącz synchronizacje tekstu"
           }
         },
         "pt" : {
@@ -32538,7 +32712,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Korektor"
+            "value" : "Korektor dźwięku"
           }
         },
         "pt" : {
@@ -32724,7 +32898,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Korektor przetwarza wyjście audio KasetPlus."
+            "value" : "Korektor dźwięku przetwarza wyjście audio z KasetPlus."
           }
         },
         "pt" : {
@@ -34204,7 +34378,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rozszerzenia są ładowane przy uruchamianiu przez natywne API rozszerzeń WebKit. Zmiany zaczną działać po ponownym uruchomieniu KasetPlus."
+            "value" : "Rozszerzenia są ładowane przy starcie aplikacji przez natywne API WebKit extension. Zmiany zaczną działać po ponownym uruchomieniu KasetPlus."
           }
         },
         "pt" : {
@@ -34574,7 +34748,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się wczytać kont"
+            "value" : "Nie udało się wczytać twoich kont"
           }
         },
         "pt" : {
@@ -34759,7 +34933,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się wczytać kont. Spróbuj ponownie."
+            "value" : "Nie udało się wczytać twoich kont. Spróbuj ponownie."
           }
         },
         "pt" : {
@@ -35129,7 +35303,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fanom może się też spodobać"
+            "value" : "Fanom może się to też spodobać"
           }
         },
         "pt" : {
@@ -35314,7 +35488,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Moda i uroda"
+            "value" : "Uroda i Moda"
           }
         },
         "pt" : {
@@ -37165,7 +37339,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obserwuj artystów w YouTube Music, aby zobaczyć ich tutaj."
+            "value" : "Obserwuj swoich ulubionych artystów w YouTube Music, aby zobaczyć ich tutaj."
           }
         },
         "pt" : {
@@ -37535,7 +37709,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wymusza widoki i materiały awaryjne z macOS 15 podczas działania na macOS 26+ w celu debugowania zgodności"
+            "value" : "Wymusza użycie awaryjnych widoków i materiałów z systemu macOS 15 podczas używania macOS 26+ do celów debugowania kompatybilności"
           }
         },
         "pt" : {
@@ -41606,7 +41780,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Początek"
+            "value" : "Główna"
           }
         },
         "pt" : {
@@ -42346,7 +42520,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hz."
+            "value" : "Hz"
           }
         },
         "pt" : {
@@ -42531,7 +42705,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało mi się zrozumieć tego polecenia"
+            "value" : "Przepraszam nie mogę zrozumieć twojego polecenia"
           }
         },
         "pt" : {
@@ -43456,7 +43630,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zainstaluj jt-dlp"
+            "value" : "Zainstaluj yt-dlp"
           }
         },
         "pt" : {
@@ -44826,10 +45000,184 @@
     "Join" : {
       "comment" : "Button to join a channel's paid membership (it: 'Abbonati'). Opens the YouTube membership page; no in-app payment.",
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abbonati"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Join"
           }
         }
       }
@@ -45502,7 +45850,7 @@
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "KasetPlus"
           }
         },
@@ -45689,7 +46037,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "KasetPlus nie ma dostępu do własnego wyjścia audio. Otwórz Ustawienia systemowe → Prywatność i ochrona → Ekran i nagrywanie dźwięku systemowego i włącz KasetPlus, a następnie ponownie włącz korektor."
+            "value" : "KasetPlus nie ma dostępu do własnego wejścia audio. Otwórz ustawienia systemowe → prywatność & ochrona → Nagrywanie ekranu i dźwięku systemowego, włącz KasetPlus, a następnie spróbuj odtworzyć materiał ponownie lub wyłącz i włącz korektor."
           }
         },
         "pt" : {
@@ -45874,7 +46222,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "KasetPlus tworzy nową sesję SI dla każdego żądania. Odśwież stan, jeśli Apple Intelligence zakończy pobieranie lub stanie się dostępne, gdy aplikacja jest otwarta."
+            "value" : "KasetPlus tworzy nową sesję SI dla każdego żądania. Zaktualizuj stan, jeśli Apple Intelligence zakończy się pobierać lub będzie już dostępne, gdy aplikacja jest otwarta."
           }
         },
         "pt" : {
@@ -46059,7 +46407,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "KasetPlus działa bez logowania w przypadku publicznego wyszukiwania, odkrywania i odtwarzania w YouTube. Zaloguj się, aby uzyskać dostęp do osobistych kolekcji wideo."
+            "value" : "KasetPlus działa bez logowania więc możesz używać wyszukiwarki, odkrywać i odtwarzać media z YouTube. Zaloguj się, aby uzyskać dostęp do osobistych kolekcji wideo."
           }
         },
         "pt" : {
@@ -46244,7 +46592,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "KasetPlus działa bez logowania w przypadku publicznego przeglądania, wyszukiwania i odtwarzania. Zaloguj się, aby uzyskać dostęp do osobistych kolekcji muzyki."
+            "value" : "KasetPlus działa bez logowania więc możesz używać wyszukiwarki, odkrywać i odtwarzać media z YouTube. Zaloguj się, aby uzyskać dostęp do osobistych kolekcji wideo."
           }
         },
         "pt" : {
@@ -46429,7 +46777,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trzymaj mini odtwarzacz na wierzchu"
+            "value" : "Tworzy miniodtwarzacz na wierzchu ekranu"
           }
         },
         "pt" : {
@@ -46614,7 +46962,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utrzymuj odtwarzany film w pływającym oknie po opuszczeniu strony. Gdy opcja jest wyłączona, film zatrzyma się."
+            "value" : "Odtwarza film w miniodtwarzaczu po opuszczeniu strony filmu. Gdy opcja jest wyłączona, film automatycznie się zatrzyma."
           }
         },
         "pt" : {
@@ -47724,7 +48072,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Język nie jest obsługiwany"
+            "value" : "Ten język jest nieobsługiwany"
           }
         },
         "pt" : {
@@ -55313,7 +55661,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MP3 (tylko audio)"
+            "value" : "MP3 (jedynie audio)"
           }
         },
         "pt" : {
@@ -56978,7 +57326,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Przenieś film tutaj"
+            "value" : "Przenieś tutaj film"
           }
         },
         "pt" : {
@@ -64379,7 +64727,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Brak filmów z subskrypcji"
+            "value" : "Brak zasubskrybowanych filmów"
           }
         },
         "pt" : {
@@ -66414,7 +66762,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uwaga: jeśli klucze dostępu nie działają, użyj opcji \"Try another way\", aby zalogować się hasłem."
+            "value" : "Uwaga: jeśli klucze dostępu nie działają, wypróbuj \"Try another way\", aby zalogować się hasłem."
           }
         },
         "pt" : {
@@ -67154,8 +67502,8 @@
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Notification settings"
+            "state" : "translated",
+            "value" : "Ustawienia powiadomień"
           }
         },
         "pt" : {
@@ -68450,7 +68798,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wył."
+            "value" : "Wył"
           }
         },
         "pt" : {
@@ -68635,7 +68983,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wł."
+            "value" : "Wł"
           }
         },
         "pt" : {
@@ -69745,8 +70093,8 @@
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open System Settings → Privacy & Security → Screen & System Audio Recording and enable KasetPlus, then retry playback or toggle the equalizer off and on."
+            "state" : "translated",
+            "value" : "Otwórz ustawienia systemowe → prywatność & ochrona → Nagrywanie ekranu i dźwięku systemowego, włącz KasetPlus, a następnie spróbuj odtworzyć materiał ponownie lub wyłącz i włącz korektor."
           }
         },
         "pt" : {
@@ -73153,10 +73501,184 @@
     "Play now" : {
       "comment" : "Tooltip on the autoplay countdown play button (it: 'Riproduci ora').",
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Riproduci ora"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "no" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Play now"
           }
         }
       }
@@ -79755,7 +80277,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "& B"
+            "value" : "R&B"
           }
         },
         "pt" : {
@@ -91414,7 +91936,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spodnie"
+            "value" : "Shorts"
           }
         },
         "pt" : {
@@ -91599,7 +92121,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tutaj pojawią się Shorts z Twojego kanału."
+            "value" : "Tutaj pojawią się Shorts Twojego kanału."
           }
         },
         "pt" : {
@@ -105051,8 +105573,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Thanks for the tip — supporter perks are active until %arg."
+            "state" : "translated",
+            "value" : ""
           }
         },
         "he" : {
@@ -110608,8 +111130,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Unsubscribe"
+            "state" : "translated",
+            "value" : "Se désabonner"
           }
         },
         "he" : {
@@ -110662,8 +111184,8 @@
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Unsubscribe"
+            "state" : "translated",
+            "value" : "Odsubskrybuj"
           }
         },
         "pt" : {
@@ -119360,8 +119882,8 @@
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "and"
+            "state" : "translated",
+            "value" : "i"
           }
         },
         "pt" : {
