@@ -37225,6 +37225,18 @@
         }
       }
     },
+    "Float on Top" : {
+      "comment" : "Toggle in the YouTube menu: keep the popped-out video window above standard windows.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sempre in primo piano"
+          }
+        }
+      }
+    },
     "Follow artists on YouTube Music to see them here." : {
       "comment" : "Your Library page (playlists, liked songs, subscribed podcasts — including empty states).",
       "localizations" : {

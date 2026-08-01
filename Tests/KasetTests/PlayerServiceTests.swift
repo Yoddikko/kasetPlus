@@ -416,6 +416,21 @@ struct PlayerServiceTests {
         #expect(UserDefaults.standard.bool(forKey: SettingsManager.Keys.keepMiniPlayerOnTop) == false)
     }
 
+    @Test("Keep YouTube video on top setting persists")
+    func keepYouTubeVideoOnTopSettingPersists() {
+        let settings = SettingsManager.shared
+        let originalValue = settings.keepYouTubeVideoOnTop
+        defer {
+            settings.keepYouTubeVideoOnTop = originalValue
+        }
+
+        settings.keepYouTubeVideoOnTop = true
+        #expect(UserDefaults.standard.bool(forKey: SettingsManager.Keys.keepYouTubeVideoOnTop) == true)
+
+        settings.keepYouTubeVideoOnTop = false
+        #expect(UserDefaults.standard.bool(forKey: SettingsManager.Keys.keepYouTubeVideoOnTop) == false)
+    }
+
     // MARK: - Queue/Lyrics Mutual Exclusivity Tests
 
     @Test("showQueue initially false")

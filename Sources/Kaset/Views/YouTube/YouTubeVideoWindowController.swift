@@ -152,11 +152,20 @@ final class YouTubeVideoWindowController {
         }
     }
 
-    /// PiP posture: floats above normal windows and can overlay any Space,
-    /// including fullscreen/tiled ones.
+    /// PiP posture: can overlay any Space, including fullscreen/tiled ones. The
+    /// on-top level follows the "Float on Top" setting; the Spaces behavior stays
+    /// put either way so a non-floating window still doesn't get exiled across
+    /// Spaces (the bug the collectionBehavior guards against).
     private static func applyPiPBehavior(to window: NSWindow) {
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.level = .floating
+        window.level = SettingsManager.shared.keepYouTubeVideoOnTop ? .floating : .normal
+    }
+
+    /// Re-applies the current "Float on Top" setting to the open pop-out window.
+    /// No-op while fullscreen — the exit-fullscreen path restores PiP posture.
+    func syncWindowState() {
+        guard let window, !window.styleMask.contains(.fullScreen) else { return }
+        Self.applyPiPBehavior(to: window)
     }
 
     /// Toggles fullscreen on the floating window.
