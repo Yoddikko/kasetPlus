@@ -536,23 +536,95 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
         APICache.shared.invalidate(matching: Self.cachePrefix)
     }
 
+    /// Fetches the video "Report" (flag) form: the list of reason options, each
+    /// carrying its own submit `params`. `params` come from
+    /// `WatchNextData.reportParams` (YouTube's own report endpoint token), so
+    /// this just replays the web client's `flag/get_form` step. Signed-in only.
+    func getReportForm(params: String) async throws -> YouTubeReportForm {
+        self.logger.info("Fetching video report form")
+
+        let data = try await self.request(
+            "flag/get_form",
+            body: ["params": params],
+            retry: false
+        )
+        return ReportFormParser.parse(data)
+    }
+
+    /// Submits a video report by replaying YouTube's own `flag/flag` step.
+    /// `params` are a reason's `submitParams` from `getReportForm(params:)`;
+    /// nothing here is fabricated, so this only ever files the report the user
+    /// picked. Signed-in only.
+    func submitReport(params: String) async throws {
+        self.logger.info("Submitting video report")
+
+        _ = try await self.request("flag/flag", body: ["params": params], retry: false)
+    }
+
     func addToWatchLater(videoId: String) async throws {
-        try await self.editWatchLater(actions: [
+        try await self.editPlaylist(playlistId: "WL", actions: [
             ["addedVideoId": videoId, "action": "ACTION_ADD_VIDEO"],
         ])
     }
 
     func removeFromWatchLater(videoId: String) async throws {
-        try await self.editWatchLater(actions: [
+        try await self.editPlaylist(playlistId: "WL", actions: [
             ["removedVideoId": videoId, "action": "ACTION_REMOVE_VIDEO_BY_VIDEO_ID"],
         ])
     }
 
-    private func editWatchLater(actions: [[String: Any]]) async throws {
-        self.logger.info("Editing Watch Later")
+    /// The "Save to…" menu for a video: the user's playlists (Watch Later, plus
+    /// their own), each flagged with whether the video is already in it, and
+    /// whether a new playlist can be created. Same `addToPlaylistRenderer` the
+    /// YouTube web "Save" dialog uses, so `PlaylistParser` handles it as-is.
+    func getAddToPlaylistOptions(videoId: String) async throws -> AddToPlaylistMenu {
+        self.logger.info("Fetching add-to-playlist options")
+        let data = try await self.request(
+            "playlist/get_add_to_playlist",
+            body: ["videoIds": [videoId]],
+            ttl: APICache.TTL.library
+        )
+        return PlaylistParser.parseAddToPlaylistMenu(data)
+    }
 
+    func addToPlaylist(videoId: String, playlistId: String) async throws {
+        try await self.editPlaylist(playlistId: playlistId, actions: [
+            ["addedVideoId": videoId, "action": "ACTION_ADD_VIDEO"],
+        ])
+    }
+
+    func removeFromPlaylist(videoId: String, playlistId: String) async throws {
+        // ACTION_REMOVE_VIDEO_BY_VIDEO_ID removes by videoId without needing the
+        // per-item setVideoId (same as Watch Later), so the Save popover can
+        // un-save straight from the add-to-playlist menu.
+        try await self.editPlaylist(playlistId: playlistId, actions: [
+            ["removedVideoId": videoId, "action": "ACTION_REMOVE_VIDEO_BY_VIDEO_ID"],
+        ])
+    }
+
+    /// Creates a playlist seeded with the given videos and returns its ID.
+    func createPlaylist(title: String, privacyStatus: PlaylistPrivacyStatus, videoIds: [String]) async throws -> String {
+        self.logger.info("Creating YouTube playlist")
+        var body: [String: Any] = [
+            "title": title,
+            "privacyStatus": privacyStatus.rawValue,
+        ]
+        if !videoIds.isEmpty {
+            body["videoIds"] = videoIds
+        }
+        let data = try await self.request("playlist/create", body: body, retry: false)
+        guard let playlistId = PlaylistParser.parseCreatedPlaylistId(data) else {
+            throw YTMusicError.parseError(message: "Missing playlist ID in create response")
+        }
+        APICache.shared.invalidate(matching: Self.cachePrefix)
+        return playlistId
+    }
+
+    private func editPlaylist(playlistId: String, actions: [[String: Any]]) async throws {
+        self.logger.info("Editing playlist")
+        let cleanId = playlistId.hasPrefix("VL") ? String(playlistId.dropFirst(2)) : playlistId
         let body: [String: Any] = [
-            "playlistId": "WL",
+            "playlistId": cleanId,
             "actions": actions,
         ]
         _ = try await self.request("browse/edit_playlist", body: body, retry: false)
@@ -650,9 +722,13 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
         "subscription/subscribe",
         "subscription/unsubscribe",
         "browse/edit_playlist",
+        "playlist/get_add_to_playlist",
+        "playlist/create",
         "comment/create_comment",
         "comment/perform_comment_action",
         "notification/get_notification_menu",
+        "flag/get_form",
+        "flag/flag",
     ]
 
     /// Builds authentication headers with the YouTube (not music) origin.

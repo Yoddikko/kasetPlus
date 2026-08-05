@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 // MARK: - YouTubeWatchView
@@ -29,6 +30,11 @@ struct YouTubeWatchView: View {
     @State private var settings = SettingsManager.shared
     @State private var lyricsSearchQuery = ""
     @State private var showsDownloadSheet = false
+    @State private var showsSavePopover = false
+
+    /// Measured height of the left content column, used to cap the related rail
+    /// so filtering the comments short can't leave a giant empty gap beside it.
+    @State private var leftColumnHeight: CGFloat = 0
 
     /// Whether the on-video controls overlay is currently visible (shown while
     /// the cursor is over the video, when "controls on video" is enabled).
@@ -72,6 +78,7 @@ struct YouTubeWatchView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 self.videoSurface
+                    .contextMenu { self.videoContextMenu }
 
                 // Below the video: title/metadata + chapters/comments down the
                 // left, the related rail down the right.
@@ -79,8 +86,7 @@ struct YouTubeWatchView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         self.metadataSection
 
-                        if self.showsDescription, let description = self.descriptionText {
-                            Divider()
+                        if let description = self.descriptionText {
                             self.descriptionSection(description)
                         }
 
@@ -115,15 +121,27 @@ struct YouTubeWatchView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height
+                    } action: { newHeight in
+                        self.leftColumnHeight = newHeight
+                    }
 
                     if !self.settings.distractionFreeEnabled {
-                        VStack(alignment: .leading, spacing: 20) {
-                            if self.viewModel.hasLiveChat {
-                                self.liveChatSection
+                        // Capped to the left column's height and scrolls internally
+                        // when taller, so a short (e.g. search-filtered) comment
+                        // column can't leave a giant empty gap next to a tall rail.
+                        ScrollView(.vertical, showsIndicators: false) {
+                            VStack(alignment: .leading, spacing: 20) {
+                                if self.viewModel.hasLiveChat {
+                                    self.liveChatSection
+                                }
+                                self.relatedColumn
                             }
-                            self.relatedColumn
                         }
+                        .scrollBounceBehavior(.basedOnSize)
                         .frame(width: 360)
+                        .frame(maxHeight: self.leftColumnHeight > 0 ? self.leftColumnHeight : nil)
                     }
                 }
             }
@@ -446,151 +464,224 @@ struct YouTubeWatchView: View {
                 self.viewModel.data.viewCountText ?? self.video.viewCountText,
                 self.viewModel.data.publishedText ?? self.video.publishedText,
             ].compactMap(\.self)
-            HStack(spacing: 4) {
-                if !meta.isEmpty {
-                    Text(meta.joined(separator: " · "))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 12)
-
-                if self.descriptionText != nil {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            self.showsDescription.toggle()
-                        }
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "text.alignleft")
-                                .font(.system(size: 13))
-                            Text("Description", comment: "Toggle video description in YouTube watch view")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Capsule().fill(self.showsDescription ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(self.showsDescription ? Color.accentColor : .secondary)
-                }
-
-                if self.aiSummaryAvailable, !self.isLiveStream {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            self.showsSummary.toggle()
-                        }
-                        if self.showsSummary, self.summaryTldr == nil, !self.summaryLoading {
-                            self.generateSummary()
-                        }
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 13))
-                            Text("Summary", comment: "Toggle AI video summary in YouTube watch view")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Capsule().fill(self.showsSummary ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(self.showsSummary ? Color.accentColor : .secondary)
-                }
-
-                if !self.isLiveStream {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            self.youtubePlayer.showsLyrics.toggle()
-                        }
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: self.youtubePlayer.showsLyrics ? "music.quarternote.3" : "music.note.list")
-                                .font(.system(size: 13))
-                            Text("Lyrics", comment: "Toggle lyrics section in YouTube watch view")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Capsule().fill(self.youtubePlayer.showsLyrics ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(self.youtubePlayer.showsLyrics ? Color.accentColor : .secondary)
-                }
-
-                if self.hasPersonalAccount {
-                    self.likeDislikeButtons
-                }
+            if !meta.isEmpty {
+                Text(meta.joined(separator: " · "))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
 
+            // Channel on the left, engagement actions on the right (YouTube-style
+            // two sides). The whole cluster drops the actions onto their own
+            // wrapped line when the column is too narrow for one row.
             if !self.viewModel.collaborators.isEmpty {
                 self.collaboratorsRow(self.viewModel.collaborators)
+                FlowLayout(spacing: 8, lineSpacing: 8) { self.engagementButtons }
             } else if let channel = self.viewModel.data.channel {
-                HStack(spacing: 12) {
-                    NavigationLink(value: YouTubeRoute.channel(channelId: channel.channelId)) {
-                        HStack(spacing: 10) {
-                            CachedAsyncImage(
-                                url: channel.thumbnailURL,
-                                targetSize: CGSize(width: 36, height: 36)
-                            ) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                Circle().fill(.quaternary)
-                            }
-                            .frame(width: 36, height: 36)
-                            .clipShape(.circle)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(channel.name)
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                if let subscriberCountText = channel.subscriberCountText {
-                                    Text(subscriberCountText)
-                                        .font(.system(size: 11))
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-
-                    if self.hasPersonalAccount {
-                        self.subscribeButton
-                        self.membershipButton
-                        self.notificationBellButton
-                    }
-
-                    Spacer(minLength: 0)
+                // Stable two-sided row: channel on the left, engagement actions
+                // pushed to the right by the Spacer. Deterministic (no
+                // ViewThatFits branch-flipping when the async like counts load).
+                HStack(alignment: .center, spacing: 12) {
+                    self.channelInfoLink(channel)
+                    self.channelActionButtons
+                    Spacer(minLength: 12)
+                    HStack(spacing: 8) { self.engagementButtons }
                 }
             }
+
+            // KasetPlus tools (Summary, Lyrics). Hidden for live streams.
+            if !self.isLiveStream {
+                FlowLayout(spacing: 8, lineSpacing: 8) { self.toolsButtons }
+            }
+
         }
     }
 
+    // MARK: Channel & action button groups
+
+    @ViewBuilder private var engagementButtons: some View {
+        if self.hasPersonalAccount {
+            self.likeDislikeButtons
+            self.saveButton
+        }
+        self.shareButton
+        self.downloadButton
+    }
+
+    @ViewBuilder private var channelActionButtons: some View {
+        if self.hasPersonalAccount {
+            self.subscribeButton
+            self.membershipButton
+            self.notificationBellButton
+        }
+    }
+
+    private func channelInfoLink(_ channel: YouTubeChannel) -> some View {
+        NavigationLink(value: YouTubeRoute.channel(channelId: channel.channelId)) {
+            HStack(spacing: 10) {
+                CachedAsyncImage(
+                    url: channel.thumbnailURL,
+                    targetSize: CGSize(width: 36, height: 36)
+                ) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Circle().fill(.quaternary)
+                }
+                .frame(width: 36, height: 36)
+                .clipShape(.circle)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(channel.name)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    if let subscriberCountText = channel.subscriberCountText {
+                        Text(subscriberCountText)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// KasetPlus-only tools: on-device AI summary and lyrics toggles.
+    @ViewBuilder private var toolsButtons: some View {
+        if self.aiSummaryAvailable {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.showsSummary.toggle()
+                }
+                if self.showsSummary, self.summaryTldr == nil, !self.summaryLoading {
+                    self.generateSummary()
+                }
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 13))
+                    Text("Summary", comment: "Toggle AI video summary in YouTube watch view")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .padding(.horizontal, 13)
+                .frame(height: 34)
+                .compatGlass(interactive: true, tint: self.showsSummary ? Self.brandAccent : nil, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(self.showsSummary ? Color.accentColor : .secondary)
+        }
+
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                self.youtubePlayer.showsLyrics.toggle()
+            }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: self.youtubePlayer.showsLyrics ? "music.quarternote.3" : "music.note.list")
+                    .font(.system(size: 13))
+                Text("Lyrics", comment: "Toggle lyrics section in YouTube watch view")
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .padding(.horizontal, 13)
+            .frame(height: 34)
+            .compatGlass(interactive: true, tint: self.youtubePlayer.showsLyrics ? Self.brandAccent : nil, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(self.youtubePlayer.showsLyrics ? Color.accentColor : .secondary)
+    }
+
+    private var watchURL: URL? {
+        URL(string: "https://www.youtube.com/watch?v=\(self.video.videoId)")
+    }
+
+    /// Native macOS share sheet for the video link.
+    @ViewBuilder private var shareButton: some View {
+        if let url = self.watchURL {
+            ShareLink(item: url) {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 13))
+                    Text("Share", comment: "Share the video")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .padding(.horizontal, 13)
+                .frame(height: 34)
+                .compatGlass(interactive: true, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    /// Direct Download pill — opens the app's download sheet (replaced the
+    /// overflow "…" menu, which only held Download + Copy link).
+    private var downloadButton: some View {
+        Button {
+            self.showsDownloadSheet = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.down.circle")
+                    .font(.system(size: 13))
+                Text("Download", comment: "Download the video")
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .padding(.horizontal, 13)
+            .frame(height: 34)
+            .compatGlass(interactive: true, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+    }
+
+    /// "Save" — opens the add-to-playlist popover (Watch Later, the user's
+    /// playlists, and creating a new one). Mirrors YouTube's web Save button.
+    private var saveButton: some View {
+        Button {
+            self.showsSavePopover = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "bookmark")
+                    .font(.system(size: 13))
+                Text("Save", comment: "Save video to a playlist")
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .padding(.horizontal, 13)
+            .frame(height: 34)
+            .compatGlass(interactive: true, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .popover(isPresented: self.$showsSavePopover, arrowEdge: .bottom) {
+            YouTubeSaveToPlaylistView(videoId: self.video.videoId, client: self.viewModel.client)
+        }
+    }
+
+    /// Like / dislike as a single segmented pill (thumb-up + count · divider ·
+    /// thumb-down + count), matching YouTube's joined control.
     private var likeDislikeButtons: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
             Button {
                 Task { await self.youtubePlayer.toggleLike() }
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: self.youtubePlayer.currentRating == .like
                         ? "hand.thumbsup.fill" : "hand.thumbsup")
+                        .font(.system(size: 13))
                     if let likes = self.youtubePlayer.rydLikes {
                         Text(YouTubePlayerService.formatCount(likes))
                             .font(.system(size: 12, weight: .medium))
                     }
                 }
-                .padding(.horizontal, 14)
+                .foregroundStyle(self.youtubePlayer.currentRating == .like ? Self.brandAccent : .secondary)
+                .padding(.leading, 14)
+                .padding(.trailing, 12)
                 .padding(.vertical, 7)
-                .background(
-                    Capsule()
-                        .fill(self.youtubePlayer.currentRating == .like
-                            ? Self.brandAccent.opacity(0.15) : Color.secondary.opacity(0.12))
-                )
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .foregroundStyle(self.youtubePlayer.currentRating == .like ? Self.brandAccent : .secondary)
+
+            Divider().frame(height: 16)
 
             Button {
                 Task { await self.youtubePlayer.toggleDislike() }
@@ -598,22 +689,23 @@ struct YouTubeWatchView: View {
                 HStack(spacing: 6) {
                     Image(systemName: self.youtubePlayer.currentRating == .dislike
                         ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                        .font(.system(size: 13))
                     if let dislikes = self.youtubePlayer.rydDislikes {
                         Text(YouTubePlayerService.formatCount(dislikes))
                             .font(.system(size: 12, weight: .medium))
                     }
                 }
-                .padding(.horizontal, 14)
+                .foregroundStyle(self.youtubePlayer.currentRating == .dislike ? Self.brandAccent : .secondary)
+                .padding(.leading, 12)
+                .padding(.trailing, 14)
                 .padding(.vertical, 7)
-                .background(
-                    Capsule()
-                        .fill(self.youtubePlayer.currentRating == .dislike
-                            ? Self.brandAccent.opacity(0.15) : Color.secondary.opacity(0.12))
-                )
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .foregroundStyle(self.youtubePlayer.currentRating == .dislike ? Self.brandAccent : .secondary)
         }
+        .frame(height: 34)
+        .fixedSize()
+        .compatGlass(interactive: true, in: Capsule())
     }
 
     // MARK: - Description
@@ -628,22 +720,89 @@ struct YouTubeWatchView: View {
         return text
     }
 
+    /// Collapsible description box: a 3-line preview by default (like YouTube),
+    /// with a "Show more"/"Show less" toggle when there's more to see.
     private func descriptionSection(_ text: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("Description", systemImage: "text.alignleft")
-                .font(.headline)
-                .foregroundStyle(.secondary)
+        // ponytail: cheap "is it long enough to need a toggle" heuristic — a few
+        // newlines or a paragraph's worth of text. Avoids measuring truncation.
+        let isExpandable = text.count > 160 || text.filter { $0 == "\n" }.count >= 3
 
+        return VStack(alignment: .leading, spacing: 8) {
             Text(Self.makeDescriptionAttributed(text))
                 .font(.system(size: 13))
                 .foregroundStyle(.primary)
                 .tint(.accentColor)
                 .textSelection(.enabled)
+                .lineLimit(self.showsDescription ? nil : 3)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 // Timestamps seek in-place; real links open in the browser.
                 .environment(\.openURL, OpenURLAction { url in self.handleDescriptionLink(url) })
+
+            if isExpandable {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { self.showsDescription.toggle() }
+                } label: {
+                    Text(self.showsDescription
+                        ? String(localized: "Show less", comment: "Collapse the video description")
+                        : String(localized: "Show more", comment: "Expand the video description"))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
         }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.10)))
+        // Tapping the whole card expands it (only while collapsed — once open,
+        // taps pass through to text selection / links; collapse via "Show less").
+        .contentShape(RoundedRectangle(cornerRadius: 12))
+        .onTapGesture {
+            guard isExpandable, !self.showsDescription else { return }
+            withAnimation(.easeInOut(duration: 0.2)) { self.showsDescription = true }
+        }
+    }
+
+    /// Right-click menu on the video surface — the local subset of YouTube's own
+    /// video context menu (copy links, embed, pop out). Loop / Stats-for-nerds
+    /// need player-side plumbing the fork doesn't have yet, so they're omitted.
+    @ViewBuilder private var videoContextMenu: some View {
+        let videoURL = "https://www.youtube.com/watch?v=\(self.video.videoId)"
+
+        Button {
+            self.copyToPasteboard(videoURL)
+        } label: {
+            Label("Copy video URL", systemImage: "link")
+        }
+
+        Button {
+            self.copyToPasteboard("\(videoURL)&t=\(Int(self.youtubePlayer.progress))s")
+        } label: {
+            Label("Copy URL at current time", systemImage: "clock")
+        }
+
+        Button {
+            self.copyToPasteboard(
+                "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/\(self.video.videoId)\" frameborder=\"0\" allowfullscreen></iframe>"
+            )
+        } label: {
+            Label("Copy embed code", systemImage: "chevron.left.forwardslash.chevron.right")
+        }
+
+        if self.youtubePlayer.surfaceLocation == .inline {
+            Divider()
+            Button {
+                self.youtubePlayer.popOutToWindow()
+            } label: {
+                Label("Mini player", systemImage: "pip.enter")
+            }
+        }
+    }
+
+    private func copyToPasteboard(_ string: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(string, forType: .string)
     }
 
     private func handleDescriptionLink(_ url: URL) -> OpenURLAction.Result {
@@ -1378,8 +1537,45 @@ struct YouTubeWatchView: View {
 
     private var commentsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Comments", comment: "Comments section header")
-                .font(.title3.bold())
+            HStack(alignment: .firstTextBaseline) {
+                Text("Comments", comment: "Comments section header")
+                    .font(.title3.bold())
+
+                Spacer()
+
+                if self.viewModel.canSortComments {
+                    Menu {
+                        Button {
+                            Task { await self.viewModel.setCommentSort(.top) }
+                        } label: {
+                            if self.viewModel.commentSort == .top {
+                                Label("Top comments", systemImage: "checkmark")
+                            } else {
+                                Text("Top comments", comment: "Comment sort: most relevant")
+                            }
+                        }
+                        Button {
+                            Task { await self.viewModel.setCommentSort(.newest) }
+                        } label: {
+                            if self.viewModel.commentSort == .newest {
+                                Label("Newest first", systemImage: "checkmark")
+                            } else {
+                                Text("Newest first", comment: "Comment sort: most recent")
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "line.3.horizontal.decrease")
+                                .font(.system(size: 11))
+                            Text("Sort by", comment: "Comment sort menu label")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                }
+            }
 
             self.commentComposer
 
@@ -1987,12 +2183,30 @@ private struct CommentRow: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    self.authorLink {
-                        Text(self.comment.author)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
+                if self.comment.isPinned {
+                    Label("Pinned", systemImage: "pin.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+
+                HStack(spacing: 5) {
+                    self.authorLink { self.authorNameLabel }
+
+                    if self.comment.authorIsVerified {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                            .help(Text("Verified", comment: "Verified channel badge"))
+                    }
+
+                    if let badgeURL = self.comment.memberBadgeThumbnailURL {
+                        CachedAsyncImage(url: badgeURL, targetSize: CGSize(width: 16, height: 16)) { image in
+                            image.resizable().aspectRatio(contentMode: .fit)
+                        } placeholder: {
+                            Image(systemName: "star.circle.fill").font(.system(size: 12)).foregroundStyle(.secondary)
+                        }
+                        .frame(width: 16, height: 16)
+                        .help(Text(self.comment.memberBadgeTooltip ?? String(localized: "Member", comment: "Channel member badge")))
                     }
 
                     if let publishedText = self.comment.publishedText {
@@ -2037,11 +2251,56 @@ private struct CommentRow: View {
                     .buttonStyle(.plain)
                     .disabled(!self.allowsActions || self.comment.dislikeAction == nil)
                     .accessibilityLabel(String(localized: "Dislike comment"))
+
+                    if self.comment.isHeartedByCreator {
+                        self.creatorHeart
+                    }
                 }
                 .padding(.top, 2)
             }
         }
         .accessibilityElement(children: .contain)
+    }
+
+    /// The author's name. The video's creator is shown in a filled accent pill,
+    /// matching YouTube's highlighting of the uploader's own comments.
+    @ViewBuilder private var authorNameLabel: some View {
+        if self.comment.authorIsChannelOwner {
+            Text(self.comment.author)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.secondary))
+        } else {
+            Text(self.comment.author)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+        }
+    }
+
+    /// YouTube's "hearted by creator" marker: the creator's avatar with a small
+    /// heart, shown on comments the uploader liked.
+    @ViewBuilder private var creatorHeart: some View {
+        ZStack(alignment: .bottomTrailing) {
+            CachedAsyncImage(url: self.comment.creatorHeartAvatarURL, targetSize: CGSize(width: 16, height: 16)) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle().fill(.quaternary)
+            }
+            .frame(width: 16, height: 16)
+            .clipShape(.circle)
+
+            Image(systemName: "heart.fill")
+                .font(.system(size: 7))
+                .foregroundStyle(.red)
+                .padding(1)
+                .background(Circle().fill(Color(nsColor: .windowBackgroundColor)))
+                .offset(x: 3, y: 3)
+        }
+        .help(Text("Hearted by creator", comment: "Comment hearted by the video's creator"))
     }
 
     /// Wraps content in a channel link when the author's channel is known.
@@ -2384,5 +2643,56 @@ private struct CollaboratorRow: View {
                 }
             }
         )
+    }
+}
+
+// MARK: - FlowLayout
+
+/// Left-to-right layout that wraps its subviews onto new lines when they don't
+/// fit the available width — used so the watch action buttons flow onto
+/// multiple lines instead of cramming into one row.
+/// ponytail: leading-aligned chips only; that's all the action bar needs.
+private struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    var lineSpacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var rowWidth: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        var totalWidth: CGFloat = 0
+        var totalHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if rowWidth > 0, rowWidth + spacing + size.width > maxWidth {
+                totalHeight += rowHeight + lineSpacing
+                totalWidth = max(totalWidth, rowWidth)
+                rowWidth = size.width
+                rowHeight = size.height
+            } else {
+                rowWidth += (rowWidth > 0 ? spacing : 0) + size.width
+                rowHeight = max(rowHeight, size.height)
+            }
+        }
+        totalHeight += rowHeight
+        totalWidth = max(totalWidth, rowWidth)
+        return CGSize(width: min(totalWidth, maxWidth), height: totalHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
+        var x = bounds.minX
+        var y = bounds.minY
+        var rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > bounds.minX, (x - bounds.minX) + size.width > bounds.width {
+                x = bounds.minX
+                y += rowHeight + lineSpacing
+                rowHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }

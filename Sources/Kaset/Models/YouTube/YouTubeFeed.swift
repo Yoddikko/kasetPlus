@@ -231,6 +231,11 @@ struct WatchNextData {
     /// Whether the channel offers a paid membership (the watch page's owner
     /// exposes a `membershipButton`), so we can show a "Join" (Abbonati) button.
     var channelOffersMembership: Bool
+    /// Opaque params for the video's "Report" (flag) flow, taken from the
+    /// overflow menu's FLAG entry. Feed this into `getReportForm(params:)` to
+    /// fetch the reason picker. Nil when the page exposes no report action
+    /// (e.g. the signed-in user owns the video).
+    var reportParams: String?
 
     init(
         videoTitle: String?,
@@ -251,7 +256,8 @@ struct WatchNextData {
         mixTitle: String? = nil,
         mixDescription: String? = nil,
         mixPosition: String? = nil,
-        channelOffersMembership: Bool = false
+        channelOffersMembership: Bool = false,
+        reportParams: String? = nil
     ) {
         self.videoTitle = videoTitle
         self.viewCountText = viewCountText
@@ -272,6 +278,7 @@ struct WatchNextData {
         self.mixDescription = mixDescription
         self.mixPosition = mixPosition
         self.channelOffersMembership = channelOffersMembership
+        self.reportParams = reportParams
     }
 
     static let empty = WatchNextData(
@@ -388,6 +395,20 @@ struct YouTubeComment: Identifiable, Hashable {
     var undislikeAction: String?
     /// Continuation token for this comment's reply thread.
     var repliesContinuation: String?
+    /// The author carries YouTube's verified checkmark badge.
+    var authorIsVerified: Bool = false
+    /// The comment was written by the video's own creator (highlighted on YouTube).
+    var authorIsChannelOwner: Bool = false
+    /// Channel membership / sponsor badge icon (custom per channel), when present.
+    var memberBadgeThumbnailURL: URL? = nil
+    /// Membership badge tooltip, e.g. "Member (6 months)", when available.
+    var memberBadgeTooltip: String? = nil
+    /// The creator "hearted" this comment.
+    var isHeartedByCreator: Bool = false
+    /// The channel avatar shown inside the creator heart, when hearted.
+    var creatorHeartAvatarURL: URL? = nil
+    /// The comment was pinned by the creator.
+    var isPinned: Bool = false
 
     init(
         id: String,
@@ -401,7 +422,14 @@ struct YouTubeComment: Identifiable, Hashable {
         unlikeAction: String? = nil,
         dislikeAction: String? = nil,
         undislikeAction: String? = nil,
-        repliesContinuation: String? = nil
+        repliesContinuation: String? = nil,
+        authorIsVerified: Bool = false,
+        authorIsChannelOwner: Bool = false,
+        memberBadgeThumbnailURL: URL? = nil,
+        memberBadgeTooltip: String? = nil,
+        isHeartedByCreator: Bool = false,
+        creatorHeartAvatarURL: URL? = nil,
+        isPinned: Bool = false
     ) {
         self.id = id
         self.author = author
@@ -415,6 +443,13 @@ struct YouTubeComment: Identifiable, Hashable {
         self.dislikeAction = dislikeAction
         self.undislikeAction = undislikeAction
         self.repliesContinuation = repliesContinuation
+        self.authorIsVerified = authorIsVerified
+        self.authorIsChannelOwner = authorIsChannelOwner
+        self.memberBadgeThumbnailURL = memberBadgeThumbnailURL
+        self.memberBadgeTooltip = memberBadgeTooltip
+        self.isHeartedByCreator = isHeartedByCreator
+        self.creatorHeartAvatarURL = creatorHeartAvatarURL
+        self.isPinned = isPinned
     }
 }
 
@@ -428,6 +463,12 @@ struct YouTubeCommentsPage {
     /// Params for posting a top-level comment (nil when signed out or
     /// comments are disabled).
     let createCommentParams: String?
+    /// Continuation token that reloads comments sorted by "Top comments".
+    /// Only present on the first comments page (which carries the sort submenu).
+    var sortTopToken: String? = nil
+    /// Continuation token that reloads comments sorted by "Newest first".
+    /// Only present on the first comments page (which carries the sort submenu).
+    var sortNewestToken: String? = nil
 
     static let empty = YouTubeCommentsPage(comments: [], continuation: nil, createCommentParams: nil)
 }

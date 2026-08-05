@@ -142,6 +142,25 @@ protocol YouTubeClientProtocol: Sendable {
 
     /// Removes a video from Watch Later.
     func removeFromWatchLater(videoId: String) async throws
+
+    /// The "Save to…" menu: user playlists + whether the video is already in each.
+    func getAddToPlaylistOptions(videoId: String) async throws -> AddToPlaylistMenu
+
+    /// Adds a video to an existing playlist.
+    func addToPlaylist(videoId: String, playlistId: String) async throws
+
+    /// Removes a video from a playlist by video ID.
+    func removeFromPlaylist(videoId: String, playlistId: String) async throws
+
+    /// Creates a playlist seeded with the given videos; returns its ID.
+    func createPlaylist(title: String, privacyStatus: PlaylistPrivacyStatus, videoIds: [String]) async throws -> String
+
+    /// Fetches the video "Report" (flag) form — the reason options, each with its
+    /// own submit params. `params` come from `WatchNextData.reportParams`.
+    func getReportForm(params: String) async throws -> YouTubeReportForm
+
+    /// Submits a video report (`flag/flag`) using a reason's `submitParams`.
+    func submitReport(params: String) async throws
 }
 
 // MARK: - YouTubeClientProtocol Convenience
@@ -167,9 +186,29 @@ extension YouTubeClientProtocol {
         []
     }
 
+    /// Defaults so mocks/UI-test clients compile; the real `YouTubeClient` overrides these.
+    func getAddToPlaylistOptions(videoId _: String) async throws -> AddToPlaylistMenu {
+        AddToPlaylistMenu(title: nil, options: [], canCreatePlaylist: false)
+    }
+
+    func addToPlaylist(videoId _: String, playlistId _: String) async throws {}
+
+    func removeFromPlaylist(videoId _: String, playlistId _: String) async throws {}
+
+    func createPlaylist(title _: String, privacyStatus _: PlaylistPrivacyStatus, videoIds _: [String]) async throws -> String {
+        ""
+    }
+
     /// Default so mocks/UI-test clients compile; the real client overrides this.
     /// Assuming "playable" means members-only gating is simply inactive there.
     func getPlayability(videoId _: String) async throws -> YouTubePlayability {
         .playable
     }
+
+    /// Defaults so mocks/UI-test clients compile; the real `YouTubeClient` overrides these.
+    func getReportForm(params _: String) async throws -> YouTubeReportForm {
+        YouTubeReportForm(title: nil, reasons: [])
+    }
+
+    func submitReport(params _: String) async throws {}
 }

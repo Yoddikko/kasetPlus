@@ -96,8 +96,72 @@ enum WatchNextParser {
             mixPosition: mix?.position,
             // A channel that offers a paid membership exposes a `membershipButton`
             // on its video-owner renderer (label "Join" / "Abbonati").
-            channelOffersMembership: ownerRenderer?["membershipButton"] != nil
+            channelOffersMembership: ownerRenderer?["membershipButton"] != nil,
+            // Params for the video's "Report" (flag) flow, from the overflow
+            // menu's FLAG entry.
+            reportParams: Self.reportParams(of: data)
         )
+    }
+
+    // MARK: - Report (flag) params
+
+    /// Extracts the opaque params that seed the video-report (flag) form from
+    /// the watch page's video overflow menu.
+    ///
+    /// The web client's "Report" entry is a `menuServiceItemRenderer` with a
+    /// `FLAG` icon whose `serviceEndpoint` carries the params. Modern responses
+    /// wrap them in `showEngagementPanelEndpoint.globalConfiguration.params`
+    /// (the value is URL-percent-encoded there, so it's decoded before use);
+    /// older responses expose them directly via `getReportFormEndpoint.params`.
+    /// Both feed `flag/get_form` unchanged.
+    static func reportParams(of data: [String: Any]) -> String? {
+        Self.firstReportParams(in: data)
+    }
+
+    private static func firstReportParams(in value: Any) -> String? {
+        if let dict = value as? [String: Any] {
+            if Self.isFlagMenuItem(dict),
+               let endpoint = dict["serviceEndpoint"] as? [String: Any],
+               let params = Self.reportParams(fromServiceEndpoint: endpoint)
+            {
+                return params
+            }
+            for nested in dict.values {
+                if let params = Self.firstReportParams(in: nested) {
+                    return params
+                }
+            }
+        } else if let array = value as? [Any] {
+            for element in array {
+                if let params = Self.firstReportParams(in: element) {
+                    return params
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Whether a `menuServiceItemRenderer` dictionary is the "Report" (FLAG) entry.
+    private static func isFlagMenuItem(_ dict: [String: Any]) -> Bool {
+        (dict["icon"] as? [String: Any])?["iconType"] as? String == "FLAG"
+    }
+
+    private static func reportParams(fromServiceEndpoint endpoint: [String: Any]) -> String? {
+        // Older/classic shape: a dedicated report-form endpoint.
+        if let params = (endpoint["getReportFormEndpoint"] as? [String: Any])?["params"] as? String,
+           !params.isEmpty
+        {
+            return params
+        }
+        // Modern web shape: params live on the engagement-panel global config and
+        // are URL-percent-encoded on the wire.
+        if let params = (((endpoint["showEngagementPanelEndpoint"] as? [String: Any])?[
+            "globalConfiguration"
+        ] as? [String: Any])?["params"] as? String), !params.isEmpty
+        {
+            return params.removingPercentEncoding ?? params
+        }
+        return nil
     }
 
     // MARK: - Playability (members-only gate)

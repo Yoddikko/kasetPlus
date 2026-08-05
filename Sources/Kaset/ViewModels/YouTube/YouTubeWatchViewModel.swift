@@ -57,6 +57,20 @@ final class YouTubeWatchViewModel {
     /// Token for the next comments page.
     private var commentsContinuation: String?
 
+    /// How the comments are ordered.
+    enum CommentSort { case top, newest }
+
+    /// Current comment ordering, and the sort tokens captured from the first
+    /// comments page (nil until loaded / when the video exposes no sort menu).
+    private(set) var commentSort: CommentSort = .top
+    private var sortTopToken: String?
+    private var sortNewestToken: String?
+
+    /// Whether the comment sort control should be offered.
+    var canSortComments: Bool {
+        self.sortTopToken != nil && self.sortNewestToken != nil
+    }
+
     /// Params for posting a comment (nil = signed out / disabled).
     private(set) var createCommentParams: String?
 
@@ -265,6 +279,9 @@ final class YouTubeWatchViewModel {
             if let params = page.createCommentParams {
                 self.createCommentParams = params
             }
+            // The sort menu only rides along on the first page.
+            if let top = page.sortTopToken { self.sortTopToken = top }
+            if let newest = page.sortNewestToken { self.sortNewestToken = newest }
         } catch {
             if error is CancellationError {
                 return
@@ -272,6 +289,17 @@ final class YouTubeWatchViewModel {
             self.logger.error("Failed to load comments: \(error.localizedDescription)")
             self.commentsContinuation = nil
         }
+    }
+
+    /// Re-orders the comments (Top / Newest) by restarting the list from the
+    /// matching sort token.
+    func setCommentSort(_ sort: CommentSort) async {
+        guard sort != self.commentSort else { return }
+        guard let token = (sort == .top) ? self.sortTopToken : self.sortNewestToken else { return }
+        self.commentSort = sort
+        self.comments = []
+        self.commentsContinuation = token
+        await self.loadMoreComments()
     }
 
     /// Toggles a like on a comment (likes, or removes an existing like).
