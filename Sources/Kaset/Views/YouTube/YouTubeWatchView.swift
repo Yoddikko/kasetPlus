@@ -599,15 +599,7 @@ struct YouTubeWatchView: View {
     @ViewBuilder private var shareButton: some View {
         if let url = self.watchURL {
             ShareLink(item: url) {
-                HStack(spacing: 6) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 13))
-                    Text("Share", comment: "Share the video")
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .padding(.horizontal, 13)
-                .frame(height: 34)
-                .compatGlass(interactive: true, in: Capsule())
+                self.actionPillLabel("square.and.arrow.up", Text("Share", comment: "Share the video"))
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
@@ -617,41 +609,48 @@ struct YouTubeWatchView: View {
     /// Direct Download pill — opens the app's download sheet (replaced the
     /// overflow "…" menu, which only held Download + Copy link).
     private var downloadButton: some View {
-        Button {
+        self.actionPill("arrow.down.circle", Text("Download", comment: "Download the video")) {
             self.showsDownloadSheet = true
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "arrow.down.circle")
-                    .font(.system(size: 13))
-                Text("Download", comment: "Download the video")
-                    .font(.system(size: 12, weight: .medium))
-            }
-            .padding(.horizontal, 13)
-            .frame(height: 34)
-            .compatGlass(interactive: true, in: Capsule())
+        }
+    }
+
+    /// "Save" — opens the add-to-playlist popover (Watch Later, the user's
+    /// playlists, and creating a new one). Mirrors YouTube's web Save button.
+    /// A pill action button whose glass capsule shows icon + label when there's
+    /// room, and collapses to icon-only when there isn't — it never truncates
+    /// the label.
+    private func actionPill(_ systemImage: String, _ label: Text, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            self.actionPillLabel(systemImage, label)
         }
         .buttonStyle(.plain)
         .foregroundStyle(.secondary)
     }
 
-    /// "Save" — opens the add-to-playlist popover (Watch Later, the user's
-    /// playlists, and creating a new one). Mirrors YouTube's web Save button.
-    private var saveButton: some View {
-        Button {
-            self.showsSavePopover = true
-        } label: {
+    private func actionPillLabel(_ systemImage: String, _ label: Text) -> some View {
+        ViewThatFits(in: .horizontal) {
             HStack(spacing: 6) {
-                Image(systemName: "bookmark")
+                Image(systemName: systemImage)
                     .font(.system(size: 13))
-                Text("Save", comment: "Save video to a playlist")
+                label
                     .font(.system(size: 12, weight: .medium))
+                    .lineLimit(1)
+                    .fixedSize()
             }
             .padding(.horizontal, 13)
             .frame(height: 34)
-            .compatGlass(interactive: true, in: Capsule())
+
+            Image(systemName: systemImage)
+                .font(.system(size: 14))
+                .frame(width: 36, height: 34)
         }
-        .buttonStyle(.plain)
-        .foregroundStyle(.secondary)
+        .compatGlass(interactive: true, in: Capsule())
+    }
+
+    private var saveButton: some View {
+        self.actionPill("bookmark", Text("Save", comment: "Save video to a playlist")) {
+            self.showsSavePopover = true
+        }
         .popover(isPresented: self.$showsSavePopover, arrowEdge: .bottom) {
             YouTubeSaveToPlaylistView(videoId: self.video.videoId, client: self.viewModel.client)
         }
