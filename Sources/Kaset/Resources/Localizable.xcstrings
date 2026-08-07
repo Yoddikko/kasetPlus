@@ -37234,6 +37234,18 @@
             "state" : "translated",
             "value" : "Sempre in primo piano"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "窗口置顶"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "視窗置頂"
+          }
         }
       }
     },

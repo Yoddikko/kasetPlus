@@ -83,6 +83,14 @@ nonisolated(unsafe) var globalAuthUserIndex = 0
 /// Global brand account ID (21-digit number from myaccount.google.com/brandaccounts)
 nonisolated(unsafe) var globalBrandAccountId: String?
 
+/// Language code sent as the InnerTube `hl` client parameter.
+///
+/// Overridable with `--hl` so response localization can be probed directly —
+/// InnerTube accepts both Apple's script identifiers (`zh-Hans`/`zh-Hant`) and
+/// common region aliases (`zh-CN`/`zh-TW`), so either form can be compared
+/// against real responses.
+nonisolated(unsafe) var globalHl = "en"
+
 // MARK: - Cookie Management
 
 /// Reads cookies from Kaset app's backup file in Application Support.
@@ -326,7 +334,7 @@ func buildContext(brandAccountId: String? = nil) -> [String: Any] {
         "client": [
             "clientName": activeClientName,
             "clientVersion": cachedClientVersion ?? activeFallbackClientVersion,
-            "hl": "en",
+            "hl": globalHl,
             "gl": "US",
             "browserName": "Safari",
             "browserVersion": "17.0",
@@ -2546,6 +2554,9 @@ func showHelp() {
           -o, --output <file>            Save raw JSON response to a file
           --authuser N                   Use Google account at index N (for multi-account)
           --brand <ID>                   Use brand account ID (21-digit number)
+          --hl <code>                    Override the InnerTube `hl` language parameter
+                                         (default: en). Use to compare how a locale
+                                         code localizes real responses.
           --client-version <version>     Override the resolved InnerTube client version
           --youtube, --yt                Target regular YouTube (www.youtube.com, WEB client)
                                          instead of YouTube Music
@@ -2658,6 +2669,21 @@ func runMain() async {
             globalBrandAccountId = args[index + 1]
             break
         }
+    }
+
+    // Parse InnerTube `hl` language override.
+    for (index, arg) in args.enumerated() where arg == "--hl" {
+        guard index + 1 < args.count else {
+            print("❌ --hl requires a language code")
+            break
+        }
+        let value = args[index + 1].trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty, !value.hasPrefix("-") else {
+            print("❌ Invalid --hl value: provide a language code such as en, ko, or zh-CN")
+            break
+        }
+        globalHl = value
+        break
     }
 
     // Parse client version override. Keeping it in cachedClientVersion prevents

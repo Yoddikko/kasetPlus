@@ -117,6 +117,8 @@ final class SettingsManager {
         case swedish
         case turkish
         case ukrainian
+        case simplifiedChinese
+        case traditionalChinese
 
         var id: String {
             rawValue
@@ -137,7 +139,9 @@ final class SettingsManager {
             case .portuguese: "Português"
             case .russian: "Русский"
             case .spanish: "Español"
+            case .simplifiedChinese: "简体中文"
             case .swedish: "Svenska"
+            case .traditionalChinese: "繁體中文"
             case .turkish: "Türkçe"
             case .ukrainian: "Українська"
             }
@@ -159,7 +163,13 @@ final class SettingsManager {
             case .portuguese: "pt"
             case .russian: "ru"
             case .spanish: "es"
+            // Chinese is distinguished by script, not region, matching Apple's
+            // localization identifiers. Verified against the InnerTube API: these
+            // same codes are valid `hl` values and return correctly-scripted
+            // responses, so no separate API mapping is needed.
+            case .simplifiedChinese: "zh-Hans"
             case .swedish: "sv"
+            case .traditionalChinese: "zh-Hant"
             case .turkish: "tr"
             case .ukrainian: "uk"
             }
@@ -169,7 +179,25 @@ final class SettingsManager {
         /// Returns the explicit language code or derives one from the system locale,
         /// falling back to `"en"`.
         var apiLanguageCode: String {
-            self.languageCode ?? Locale.current.language.languageCode?.identifier ?? "en"
+            self.apiLanguageCode(for: Locale.current)
+        }
+
+        /// Resolves the API language code against an injectable system locale.
+        func apiLanguageCode(for systemLocale: Locale) -> String {
+            if let languageCode = self.languageCode {
+                return languageCode
+            }
+
+            let language = systemLocale.language
+            guard let languageCode = language.languageCode?.identifier else {
+                return "en"
+            }
+
+            return switch (languageCode, language.script?.identifier) {
+            case ("zh", "Hans"): "zh-Hans"
+            case ("zh", "Hant"): "zh-Hant"
+            default: languageCode
+            }
         }
 
         /// The region code for API requests (`gl` parameter), so trends, home
@@ -189,8 +217,10 @@ final class SettingsManager {
             case .polish: "PL"
             case .portuguese: "BR"
             case .russian: "RU"
+            case .simplifiedChinese: "CN"
             case .spanish: "ES"
             case .swedish: "SE"
+            case .traditionalChinese: "TW"
             case .turkish: "TR"
             case .ukrainian: "UA"
             }
