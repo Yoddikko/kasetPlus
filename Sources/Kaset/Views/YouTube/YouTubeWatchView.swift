@@ -15,6 +15,7 @@ struct YouTubeWatchView: View {
     let video: YouTubeVideo
 
     @Environment(AuthService.self) private var authService
+    @Environment(AccountService.self) private var accountService
     @Environment(YouTubePlayerService.self) private var youtubePlayer
     @Environment(\.openURL) private var openURL
     @State private var viewModel: YouTubeWatchViewModel
@@ -72,6 +73,16 @@ struct YouTubeWatchView: View {
 
     private var hasDearrow: Bool {
         self.youtubePlayer.dearrowTitle != nil
+    }
+
+    private var askAccountScope: YouTubeAskAccountScopeObservation {
+        YouTubeAskAccountScopeObservation(
+            authenticationGeneration: self.authService.accountIdentityGeneration,
+            hasPersonalAccount: self.authService.hasPersonalAccount,
+            accountScopeID: self.accountService.currentAccountScopeID,
+            isPrimaryAccount: self.accountService.currentAccount?.isPrimary,
+            verifiedIdentitySequence: self.accountService.verifiedIdentitySequence
+        )
     }
 
     var body: some View {
@@ -148,6 +159,7 @@ struct YouTubeWatchView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 20)
         }
+        .disabled(self.viewModel.ask.isExpanded)
         // PROTOTYPE: full-bleed ambient color behind the page. `.ignoresSafeArea`
         // (inside the host) lets it bleed under the bottom player-bar inset,
         // so the bar's Liquid Glass capsule refracts the live color. Hosted in
@@ -160,6 +172,20 @@ struct YouTubeWatchView: View {
         .navigationTitle(String(localized: ""))
         // Let the ambient reach under the nav bar, like the other accent pages.
         .toolbarBackgroundVisibility(.hidden, for: .automatic)
+        .toolbar {
+            if self.viewModel.ask.isAvailable {
+                ToolbarItem(placement: .primaryAction) {
+                    YouTubeAskToolbarButton(viewModel: self.viewModel.ask)
+                }
+            }
+        }
+        .overlay {
+            YouTubeAskFloatingOverlay(
+                viewModel: self.viewModel.ask,
+                playerOffsetMilliseconds: self.askPlayerOffsetMilliseconds
+            )
+        }
+        .youtubeAskAccessibilityAnnouncements(viewModel: self.viewModel.ask)
             .toolbar {
                 self.ambientStylePicker
             }
@@ -177,7 +203,10 @@ struct YouTubeWatchView: View {
             }
             .task {
                 self.startOrAdoptPlayback()
-                await self.viewModel.load()
+            }
+            .task(id: self.askAccountScope) {
+                let accountScope = self.askAccountScope
+                await self.viewModel.load(accountScope: accountScope)
                 // Feed the related list to the player so the bar's next/previous
                 // buttons can skip between videos.
                 if self.youtubePlayer.currentVideo?.videoId == self.video.videoId {
@@ -187,11 +216,19 @@ struct YouTubeWatchView: View {
                 }
             }
             .onDisappear {
+                self.viewModel.cancel()
                 self.youtubePlayer.inlineSurfaceWillDisappear(videoId: self.video.videoId)
                 self.overlayHideTask?.cancel()
                 self.youtubePlayer.inlineVideoOnScreen = false
                 self.viewModel.stopLiveChat()
             }
+    }
+
+    private var askPlayerOffsetMilliseconds: Int64 {
+        guard self.youtubePlayer.currentVideo?.videoId == self.video.videoId else {
+            return 0
+        }
+        return YouTubeAskPlayerOffset.milliseconds(for: self.youtubePlayer.progress)
     }
 
     /// Shows the on-video controls and (re)starts the idle countdown that hides

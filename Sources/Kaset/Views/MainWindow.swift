@@ -18,10 +18,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         }
     }
 
-    private enum Layout {
-        static let commandBarTopPadding: CGFloat = 72
-    }
-
     @Environment(AuthService.self) private var authService
     @Environment(PlayerService.self) private var playerService
     @Environment(YouTubePlayerService.self) private var youtubePlayerService
@@ -243,7 +239,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                         Spacer(minLength: 0)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .padding(.top, Self.Layout.commandBarTopPadding)
+                    .padding(.top, MainWindowLayout.aiTaskSurfaceTopPadding)
                 }
                 .animation(.easeInOut(duration: 0.15), value: self.isCommandBarPresented)
             }
@@ -291,6 +287,11 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             if needsReauth {
                 self.showLoginSheet = true
             }
+        }
+        .onChange(of: self.authService.loginCleanupRequired) { _, cleanupRequired in
+            guard cleanupRequired else { return }
+            self.playerService.reloadCurrentTrackForAuthDataStoreChange(usesCookieFreeDataStore: true)
+            self.youtubePlayerService.reloadCurrentVideoForAuthDataStoreChange(usesCookieFreeDataStore: true)
         }
         .onChange(of: self.playerService.showVideo) { _, showVideo in
             DiagnosticsLogger.player.debug("showVideo onChange triggered: \(showVideo)")

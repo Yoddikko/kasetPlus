@@ -3,13 +3,13 @@
 "\"Live\" shifts the colors as the video plays; the others stay constant" = "\"En direct\" fait évoluer les couleurs pendant la lecture de la vidéo ; les autres restent constantes";
 "%@ %@" = "%1$@ %2$@";
 "%@, %@, %@" = "%1$@, %2$@, %3$@";
-"%arg songs listened today" = "%arg songs listened today";
+"%arg songs listened today" = "%arg morceaux écoutés aujourd'hui";
 "%lld" = "%lld";
 "%lld songs" = "%lld morceaux";
 "%lld songs listened today" = "%lld morceaux écoutés aujourd'hui";
 "A soft color glow drawn from the video plays behind the player. Applies to YouTube videos, not Music." = "Affiche derrière le lecteur une douce lueur colorée tirée de la vidéo. S'applique aux vidéos YouTube, pas à Music.";
 "AI responses follow your system language settings." = "Les réponses de l'IA suivent les paramètres de langue de votre système.";
-"AI summary needs macOS 26." = "Le résumé de l'IA nécessite macOS 26.";
+"AI summary needs macOS 26." = "Le résumé par l'IA nécessite macOS 26.";
 "About" = "À propos";
 "About Extensions" = "À propos des extensions";
 "Access your playlists and liked songs" = "Accédez à vos playlists et morceaux aimés";
@@ -53,8 +53,14 @@
 "Artist not found" = "Artiste introuvable";
 "Artists" = "Artistes";
 "Ask AI (⌘K)" = "Demander à l'IA (⌘K)";
+"Ask Gemini" = "Demander à Gemini";
+"Ask Gemini couldn’t prepare this chat." = "Demander à Gemini n’a pas pu préparer cette conversation.";
+"Ask Gemini is temporarily rate limited. Try again later." = "Demander à Gemini est temporairement limité. Réessayez plus tard.";
+"Ask Gemini response ready" = "Réponse de Demander à Gemini prête";
 "Ask a question, share an idea, or just say hi to the community." = "Posez une question, partagez une idée, ou dites bonjour à la communauté.";
+"Ask about this video..." = "Posez une question sur cette vidéo...";
 "Ask anything about music..." = "Posez n'importe quelle question sur la musique...";
+"Ask anything about this video..." = "Posez n'importe quelle question sur cette vidéo...";
 "Audio" = "Audio";
 "Audio engine failed to start: %@" = "Le moteur audio n'a pas pu démarrer : %@";
 "Audio engine failed to start: %arg" = "Le moteur audio n'a pas pu démarrer : %arg";
@@ -62,6 +68,7 @@
 "Auto" = "Automatique";
 "Auto-skips sponsored segments in videos." = "Ignorer automatiquement les segments sponsorisés dans les vidéos.";
 "Automatically check for updates" = "Vérifier automatiquement les mises à jour";
+"Autoplay" = "Autoplay";
 "Available" = "Disponible";
 "Back 30 seconds" = "Reculer de 30 secondes";
 "Background Playback" = "Lecture en arrière-plan";
@@ -106,6 +113,7 @@
 "Close side panel" = "Fermer le panneau latéral";
 "Closed captions" = "Sous-titres codés";
 "Collaborators" = "Collaborators";
+"Collapse Ask Gemini" = "Replier « Demander à Gemini »";
 "Collection" = "Collecte";
 "Command Bar" = "Barre de commandes";
 "Comments" = "Commentaires";
@@ -113,7 +121,7 @@
 "Configure extension" = "Configurer l'extension";
 "Connect" = "Connecter";
 "Connected as %@" = "Connecté en tant que %@";
-"Connected as %arg" = "Connected as %arg";
+"Connected as %arg" = "Connecté en tant que %a";
 "Content Language" = "Langue du contenu";
 "Content may not be available in your region." = "Le contenu peut ne pas être disponible dans votre région.";
 "Continue" = "Continuer";
@@ -179,6 +187,7 @@
 "Error: %@" = "Erreur : %@";
 "Error: %arg" = "Erreur: %arg";
 "Exit Guest Mode" = "Quitter le mode Invité";
+"Expand Ask Gemini" = "Déplier « Demander à Gemini »";
 "Explain lyrics with AI" = "Expliquer les paroles avec l'IA";
 "Explicit" = "Explicite";
 "Explore" = "Explorer";
@@ -241,9 +250,12 @@
 "Invalid video URL" = "URL de la vidéo invalide";
 "Item %lld" = "Élément %lld";
 "Jazz" = "Jazz.";
+"Join" = "Join";
 "Jump to chapter: %@" = "Aller au chapitre : %@";
 "Jump to chapter: %arg" = "Aller au chapitre : %arg";
 "Jump to live" = "Aller en direct";
+"Kaset could not remove saved sign-in data. Try signing out again before quitting." = "Kaset n’a pas pu supprimer les données de connexion enregistrées. Essayez de vous déconnecter à nouveau avant de quitter.";
+"Kaset could not safely clear saved sign-in data. Retry before signing in again." = "Kaset n’a pas pu effacer en toute sécurité les données de connexion enregistrées. Réessayez avant de vous reconnecter.";
 "KasetPlus" = "KasetPlus";
 "KasetPlus can't access its own audio output. Open System Settings → Privacy & Security → Screen & System Audio Recording and enable KasetPlus, then toggle the equalizer on again." = "KasetPlus n'a pas accès à sa propre sortie audio. Ouvrez Réglages Système → Confidentialité et sécurité → Enregistrement de l'écran et de l'audio système, activez KasetPlus, puis réactivez l'égaliseur.";
 "KasetPlus creates fresh AI sessions per request. Refresh the status if Apple Intelligence finishes downloading or becomes available while the app is open." = "KasetPlus crée une nouvelle session d'IA pour chaque demande. Actualisez l'état si Apple Intelligence finit de se télécharger ou devient disponible pendant que l'app est ouverte.";
@@ -313,6 +325,8 @@
 "Mute" = "Couper le son";
 "Native Interface" = "Interface native";
 "Never checked" = "Jamais vérifié";
+"New Ask Gemini chat ready" = "La nouvelle conversation « Demander à Gemini » est prête";
+"New Chat" = "Nouvelle conversation";
 "New Releases" = "Nouveautés";
 "News" = "Actualités";
 "Next" = "Suivant";
@@ -393,6 +407,7 @@
 "Play Latest" = "Lire le plus récent";
 "Play Next" = "Lire ensuite";
 "Play a song to view its lyrics here." = "Lancez un morceau pour voir ses paroles ici.";
+"Play now" = "Play now";
 "Play songs from a playlist or album to build your queue." = "Lancez des morceaux depuis une playlist ou un album pour créer votre file d'attente.";
 "Play video" = "Lire la vidéo";
 "Playback" = "Lecture";
@@ -415,6 +430,7 @@
 "Post" = "Poster";
 "Post comment" = "Publier le commentaire";
 "Preamp" = "Pré-ampli";
+"Preparing Ask Gemini…" = "Préparation de Demander à Gemini…";
 "Preparing download..." = "Préparation du téléchargement...";
 "Preset" = "Préréglage";
 "Press Enter to search" = "Appuyez sur Entrée pour rechercher";
@@ -457,6 +473,7 @@
 "Report an issue or join the KasetPlus community" = "Signaler un problème ou rejoindre la communauté KasetPlus";
 "Report bugs with logs and specs attached automatically" = "Signaler les bugs avec les logs et les spécifications automatiquement attachés";
 "Reset" = "Réinitialiser";
+"Responses are generated by YouTube and may be inaccurate." = "Les réponses sont générées par YouTube et peuvent être inexactes.";
 "Restart Now" = "Redémarrer maintenant";
 "Retry" = "Réessayer";
 "Retry Loading Playlists" = "Réessayer de charger les playlists";
@@ -488,7 +505,9 @@
 "Select an item from the sidebar" = "Sélectionnez un élément dans la barre latérale";
 "Selected" = "Sélectionné";
 "Self-promotion" = "Auto-promotion";
+"Send" = "Envoyer";
 "Send chat message" = "Envoyer un message de chat";
+"Sending…" = "Envoi…";
 "Share" = "Partager";
 "Share anonymous diagnostics" = "Partager des diagnostics anonymes";
 "Short summary" = "Résumé abrégé";
@@ -518,6 +537,8 @@
 "Shuffle the queue, keeping the current song first." = "Mélangez la file d'attente en gardant le morceau en cours en premier.";
 "Sign In" = "Se connecter";
 "Sign Out" = "Se déconnecter";
+"Sign Out Incomplete" = "Déconnexion incomplète";
+"Sign in again to use Ask Gemini." = "Reconnectez-vous pour utiliser Demander à Gemini.";
 "Sign in for your library" = "Connectez-vous pour accéder à votre bibliothèque";
 "Sign in to YouTube Music" = "Se connecter à YouTube Music";
 "Sign in to comment" = "Connectez-vous pour commenter";
@@ -525,6 +546,7 @@
 "Sign in to use %arg" = "Connectez-vous pour utiliser %arg";
 "Sign in with GitHub to do that." = "Connectez-vous avec GitHub pour faire cela.";
 "Sign in with Google" = "Se connecter avec Google";
+"Sign-In Cleanup Required" = "Nettoyage de connexion requis";
 "Signed in to YouTube" = "Connecté à YouTube";
 "Singles & EPs" = "Singles et EP";
 "Skip Forward/Backward" = "Avancer/Reculer";
@@ -544,6 +566,7 @@
 "Sports" = "Sportif";
 "Start Radio" = "Lancer la radio";
 "Start a discussion" = "Commencer une discussion";
+"Start a new chat to continue." = "Commencez une nouvelle conversation pour continuer.";
 "Storage" = "Stockage";
 "Style" = "Style";
 "Submit" = "Soumettre";
@@ -566,7 +589,6 @@
 "System Default" = "Par défaut du système";
 "Tap to retry" = "Appuyez pour réessayer";
 "Template" = "Gabarit";
-"Thanks for the tip — supporter perks are active until %arg." = "Thanks for the tip — supporter perks are active until %arg.";
 "Thanks for your monthly support — you’re keeping the lights on. 🙏" = "Merci pour votre soutien mensuel — vous gardez les lumières allumées. 🙏";
 "The command bar stays available even if Apple Intelligence is off, with AI enhancing only the richer interpretations and summaries." = "La barre de commandes reste disponible même si Apple Intelligence est désactivé, l'IA n'améliorant que les interprétations et résumés plus riches.";
 "The equalizer activates as soon as you press play." = "L'égaliseur s'active dès que vous lancez la lecture.";
@@ -583,6 +605,7 @@
 "Treble Booster" = "Amplificateur d'aigus";
 "Treble Reducer" = "Réducteur d'aigus";
 "Try Again" = "Réessayer";
+"Try asking:" = "Essayez de poser une question :";
 "Try commands like:" = "Essayez des commandes comme :";
 "Try searching for something else" = "Essayez de rechercher autre chose";
 "Unable to determine availability" = "Impossible de déterminer la disponibilité";
@@ -596,7 +619,7 @@
 "Unknown Artist" = "Artiste inconnu";
 "Unlike" = "Retirer le j'aime";
 "Unmute" = "Réactiver le son";
-"Unsubscribe" = "Unsubscribe";
+"Unsubscribe" = "Se désabonner";
 "Up Next" = "À suivre";
 "Updates" = "Mises à jour";
 "Upload songs to YouTube Music to browse them here." = "Importez des morceaux dans YouTube Music pour les parcourir ici.";
@@ -638,8 +661,10 @@
 "When enabled, you can use natural language commands, AI-powered playlist refinement, and lyrics explanations." = "Lorsque cette option est activée, vous pouvez utiliser des commandes en langage naturel, l'affinement de playlists par IA et les explications de paroles.";
 "When off, navigating back from a playing video stops it instead of opening the floating player. The pop-out and full-view buttons still work." = "Lorsque l'option est désactivée, revenir depuis une vidéo en cours de lecture l'arrête au lieu d'ouvrir le lecteur flottant. Les boutons de détachement et de vue complète fonctionnent toujours.";
 "When something breaks while loading data from YouTube, KasetPlus sends an anonymous report — no account, no personal data, no listening history — so it can be fixed quickly. You can turn this off at any time." = "Quand quelque chose se casse lors du chargement des données depuis YouTube, KasetPlus envoie un rapport anonyme — sans compte, pas de données personnelles, pas d'historique d'écoute — il peut donc être corrigé rapidement. Vous pouvez le désactiver à tout moment.";
+"You asked: %@" = "Vous avez demandé: %@";
 "You're all caught up" = "Vous êtes à jour";
 "YouTube" = "YouTube";
+"YouTube response: %@" = "Réponse de YouTube: %@";
 "YouTube video" = "Vidéo YouTube";
 "Your Library" = "Votre bibliothèque";
 "Your library is empty" = "Votre bibliothèque est vide";

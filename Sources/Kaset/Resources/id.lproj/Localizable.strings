@@ -6,7 +6,7 @@
 "%arg songs listened today" = "%alagu yang diputar hari ini";
 "%lld" = "%lld";
 "%lld songs" = "%lld lagu";
-"%lld songs listened today" = "%lld lagu didengarkan hari ini";
+"%lld songs listened today" = "%lld lagu yang didengarkan hari ini";
 "A soft color glow drawn from the video plays behind the player. Applies to YouTube videos, not Music." = "Menampilkan cahaya warna lembut dari video di belakang pemutar. Berlaku untuk video YouTube, bukan Music.";
 "AI responses follow your system language settings." = "Respons AI mengikuti pengaturan bahasa sistem Anda.";
 "AI summary needs macOS 26." = "Ringkasan AI membutuhkan macOS 26.";
@@ -53,8 +53,14 @@
 "Artist not found" = "Artis tidak ditemukan";
 "Artists" = "Artis";
 "Ask AI (⌘K)" = "Tanya AI (⌘K)";
+"Ask Gemini" = "Tanya Gemini";
+"Ask Gemini couldn’t prepare this chat." = "Tanya Gemini tidak dapat menyiapkan chat ini.";
+"Ask Gemini is temporarily rate limited. Try again later." = "Tanya Gemini sedang dibatasi sementara. Coba lagi nanti.";
+"Ask Gemini response ready" = "Respons Tanya Gemini siap";
 "Ask a question, share an idea, or just say hi to the community." = "Ajukan pertanyaan, bagikan ide, atau sekadar sapa komunitas.";
+"Ask about this video..." = "Tanyakan tentang video ini...";
 "Ask anything about music..." = "Tanya apa saja tentang musik...";
+"Ask anything about this video..." = "Tanyakan apa saja tentang video ini...";
 "Audio" = "Audio";
 "Audio engine failed to start: %@" = "Mesin audio gagal memulai: %@";
 "Audio engine failed to start: %arg" = "Gagal memulai mesin audio: %arg";
@@ -62,6 +68,7 @@
 "Auto" = "Otomatis";
 "Auto-skips sponsored segments in videos." = "Lewati otomatis segmen sponsor dalam video.";
 "Automatically check for updates" = "Periksa pembaruan secara otomatis";
+"Autoplay" = "Autoplay";
 "Available" = "Tersedia";
 "Back 30 seconds" = "Mundur 30 detik";
 "Background Playback" = "Putar di Latar Belakang";
@@ -106,6 +113,7 @@
 "Close side panel" = "Tutup panel samping";
 "Closed captions" = "Takarir";
 "Collaborators" = "Kolaborator";
+"Collapse Ask Gemini" = "Ciutkan Tanya Gemini";
 "Collection" = "Koleksi";
 "Command Bar" = "Panel Perintah";
 "Comments" = "Komentar";
@@ -179,6 +187,7 @@
 "Error: %@" = "Error: %@";
 "Error: %arg" = "Error: %arg";
 "Exit Guest Mode" = "Keluar dari Mode Tamu";
+"Expand Ask Gemini" = "Luaskan Tanya Gemini";
 "Explain lyrics with AI" = "Jelaskan lirik dengan AI";
 "Explicit" = "Eksplisit";
 "Explore" = "Jelajah";
@@ -241,9 +250,12 @@
 "Invalid video URL" = "Tautan video tidak valid";
 "Item %lld" = "Item %lld";
 "Jazz" = "Jazz";
+"Join" = "Join";
 "Jump to chapter: %@" = "Lompat ke bab: %@";
 "Jump to chapter: %arg" = "Lompat ke bagian: %a";
 "Jump to live" = "Buka siaran langsung";
+"Kaset could not remove saved sign-in data. Try signing out again before quitting." = "Kaset tidak dapat menghapus data masuk yang tersimpan. Coba keluar lagi sebelum menutup aplikasi.";
+"Kaset could not safely clear saved sign-in data. Retry before signing in again." = "Kaset tidak dapat menghapus data masuk yang tersimpan dengan aman. Coba lagi sebelum masuk kembali.";
 "KasetPlus" = "KasetPlus";
 "KasetPlus can't access its own audio output. Open System Settings → Privacy & Security → Screen & System Audio Recording and enable KasetPlus, then toggle the equalizer on again." = "KasetPlus tidak dapat mengakses output audio-nya sendiri. Buka Pengaturan Sistem → Privasi & Keamanan → Perekaman Layar & Audio Sistem dan aktifkan KasetPlus, lalu aktifkan kembali equalizer.";
 "KasetPlus creates fresh AI sessions per request. Refresh the status if Apple Intelligence finishes downloading or becomes available while the app is open." = "KasetPlus membuat sesi AI baru untuk setiap permintaan. Segarkan status jika Apple Intelligence selesai diunduh atau menjadi tersedia saat app terbuka.";
@@ -313,6 +325,8 @@
 "Mute" = "Bisukan";
 "Native Interface" = "Antarmuka Asli";
 "Never checked" = "Belum pernah diperiksa";
+"New Ask Gemini chat ready" = "Chat Tanya Gemini baru siap";
+"New Chat" = "Chat Baru";
 "New Releases" = "Rilis Baru";
 "News" = "Berita";
 "Next" = "Berikutnya";
@@ -393,6 +407,7 @@
 "Play Latest" = "Putar Terbaru";
 "Play Next" = "Putar Berikutnya";
 "Play a song to view its lyrics here." = "Putar sebuah lagu untuk melihat liriknya di sini.";
+"Play now" = "Play now";
 "Play songs from a playlist or album to build your queue." = "Putar lagu dari daftar putar atau album untuk membangun antrean Anda.";
 "Play video" = "Putar video";
 "Playback" = "Pemutaran";
@@ -415,6 +430,7 @@
 "Post" = "Unggah";
 "Post comment" = "Posting komentar";
 "Preamp" = "Preamp";
+"Preparing Ask Gemini…" = "Menyiapkan Tanya Gemini…";
 "Preparing download..." = "Menyiapkan untuk mendownload...";
 "Preset" = "Preset";
 "Press Enter to search" = "Tekan Enter untuk mencari";
@@ -457,6 +473,7 @@
 "Report an issue or join the KasetPlus community" = "Laporkan masalah atau bergabung ke komunitas KasetPlus";
 "Report bugs with logs and specs attached automatically" = "Laporkan bug dengan log dan spesifikasi yang dilampirkan secara otomatis";
 "Reset" = "Atur Ulang";
+"Responses are generated by YouTube and may be inaccurate." = "Respons dibuat oleh YouTube dan mungkin tidak akurat.";
 "Restart Now" = "Mulai Ulang Sekarang";
 "Retry" = "Coba Lagi";
 "Retry Loading Playlists" = "Coba Lagi Memuat Playlist";
@@ -488,7 +505,9 @@
 "Select an item from the sidebar" = "Pilih item dari bilah samping";
 "Selected" = "Dipilih";
 "Self-promotion" = "Promosi diri";
+"Send" = "Kirim";
 "Send chat message" = "Mengirim pesan";
+"Sending…" = "Mengirim…";
 "Share" = "Bagikan";
 "Share anonymous diagnostics" = "Bagikan diagnostik anonimus";
 "Short summary" = "Ringkasan pendek";
@@ -518,6 +537,8 @@
 "Shuffle the queue, keeping the current song first." = "Acak antrean sambil mempertahankan lagu saat ini di posisi pertama.";
 "Sign In" = "Masuk";
 "Sign Out" = "Keluar";
+"Sign Out Incomplete" = "Proses keluar belum selesai";
+"Sign in again to use Ask Gemini." = "Masuk lagi untuk menggunakan Tanya Gemini.";
 "Sign in for your library" = "Masuk untuk pustaka Anda";
 "Sign in to YouTube Music" = "Masuk ke YouTube Music";
 "Sign in to comment" = "Masuk untuk berkomentar";
@@ -525,6 +546,7 @@
 "Sign in to use %arg" = "Masuk untuk menggunakan %arg";
 "Sign in with GitHub to do that." = "Masuk dengan GitHub untuk melakukannya.";
 "Sign in with Google" = "Masuk dengan Google";
+"Sign-In Cleanup Required" = "Pembersihan proses masuk diperlukan";
 "Signed in to YouTube" = "Sudah masuk ke YouTube";
 "Singles & EPs" = "Single & EP";
 "Skip Forward/Backward" = "Lompat Maju/Mundur";
@@ -544,6 +566,7 @@
 "Sports" = "Olahraga";
 "Start Radio" = "Mulai Radio";
 "Start a discussion" = "Mulai diskusi";
+"Start a new chat to continue." = "Mulai chat baru untuk melanjutkan.";
 "Storage" = "Penyimpanan";
 "Style" = "Gaya";
 "Submit" = "Ajukan";
@@ -583,6 +606,7 @@
 "Treble Booster" = "Penguat Treble";
 "Treble Reducer" = "Pengurang Treble";
 "Try Again" = "Coba Lagi";
+"Try asking:" = "Coba tanyakan:";
 "Try commands like:" = "Coba perintah seperti:";
 "Try searching for something else" = "Coba cari hal lain";
 "Unable to determine availability" = "Tidak dapat menentukan ketersediaan";
@@ -638,8 +662,10 @@
 "When enabled, you can use natural language commands, AI-powered playlist refinement, and lyrics explanations." = "Jika diaktifkan, Anda dapat menggunakan perintah bahasa alami, penyempurnaan daftar putar bertenaga AI, dan penjelasan lirik.";
 "When off, navigating back from a playing video stops it instead of opening the floating player. The pop-out and full-view buttons still work." = "Jika nonaktif, kembali dari video yang sedang diputar akan menghentikannya alih-alih membuka pemutar mengambang. Tombol pop-out dan tampilan penuh tetap berfungsi.";
 "When something breaks while loading data from YouTube, KasetPlus sends an anonymous report — no account, no personal data, no listening history — so it can be fixed quickly. You can turn this off at any time." = "Jika terjadi masalah saat memuat data dari YouTube, KasetPlus akan mengirimkan laporan anonim—tanpa akun, data pribadi, atau riwayat mendengarkan—agar masalah dapat segera diperbaiki. Anda dapat menonaktifkan fitur ini kapan saja.";
+"You asked: %@" = "Anda bertanya: %@";
 "You're all caught up" = "Kamu sudah melihat semuanya";
 "YouTube" = "YouTube";
+"YouTube response: %@" = "Respons YouTube: %@";
 "YouTube video" = "Video YouTube";
 "Your Library" = "Pustaka Anda";
 "Your library is empty" = "Pustaka Anda kosong";
