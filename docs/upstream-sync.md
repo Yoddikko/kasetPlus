@@ -34,9 +34,13 @@ clean. (The fork stays permanently "ahead" — that's its own features, expected
 
 ## Pending (to sync)
 
-None tractable outstanding as of upstream `c1dae03` (last sync). Re-check with the
+None tractable outstanding as of upstream `0576fd5` (last sync). Re-check with the
 commands above; cross-check any new `+` result by PR number against the tables
 below before taking it.
+
+Upstream `712f19c` (#384 Sign Out) and `5f73f4a` (#415 Float-on-top) were both
+**already ported independently** by the fork (`5a5f526`, `ad5dd6d`) before the
+upstream commits existed, so they are skipped — see the note below.
 
 ## Already synced
 
@@ -44,6 +48,8 @@ Individually cherry-picked/adapted since the `f180d2e` baseline (newest first).
 
 | PR | Upstream | Our commit | What it is |
 |----|----------|-----------|-----------|
+| [#416](https://github.com/sozercan/kaset/pull/416) | `bb3a555` | `3459039` | feat(youtube): add Ask Gemini video conversations — the large feature port (**112 files, +24k**): additive `YouTubeAskCore` module, Ask models/views/view models, cookie-backup subsystem, tests, ADR 0032; auth/webkit/login mods auto-merged. Conflicts resolved against the fork's watch-page work: kept both `getPlayability` (members gate) and the new `getWatchPage` (extended with optional `playlistId` so Mix context survives); merged `load` to keep collaborators/notifications/live-chat/members-gate alongside Ask bootstrap seeding + account-scope reset; kept inline player wiring (`upNextQueue` + heatmap) over the new lifecycle helper, and the promoted non-DEBUG ambient picker; re-ported the fork's `--hl` flag into APIExplorer's unified switch. 23 new loc keys injected + mirrors regenerated. **Builds clean but NOT runtime-verified** — Ask touches auto-merged auth/webkit and the test target is pre-existing broken (`MockYouTubeWatchPlaybackController` lacks `availableAudioTracks`). Needs manual QA before release. |
+| [#419](https://github.com/sozercan/kaset/pull/419) | `0576fd5` | `61edfd6` | feat(l10n): add Simplified & Traditional Chinese — the catalog already carried zh (Crowdin) but mirrors were unregistered, no `ContentLanguage` case existed to select Chinese, and no `apiRegionCode` mapping. Added Package.swift mirror registration, `.simplifiedChinese`/`.traditionalChinese` cases (region CN/TW), regenerated zh mirrors from the catalog, and ported the APIExplorer `--hl` probe flag. README language-count line skipped (fork uses Crowdin badges). |
 | [#383](https://github.com/sozercan/kaset/pull/383) | `e0bb015` | `7a7ca1e` | fix: scope favorites per account — the account-scoped-favorites rework (**+4398 lines**): `FavoritesManager` (+947), `AccountService` (+663), `AuthService` (+184), `YTMusicClient`/`YouTubeClient`, `LoginSheet`, a legacy-migration claim system, ADR 0030, plus a +740-line `FavoritesManagerLegacyMigrationClaimTests`. Nearly all auto-merged; one conflict in `MainWindow.swift` resolved to HEAD — kept the fork's onboarding/What's-New auto-present `.task` AND the login-check `.task` (idempotent; KasetApp's root task already drives startup login/account fetch). New test's import renamed `Kaset`→`KasetPlus`. Fork behaviours confirmed intact: guest mode, brand accounts (`brandId`/`onBehalfOfUser`), Community hub, sidebar pinned favorites. #383's favorites/account/auth suites all pass. |
 | [#387](https://github.com/sozercan/kaset/pull/387) | `c1dae03` | `0ef8bbb` | fix(player): claim Now Playing slot so media keys control Kaset when paused — applied clean on top of #374's `NowPlayingManager`. New test file's import renamed `Kaset`→`KasetPlus`. |
 | [#398](https://github.com/sozercan/kaset/pull/398) | `e44cbb1` | `38a5523` | feat(youtube): segment video chapter seek bar — applied clean on top of #368's `PlayerBarProgressLane`. New test file's import renamed. |
@@ -70,6 +76,8 @@ commit for a missed one.
 
 | Upstream | What it is | Why skipped | If we ever need it |
 |----------|-----------|-------------|--------------------|
+| #384 (`712f19c`) | fix: add Sign Out to account switcher popover | Already ported independently as `5a5f526` before the upstream PR existed. | n/a — content present. |
+| #415 (`5f73f4a`) | feat: Float on Top video window control | Already ported independently as `ad5dd6d` (see `docs/upstream-374-port.md`). | n/a — content present. |
 
 _#374 (`356ff92` → `4ee7d62`) and its four dependents #392/#391/#389/#368 all landed — see "Already synced" above._
 
