@@ -75,6 +75,9 @@ struct KasetApp: App {
     /// Current navigation selection for the YouTube (video) experience.
     @State private var youtubeNavigationSelection: YouTubeNavigationItem? = .home
 
+    /// Monotonic command request consumed by `MainWindow` to refresh the active Home feed.
+    @State private var homeRefreshRequestID = 0
+
     /// Whether the command bar is visible.
     @State private var showCommandBar = false
 
@@ -231,6 +234,7 @@ struct KasetApp: App {
                 MainWindow(
                     navigationSelection: self.$navigationSelection,
                     youtubeNavigationSelection: self.$youtubeNavigationSelection,
+                    homeRefreshRequestID: self.$homeRefreshRequestID,
                     didCompleteStartupPlaybackCleanup: self.$didCompleteStartupPlaybackCleanup,
                     client: self.sharedClient,
                     youtubeClient: self.sharedYouTubeClient
@@ -497,6 +501,14 @@ struct KasetApp: App {
             // Navigation commands - replace default sidebar toggle
             // Each routes to the active source's equivalent destination.
             CommandGroup(replacing: .sidebar) {
+                Button(String(localized: "Refresh")) {
+                    self.homeRefreshRequestID += 1
+                }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+                .disabled(!self.canRefreshHome)
+
+                Divider()
+
                 // Home - ⌘1
                 Button(String(localized: "Home")) {
                     if self.settings.appSource == .video {
@@ -744,6 +756,15 @@ struct KasetApp: App {
         self.textInputFocusState.isFocused
             || !self.playbackArbiter.routesMediaKeysToVideo
             || self.youtubePlayerService.currentVideo == nil
+    }
+
+    private var canRefreshHome: Bool {
+        switch self.settings.appSource {
+        case .music:
+            self.navigationSelection == .home
+        case .video:
+            self.youtubeNavigationSelection == .home
+        }
     }
 
     /// Label for repeat mode menu item.

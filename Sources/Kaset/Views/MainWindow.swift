@@ -38,6 +38,9 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     /// Binding to the YouTube (video) experience's navigation selection.
     @Binding var youtubeNavigationSelection: YouTubeNavigationItem?
 
+    /// Monotonic request from the View menu to refresh the active Home feed.
+    @Binding var homeRefreshRequestID: Int
+
     /// Whether startup guest playback cleanup has completed.
     @Binding var didCompleteStartupPlaybackCleanup: Bool
 
@@ -89,12 +92,14 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     init(
         navigationSelection: Binding<NavigationItem?>,
         youtubeNavigationSelection: Binding<YouTubeNavigationItem?>,
+        homeRefreshRequestID: Binding<Int>,
         didCompleteStartupPlaybackCleanup: Binding<Bool>,
         client: any YTMusicClientProtocol,
         youtubeClient: any YouTubeClientProtocol
     ) {
         self._navigationSelection = navigationSelection
         self._youtubeNavigationSelection = youtubeNavigationSelection
+        self._homeRefreshRequestID = homeRefreshRequestID
         self._didCompleteStartupPlaybackCleanup = didCompleteStartupPlaybackCleanup
         self.client = client
         self.youtubeClient = youtubeClient
@@ -123,8 +128,59 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     }
 
     var body: some View {
-        @Bindable var player = self.playerService
+        self.accountLifecycleContent
+            .task {
+                NowPlayingManager.shared.configure(playerService: self.playerService)
+            }
+            .task(id: self.accountService.currentAccount?.id) {
+                // Keep PodcastsViewModel in sync with the active account so
+                // 404 / empty results are recorded against the right account.
+                let accountId = self.accountService.currentAccount?.id
+                if let accountId {
+                    self.podcastsAvailability.activateAccount(accountId)
+                }
+                self.podcastsViewModel?.configure(
+                    availabilityService: self.podcastsAvailability,
+                    accountId: accountId
+                )
+            }
+            .task(id: self.authService.hasPersonalAccount) {
+                // Run the podcasts availability probe whenever the user
+                // becomes logged in (cold start with cached cookies, or
+                // after an explicit sign-in). The result gates `mainContent`
+                // via `didResolveFirstProbe`, so the sidebar paints with the
+                // correct state on first frame — no flicker.
+                guard self.authService.hasPersonalAccount else { return }
+                // Brief delay so post-login cookies have a chance to settle
+                // into the data store the API client reads from. On cold
+                // start cookies are already there; this 200 ms is a small
+                // safety margin and is invisible behind the spinner.
+                try? await Task.sleep(for: .milliseconds(200))
+                await self.podcastsAvailability.probeForFirstResolution(
+                    for: self.accountService.currentAccount?.id,
+                    using: self.client
+                )
+            }
+            .onChange(of: self.likeStatusManager.lastLikeEventBatch) { _, batch in
+                guard let batch, batch.accountID == self.likeStatusManager.activeAccountID else { return }
+                for event in batch.events {
+                    // Global sync 1: keep PlayerService.currentTrackLikeStatus in sync
+                    if let currentVideoId = self.playerService.currentTrack?.videoId,
+                       event.videoId == currentVideoId
+                    {
+                        self.playerService.currentTrackLikeStatus = event.status
+                    }
 
+                    // Global sync 2: keep Liked Music list in sync when the active
+                    // Liked Music detail view is not already forwarding this event.
+                    if self.navigationSelection != .likedMusic {
+                        self.likedMusicViewModel?.handleLikeStatusChange(event)
+                    }
+                }
+            }
+    }
+
+    private var windowChrome: some View {
         ZStack(alignment: .bottomTrailing) {
             Group {
                 if self.authService.state.isInitializing {
@@ -250,203 +306,180 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 .padding(.top, 60)
         }
         .frame(minWidth: MainWindowLayout.minimumWidth, minHeight: MainWindowLayout.minimumHeight)
-        .onChange(of: self.showCommandBar.wrappedValue) { _, newValue in
-            if newValue {
-                self.presentCommandBarIfAvailable()
-                self.showCommandBar.wrappedValue = false
-            }
-        }
-        .onChange(of: self.usesLegacyMacOS15UI) { _, usesLegacyUI in
-            if usesLegacyUI {
-                self.isCommandBarPresented = false
-                self.showCommandBar.wrappedValue = false
-            }
-        }
-        .onChange(of: self.showWhatsNew.wrappedValue) { _, newValue in
-            if newValue {
-                // Manual trigger from Help menu — fetch exact-version release notes, bypass version store
-                Task { @MainActor in
-                    await self.presentCurrentWhatsNew(respectingPresentedVersions: false)
+    }
+
+    private var appLifecycleContent: some View {
+        self.windowChrome
+            .onChange(of: self.showCommandBar.wrappedValue) { _, newValue in
+                if newValue {
+                    self.presentCommandBarIfAvailable()
+                    self.showCommandBar.wrappedValue = false
                 }
-                self.showWhatsNew.wrappedValue = false
             }
-        }
-        .modifier(PinnedNavigationPathLifecycleModifier(
-            navigationSelection: self.$navigationSelection,
-            selectedPinnedItem: self.$selectedSidebarPinnedItem,
-            navigationPaths: self.$pinnedNavigationPaths,
-            committedRemovalGenerations: self.sidebarPinnedItemsManager.committedRemovalGenerations
-        ))
-        .onChange(of: self.authService.state) { oldState, newState in
-            self.handleAuthStateChange(oldState: oldState, newState: newState)
-        }
-        .onChange(of: self.authService.isGuestModeEnabled) { _, isGuestModeEnabled in
-            self.handleGuestModeChange(isGuestModeEnabled: isGuestModeEnabled)
-        }
-        .onChange(of: self.authService.needsReauth) { _, needsReauth in
-            if needsReauth {
-                self.showLoginSheet = true
+            .onChange(of: self.homeRefreshRequestID) { _, _ in
+                Task { await self.refreshActiveHome() }
             }
-        }
-        .onChange(of: self.authService.loginCleanupRequired) { _, cleanupRequired in
-            guard cleanupRequired else { return }
-            self.playerService.reloadCurrentTrackForAuthDataStoreChange(usesCookieFreeDataStore: true)
-            self.youtubePlayerService.reloadCurrentVideoForAuthDataStoreChange(usesCookieFreeDataStore: true)
-        }
-        .onChange(of: self.playerService.showVideo) { _, showVideo in
-            DiagnosticsLogger.player.debug("showVideo onChange triggered: \(showVideo)")
-            if showVideo {
-                VideoWindowController.shared.show(
-                    playerService: self.playerService,
-                    webKitManager: self.webKitManager
-                )
-            } else {
-                VideoWindowController.shared.close()
+            .onChange(of: self.usesLegacyMacOS15UI) { _, usesLegacyUI in
+                if usesLegacyUI {
+                    self.isCommandBarPresented = false
+                    self.showCommandBar.wrappedValue = false
+                }
             }
-        }
-        .onChange(of: self.accountService.currentAccountScopeID) { _, newAccountScope in
-            let currentAccount = self.accountService.currentAccount
-            let newAccountId = self.accountService.currentAccount?.id
-            self.client.resetSessionStateForAccountSwitch()
-            self.youtubeClient.resetSessionStateForAccountSwitch()
-            self.likeStatusManager.clearCache()
-            LibraryMutationActions.cancelAllPendingLibraryMutations()
-            self.libraryViewModel?.activateAccountScope(
-                newAccountScope,
-                isPrimary: currentAccount?.isPrimary == true
-            )
-            self.playerService.resetTrackStatus()
-            self.searchViewModel?.clear()
-            self.podcastsViewModel?.configure(
-                availabilityService: self.podcastsAvailability,
-                accountId: newAccountId
-            )
-            if let newAccountId {
-                self.podcastsAvailability.activateAccount(newAccountId)
+            .onChange(of: self.showWhatsNew.wrappedValue) { _, newValue in
+                if newValue {
+                    // Manual trigger from Help menu — fetch exact-version release notes, bypass version store
+                    Task { @MainActor in
+                        await self.presentCurrentWhatsNew(respectingPresentedVersions: false)
+                    }
+                    self.showWhatsNew.wrappedValue = false
+                }
             }
+            .modifier(PinnedNavigationPathLifecycleModifier(
+                navigationSelection: self.$navigationSelection,
+                selectedPinnedItem: self.$selectedSidebarPinnedItem,
+                navigationPaths: self.$pinnedNavigationPaths,
+                committedRemovalGenerations: self.sidebarPinnedItemsManager.committedRemovalGenerations
+            ))
+            .onChange(of: self.authService.state) { oldState, newState in
+                self.handleAuthStateChange(oldState: oldState, newState: newState)
+            }
+            .onChange(of: self.authService.isGuestModeEnabled) { _, isGuestModeEnabled in
+                self.handleGuestModeChange(isGuestModeEnabled: isGuestModeEnabled)
+            }
+            .onChange(of: self.authService.needsReauth) { _, needsReauth in
+                if needsReauth {
+                    self.showLoginSheet = true
+                }
+            }
+            .onChange(of: self.authService.loginCleanupRequired) { _, cleanupRequired in
+                guard cleanupRequired else { return }
+                self.playerService.reloadCurrentTrackForAuthDataStoreChange(usesCookieFreeDataStore: true)
+                self.youtubePlayerService.reloadCurrentVideoForAuthDataStoreChange(usesCookieFreeDataStore: true)
+            }
+            .onChange(of: self.playerService.showVideo) { _, showVideo in
+                DiagnosticsLogger.player.debug("showVideo onChange triggered: \(showVideo)")
+                if showVideo {
+                    VideoWindowController.shared.show(
+                        playerService: self.playerService,
+                        webKitManager: self.webKitManager
+                    )
+                } else {
+                    VideoWindowController.shared.close()
+                }
+            }
+    }
 
-            Task { @MainActor in
-                APICache.shared.invalidateAll()
-                URLCache.shared.removeAllCachedResponses()
+    private var accountLifecycleContent: some View {
+        self.appLifecycleContent
+            .onChange(of: self.accountService.currentAccountScopeID) { _, newAccountScope in
+                self.handleAccountScopeChange(newAccountScope: newAccountScope)
+            }
+            .onChange(of: self.accountService.verifiedIdentitySequence) { _, _ in
+                // Re-point in-flight playback ONLY once the new session identity is
+                // verified (DATASYNC_ID confirmed). Driving this off the verified
+                // signal — rather than `currentAccount?.id` — avoids reloading the
+                // player under an unverified/primary identity on cold-launch brand
+                // restore, where `currentAccount` is set before its session pin lands.
+                // History is recorded by the playback WebViews' own stats pings, so a
+                // track/video still loaded under the previous identity must reload to
+                // record to the new account. The shared cookie session covers both.
+                guard self.accountService.verifiedAccountId != nil else { return }
+                self.playerService.reloadCurrentTrackForIdentitySwitch()
+                if self.youtubePlayerService.currentVideo != nil {
+                    self.youtubePlayerService.reloadCurrentVideoForIdentitySwitch()
+                }
+            }
+            .onChange(of: self.podcastsAvailability.availability) { oldValue, newValue in
+                // If the user is sitting on the Podcasts tab when it flips
+                // unavailable, redirect to Home so they don't end up on a
+                // sidebar row that no longer exists.
+                if newValue == .unavailable, self.navigationSelection == .podcasts {
+                    self.navigationSelection = .home
+                }
 
-                guard newAccountId != nil else { return }
+                // Switching back from an unavailable account keeps the
+                // Podcasts VM reset/idle until the probe confirms the new
+                // account is available. Eagerly refresh then so the tab does
+                // not remain on the prior account's loaded-empty state.
+                if oldValue == .unavailable, newValue == .available {
+                    Task { @MainActor in
+                        await self.podcastsViewModel?.refresh()
+                    }
+                }
+            }
+    }
 
-                self.historyViewModel?.reset()
-                // YouTube surfaces are account-scoped too.
-                self.youtubeStore.resetForAccountChange()
+    // MARK: - Main Content
 
-                // Brand accounts can have a different region than the
-                // primary; re-probe in the background so the sidebar
-                // reflects the new account. We deliberately do NOT
-                // reset the gate (`didResolveFirstProbe`) here — that
-                // would tear down `mainContent` and show the loading
-                // spinner full-screen during the switch. Sidebar may
-                // briefly show the prior account's tab state until the
-                // probe lands.
-                DiagnosticsLogger.auth.info("Account switched, refreshing content and current track metadata...")
+    private func handleAccountScopeChange(newAccountScope: String?) {
+        let currentAccount = self.accountService.currentAccount
+        let newAccountId = self.accountService.currentAccount?.id
+        self.client.resetSessionStateForAccountSwitch()
+        self.youtubeClient.resetSessionStateForAccountSwitch()
+        self.likeStatusManager.clearCache()
+        LibraryMutationActions.cancelAllPendingLibraryMutations()
+        self.libraryViewModel?.activateAccountScope(
+            newAccountScope,
+            isPrimary: currentAccount?.isPrimary == true
+        )
+        self.playerService.resetTrackStatus()
+        self.searchViewModel?.clear()
+        self.podcastsViewModel?.configure(
+            availabilityService: self.podcastsAvailability,
+            accountId: newAccountId
+        )
+        if let newAccountId {
+            self.podcastsAvailability.activateAccount(newAccountId)
+        }
 
-                await withTaskGroup(of: Void.self) { group in
+        Task { @MainActor in
+            APICache.shared.invalidateAll()
+            URLCache.shared.removeAllCachedResponses()
+
+            guard newAccountId != nil else { return }
+
+            self.historyViewModel?.reset()
+            // YouTube surfaces are account-scoped too.
+            self.youtubeStore.resetForAccountChange()
+
+            // Brand accounts can have a different region than the
+            // primary; re-probe in the background so the sidebar
+            // reflects the new account. We deliberately do NOT
+            // reset the gate (`didResolveFirstProbe`) here — that
+            // would tear down `mainContent` and show the loading
+            // spinner full-screen during the switch. Sidebar may
+            // briefly show the prior account's tab state until the
+            // probe lands.
+            DiagnosticsLogger.auth.info("Account switched, refreshing content and current track metadata...")
+
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    await self.refreshAllContent()
+                }
+
+                group.addTask {
+                    await self.podcastsAvailability.probe(for: newAccountId, using: self.client)
+                }
+
+                if let currentVideoId = self.playerService.currentTrack?.videoId {
                     group.addTask {
-                        await self.refreshAllContent()
+                        await self.playerService.fetchSongMetadata(videoId: currentVideoId)
                     }
-
-                    group.addTask {
-                        await self.podcastsAvailability.probe(for: newAccountId, using: self.client)
-                    }
-
-                    if let currentVideoId = self.playerService.currentTrack?.videoId {
-                        group.addTask {
-                            await self.playerService.fetchSongMetadata(videoId: currentVideoId)
-                        }
-                    }
-                }
-            }
-        }
-        .onChange(of: self.accountService.verifiedIdentitySequence) { _, _ in
-            // Re-point in-flight playback ONLY once the new session identity is
-            // verified (DATASYNC_ID confirmed). Driving this off the verified
-            // signal — rather than `currentAccount?.id` — avoids reloading the
-            // player under an unverified/primary identity on cold-launch brand
-            // restore, where `currentAccount` is set before its session pin lands.
-            // History is recorded by the playback WebViews' own stats pings, so a
-            // track/video still loaded under the previous identity must reload to
-            // record to the new account. The shared cookie session covers both.
-            guard self.accountService.verifiedAccountId != nil else { return }
-            self.playerService.reloadCurrentTrackForIdentitySwitch()
-            if self.youtubePlayerService.currentVideo != nil {
-                self.youtubePlayerService.reloadCurrentVideoForIdentitySwitch()
-            }
-        }
-        .onChange(of: self.podcastsAvailability.availability) { oldValue, newValue in
-            // If the user is sitting on the Podcasts tab when it flips
-            // unavailable, redirect to Home so they don't end up on a
-            // sidebar row that no longer exists.
-            if newValue == .unavailable, self.navigationSelection == .podcasts {
-                self.navigationSelection = .home
-            }
-
-            // Switching back from an unavailable account keeps the
-            // Podcasts VM reset/idle until the probe confirms the new
-            // account is available. Eagerly refresh then so the tab does
-            // not remain on the prior account's loaded-empty state.
-            if oldValue == .unavailable, newValue == .available {
-                Task { @MainActor in
-                    await self.podcastsViewModel?.refresh()
-                }
-            }
-        }
-        .task {
-            NowPlayingManager.shared.configure(playerService: self.playerService)
-        }
-        .task(id: self.accountService.currentAccount?.id) {
-            // Keep PodcastsViewModel in sync with the active account so
-            // 404 / empty results are recorded against the right account.
-            let accountId = self.accountService.currentAccount?.id
-            if let accountId {
-                self.podcastsAvailability.activateAccount(accountId)
-            }
-            self.podcastsViewModel?.configure(
-                availabilityService: self.podcastsAvailability,
-                accountId: accountId
-            )
-        }
-        .task(id: self.authService.hasPersonalAccount) {
-            // Run the podcasts availability probe whenever the user
-            // becomes logged in (cold start with cached cookies, or
-            // after an explicit sign-in). The result gates `mainContent`
-            // via `didResolveFirstProbe`, so the sidebar paints with the
-            // correct state on first frame — no flicker.
-            guard self.authService.hasPersonalAccount else { return }
-            // Brief delay so post-login cookies have a chance to settle
-            // into the data store the API client reads from. On cold
-            // start cookies are already there; this 200 ms is a small
-            // safety margin and is invisible behind the spinner.
-            try? await Task.sleep(for: .milliseconds(200))
-            await self.podcastsAvailability.probeForFirstResolution(
-                for: self.accountService.currentAccount?.id,
-                using: self.client
-            )
-        }
-        .onChange(of: self.likeStatusManager.lastLikeEventBatch) { _, batch in
-            guard let batch, batch.accountID == self.likeStatusManager.activeAccountID else { return }
-            for event in batch.events {
-                // Global sync 1: keep PlayerService.currentTrackLikeStatus in sync
-                if let currentVideoId = self.playerService.currentTrack?.videoId,
-                   event.videoId == currentVideoId
-                {
-                    self.playerService.currentTrackLikeStatus = event.status
-                }
-
-                // Global sync 2: keep Liked Music list in sync when the active
-                // Liked Music detail view is not already forwarding this event.
-                if self.navigationSelection != .likedMusic {
-                    self.likedMusicViewModel?.handleLikeStatusChange(event)
                 }
             }
         }
     }
 
-    // MARK: - Main Content
+    private func refreshActiveHome() async {
+        switch self.settings.appSource {
+        case .music:
+            guard self.navigationSelection == .home, let homeViewModel else { return }
+            await homeViewModel.refresh()
+        case .video:
+            guard self.youtubeNavigationSelection == .home else { return }
+            await self.youtubeStore.home.refresh()
+        }
+    }
 
     private var mainContent: some View {
         ZStack(alignment: .trailing) {
@@ -1177,12 +1210,14 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
 #Preview {
     @Previewable @State var navSelection: NavigationItem? = .home
     @Previewable @State var youtubeNavSelection: YouTubeNavigationItem? = .home
+    @Previewable @State var homeRefreshRequestID = 0
     let authService = AuthService()
     let ytMusicClient = YTMusicClient(authService: authService)
     let accountService = AccountService(ytMusicClient: ytMusicClient, authService: authService)
     MainWindow(
         navigationSelection: $navSelection,
         youtubeNavigationSelection: $youtubeNavSelection,
+        homeRefreshRequestID: $homeRefreshRequestID,
         didCompleteStartupPlaybackCleanup: .constant(true),
         client: ytMusicClient,
         youtubeClient: YouTubeClient(authService: authService)
