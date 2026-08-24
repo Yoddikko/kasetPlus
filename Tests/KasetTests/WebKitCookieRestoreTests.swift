@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite("WebKit cookie restoration", .serialized, .tags(.service))
 @MainActor

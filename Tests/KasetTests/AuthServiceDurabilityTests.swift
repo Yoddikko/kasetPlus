@@ -1,5 +1,5 @@
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite("AuthService durability", .serialized, .tags(.service))
 @MainActor

@@ -1,5 +1,5 @@
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite("Mock YouTube Music client", .serialized, .timeLimit(.minutes(1)))
 @MainActor

@@ -1,5 +1,5 @@
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 @Suite("YouTube watch playback lifecycle", .serialized)
 @MainActor

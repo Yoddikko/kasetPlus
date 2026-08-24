@@ -137,6 +137,22 @@ final class MockYouTubeWatchPlaybackController: YouTubeWatchPlaybackControlling 
         self.selectedQuality = level
     }
 
+    var audioTracks: [YouTubeAudioTrack] = []
+    var activeAudioTrackId: String?
+    private(set) var selectedAudioTrackId: String?
+
+    func availableAudioTracks() async -> [YouTubeAudioTrack] {
+        self.audioTracks
+    }
+
+    func currentAudioTrackId() async -> String? {
+        self.activeAudioTrackId
+    }
+
+    func setAudioTrack(id: String) {
+        self.selectedAudioTrackId = id
+    }
+
     var storyboardSpecResponse: String?
     private(set) var storyboardSpecRequests: [String?] = []
 

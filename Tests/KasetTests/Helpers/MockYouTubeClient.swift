@@ -243,7 +243,7 @@ final class MockYouTubeClient: YouTubeClientProtocol {
     var beforeAskPreparationReturn: (@Sendable () async -> Void)?
     var beforeAskContinuationReturn: (@Sendable () async -> Void)?
 
-    func getWatchPage(videoId _: String) async throws -> YouTubeWatchPage {
+    func getWatchPage(videoId _: String, playlistId _: String?) async throws -> YouTubeWatchPage {
         self.getWatchPageCallCount += 1
         if !self.watchPageErrors.isEmpty {
             throw self.watchPageErrors.removeFirst()

@@ -333,7 +333,7 @@ private final class SingleFlightYouTubeClient: YouTubeClientProtocol {
         return self.watchNextData
     }
 
-    func getWatchPage(videoId _: String) async throws -> YouTubeWatchPage {
+    func getWatchPage(videoId _: String, playlistId _: String?) async throws -> YouTubeWatchPage {
         try await self.waitIfNeeded()
         return YouTubeWatchPage(data: self.watchNextData, askBootstrap: nil)
     }

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 extension YouTubeAskClientTests {
     @Test("Free text sends the browser-validated get_panel body and click context")

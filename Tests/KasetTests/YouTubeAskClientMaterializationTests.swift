@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Kaset
+@testable import KasetPlus
 
 extension YouTubeAskClientTests {
     @Test("Direct preview chips materialize the missing free-text capability")
