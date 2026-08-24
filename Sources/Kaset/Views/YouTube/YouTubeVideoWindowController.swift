@@ -381,11 +381,18 @@ private struct YouTubeVideoWindowContent: View {
     @Environment(YouTubePlayerService.self) private var youtubePlayer
 
     @State private var isHovering = false
+    @State private var idleHideTask: Task<Void, Never>?
 
     /// Height of the top strip that moves the window. Generous enough to be
     /// an easy grab target; the top of the video carries no YouTube controls
     /// (the scrubber lives at the bottom), so it costs no native click area.
     private static let dragStripHeight: CGFloat = 36
+
+    /// Hide the controls this long after the pointer last moved. In fullscreen
+    /// the pointer never leaves the window, so a plain `.onHover` would pin the
+    /// controls open forever (#33) — an idle countdown is what actually hides
+    /// them. Matches the inline "controls on video" overlay behaviour.
+    private static let controlsIdleHideDelay: Duration = .seconds(3)
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -433,12 +440,39 @@ private struct YouTubeVideoWindowContent: View {
         }
         .background(.black)
         .ignoresSafeArea()
-        .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.18)) {
-                self.isHovering = hovering
+        // Pointer movement reveals the controls and restarts the idle countdown;
+        // when it leaves the window (only possible when not fullscreen) they hide
+        // at once. The countdown is what hides them in fullscreen, where the
+        // pointer never leaves. `.onContinuousHover` fires on movement, unlike
+        // `.onHover` which only toggles on enter/exit.
+        .onContinuousHover { phase in
+            switch phase {
+            case .active:
+                self.revealControls()
+            case .ended:
+                self.hideControls()
             }
-            YouTubeVideoWindowController.shared.setWindowChromeVisible(hovering)
         }
+        .onDisappear { self.idleHideTask?.cancel() }
+    }
+
+    private func revealControls() {
+        if !self.isHovering {
+            withAnimation(.easeInOut(duration: 0.18)) { self.isHovering = true }
+            YouTubeVideoWindowController.shared.setWindowChromeVisible(true)
+        }
+        self.idleHideTask?.cancel()
+        self.idleHideTask = Task { @MainActor in
+            try? await Task.sleep(for: Self.controlsIdleHideDelay)
+            guard !Task.isCancelled else { return }
+            self.hideControls()
+        }
+    }
+
+    private func hideControls() {
+        self.idleHideTask?.cancel()
+        withAnimation(.easeInOut(duration: 0.18)) { self.isHovering = false }
+        YouTubeVideoWindowController.shared.setWindowChromeVisible(false)
     }
 }
 
