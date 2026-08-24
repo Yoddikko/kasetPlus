@@ -78,6 +78,7 @@ struct YouTubePlayerBar: View {
     @State private var chapterPreviewMarker: PlayerBarProgressMarker?
     @State private var hoverPreviewFraction: Double?
     @State private var settings = SettingsManager.shared
+    @State private var showsSpeedQualityPopover = false
 
     var body: some View {
         self.content
@@ -583,6 +584,7 @@ struct YouTubePlayerBar: View {
                 self.compactQualityMenu
             case .reduced:
                 self.overflowMenu
+                self.compactQualityMenu
             }
 
             self.pipButton
@@ -727,12 +729,8 @@ struct YouTubePlayerBar: View {
                     Label(String(localized: "Audio"), systemImage: "waveform.circle")
                 }
             }
-
-            Menu {
-                self.qualityMenuItems
-            } label: {
-                Label(String(localized: "Speed & Quality"), systemImage: "gearshape")
-            }
+            // Speed & Quality lives in its own popover (gear button) since a
+            // slider can't be hosted inside an NSMenu — see compactQualityMenu.
         } label: {
             Image(systemName: "ellipsis")
                 .font(.system(size: 16, weight: .regular))
@@ -823,51 +821,79 @@ struct YouTubePlayerBar: View {
         }
     }
 
-    @ViewBuilder private var qualityMenuItems: some View {
-        Text("Speed").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-        ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { speed in
-            Button {
-                self.youtubePlayer.playbackSpeed = speed
-            } label: {
-                if abs(self.youtubePlayer.playbackSpeed - speed) < 0.01 {
-                    Label("\(speed, specifier: "%.2f")x", systemImage: "checkmark")
-                } else {
-                    Text("\(speed, specifier: "%.2f")x")
-                }
+    private var compactQualityMenu: some View {
+        PlayerBarIconButton(
+            action: { self.showsSpeedQualityPopover.toggle() },
+            accessibilityLabel: String(localized: "Speed & Quality"),
+            icon: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(.primary)
             }
-        }
-        if !self.youtubePlayer.qualityLevels.isEmpty {
-            Divider()
-            Text("Quality").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            ForEach(self.youtubePlayer.qualityLevels, id: \.self) { level in
-                Button {
-                    self.youtubePlayer.selectQuality(level)
-                } label: {
-                    // Checkmark follows the user's pin; Auto by default.
-                    if (self.youtubePlayer.userPinnedQuality ?? "auto") == level {
-                        Label(YouTubeQuality.displayName(for: level), systemImage: "checkmark")
-                    } else {
-                        Text(YouTubeQuality.displayName(for: level))
-                    }
-                }
-            }
+        )
+        .disabled(self.youtubePlayer.currentVideo == nil)
+        .popover(isPresented: self.$showsSpeedQualityPopover, arrowEdge: .bottom) {
+            self.speedQualityPopover
         }
     }
 
-    private var compactQualityMenu: some View {
-        Menu {
-            self.qualityMenuItems
-        } label: {
-            Image(systemName: "gearshape")
-                .font(.system(size: 16, weight: .regular))
-                .frame(width: 16, height: 16)
-                .foregroundStyle(.primary)
+    /// Continuous playback-speed slider + quality picker (issue #32: replaces the
+    /// old fixed 0.5/0.75/1/1.25/1.5/2 menu with a YouTube-style slider).
+    private var speedQualityPopover: some View {
+        let speed = Binding(
+            get: { self.youtubePlayer.playbackSpeed },
+            set: { self.youtubePlayer.playbackSpeed = ($0 * 20).rounded() / 20 } // 0.05 steps
+        )
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Playback speed").font(.subheadline.weight(.semibold))
+                Spacer()
+                Text("\(self.youtubePlayer.playbackSpeed, specifier: "%.2f")×")
+                    .font(.subheadline.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            HStack(spacing: 8) {
+                Text("0.25×").font(.caption2).foregroundStyle(.secondary)
+                Slider(value: speed, in: 0.25 ... 2.0)
+                    .accessibilityLabel(String(localized: "Playback speed"))
+                Text("2×").font(.caption2).foregroundStyle(.secondary)
+            }
+            HStack(spacing: 6) {
+                ForEach([0.5, 1.0, 1.5, 2.0], id: \.self) { preset in
+                    Button {
+                        self.youtubePlayer.playbackSpeed = preset
+                    } label: {
+                        Text(preset == 1.0 ? "Normal" : "\(preset, specifier: "%.2g")×")
+                            .font(.caption)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(abs(self.youtubePlayer.playbackSpeed - preset) < 0.001 ? Self.brandAccent : nil)
+                }
+            }
+            if !self.youtubePlayer.qualityLevels.isEmpty {
+                Divider()
+                Text("Quality").font(.subheadline.weight(.semibold))
+                ForEach(self.youtubePlayer.qualityLevels, id: \.self) { level in
+                    Button {
+                        self.youtubePlayer.selectQuality(level)
+                    } label: {
+                        HStack {
+                            Text(YouTubeQuality.displayName(for: level))
+                            Spacer()
+                            if (self.youtubePlayer.userPinnedQuality ?? "auto") == level {
+                                Image(systemName: "checkmark").foregroundStyle(Self.brandAccent)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .buttonStyle(.plain)
-        .frame(width: 28, height: 28)
-        .disabled(self.youtubePlayer.currentVideo == nil)
+        .padding(14)
+        .frame(width: 240)
     }
 
     private var youtubeVolumeOverlay: some View {
