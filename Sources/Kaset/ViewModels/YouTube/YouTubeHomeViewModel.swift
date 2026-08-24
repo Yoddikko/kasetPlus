@@ -170,7 +170,7 @@ final class YouTubeHomeViewModel {
 
     private func loadChipFeed(_ chip: YouTubeHomeChip) async {
         do {
-            let feed = try await self.client.getHomeTopicFeed(continuation: chip.continuation)
+            let feed = try await self.client.getHomeTopicFeed(continuation: chip.continuation, forceRefresh: false)
             guard !Task.isCancelled, self.selectedChip?.id == chip.id else { return }
             self.chipVideos = feed.videos
             self.chipContinuation = feed.continuation
@@ -186,7 +186,7 @@ final class YouTubeHomeViewModel {
     func loadMoreChipVideos() async {
         guard self.selectedChip != nil, let continuation = self.chipContinuation else { return }
         do {
-            let feed = try await self.client.getHomeTopicFeed(continuation: continuation)
+            let feed = try await self.client.getHomeTopicFeed(continuation: continuation, forceRefresh: false)
             guard self.chipContinuation == continuation else { return }
             let existing = Set(self.chipVideos.map(\.videoId))
             self.chipVideos.append(contentsOf: feed.videos.filter { !existing.contains($0.videoId) })
