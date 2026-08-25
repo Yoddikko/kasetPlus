@@ -1059,12 +1059,22 @@ extension YouTubeWatchWebView {
         )
     }
 
-    /// Resumes playback.
     /// Sets the video playback speed.
+    ///
+    /// Prefer YouTube's own `movie_player.setPlaybackRate()` over writing the raw
+    /// `<video>.playbackRate`: the latter desyncs from YouTube's player, which
+    /// "corrects" it by pausing/resuming (#32 regression — video wouldn't start
+    /// after a speed change). The player API keeps YouTube's state in sync and
+    /// still honours fine-grained rates; the raw element is only a fallback.
     func setSpeed(_ speed: Double) {
         self.webView?.evaluateJavaScript(
             """
             (function() {
+                const mp = document.getElementById('movie_player');
+                if (mp && typeof mp.setPlaybackRate === 'function') {
+                    mp.setPlaybackRate(\(speed));
+                    return;
+                }
                 const video = document.querySelector('#movie_player video') || document.querySelector('video');
                 if (video) { video.playbackRate = \(speed); }
             })();
