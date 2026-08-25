@@ -836,6 +836,11 @@ struct YouTubePlayerBar: View {
         .popover(isPresented: self.$showsSpeedQualityPopover, arrowEdge: .bottom) {
             self.speedQualityPopover
         }
+        // Keep the on-video controls pinned open while the popover is up so the
+        // auto-hide (#33) doesn't dismiss the popover out from under the user.
+        .onChange(of: self.showsSpeedQualityPopover) { _, open in
+            self.youtubePlayer.isControlOverlayPinned = open
+        }
     }
 
     /// Continuous playback-speed slider + quality picker (issue #32: replaces the

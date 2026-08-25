@@ -349,6 +349,12 @@ final class YouTubePlayerService {
         }
     }
 
+    /// True while an on-video control popover (Speed & Quality) is open. The
+    /// overlay/fullscreen auto-hide checks this so opening the gear — which moves
+    /// the pointer off the video surface — doesn't tear the controls, and the
+    /// popover with them, back out. (#32/#33 interaction.)
+    var isControlOverlayPinned = false
+
     /// Computed: the DeArrow title for the current video (from shared cache).
     var dearrowTitle: String? {
         guard let videoId = self.currentVideo?.videoId else { return nil }

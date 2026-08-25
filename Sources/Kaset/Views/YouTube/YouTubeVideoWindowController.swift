@@ -470,6 +470,9 @@ private struct YouTubeVideoWindowContent: View {
     }
 
     private func hideControls() {
+        // Don't hide while a control popover (Speed & Quality) is open — it would
+        // dismiss the popover the moment the pointer moves onto it.
+        guard !self.youtubePlayer.isControlOverlayPinned else { return }
         self.idleHideTask?.cancel()
         withAnimation(.easeInOut(duration: 0.18)) { self.isHovering = false }
         YouTubeVideoWindowController.shared.setWindowChromeVisible(false)

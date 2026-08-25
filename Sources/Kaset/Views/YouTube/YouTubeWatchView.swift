@@ -240,7 +240,7 @@ struct YouTubeWatchView: View {
         self.overlayHideTask?.cancel()
         self.overlayHideTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(5))
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, !self.youtubePlayer.isControlOverlayPinned else { return }
             withAnimation(.easeInOut(duration: 0.2)) { self.overlayControlsVisible = false }
         }
     }
@@ -380,6 +380,7 @@ struct YouTubeWatchView: View {
                         // the idle countdown.
                         self.revealOverlayControls()
                     case .ended:
+                        guard !self.youtubePlayer.isControlOverlayPinned else { return }
                         self.overlayHideTask?.cancel()
                         withAnimation(.easeInOut(duration: 0.2)) {
                             self.overlayControlsVisible = false
