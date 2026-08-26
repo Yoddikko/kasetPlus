@@ -37,6 +37,14 @@ struct YouTubeWatchView: View {
     /// so filtering the comments short can't leave a giant empty gap beside it.
     @State private var leftColumnHeight: CGFloat = 0
 
+    /// Current width of the watch page content, used to decide whether the live
+    /// chat can sit beside the video (side-by-side) or must stack below it.
+    @State private var pageWidth: CGFloat = 0
+
+    /// Measured height of the video surface, so the side live-chat column can
+    /// match the video's height (like the official YouTube app).
+    @State private var videoSurfaceHeight: CGFloat = 0
+
     /// Whether the on-video controls overlay is currently visible (shown while
     /// the cursor is over the video, when "controls on video" is enabled).
     @State private var overlayControlsVisible = false
@@ -88,8 +96,7 @@ struct YouTubeWatchView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                self.videoSurface
-                    .contextMenu { self.videoContextMenu }
+                self.videoWithOptionalSideChat
 
                 // Below the video: title/metadata + chapters/comments down the
                 // left, the related rail down the right.
@@ -144,8 +151,11 @@ struct YouTubeWatchView: View {
                         // column can't leave a giant empty gap next to a tall rail.
                         ScrollView(.vertical, showsIndicators: false) {
                             VStack(alignment: .leading, spacing: 20) {
-                                if self.viewModel.hasLiveChat {
-                                    self.liveChatSection
+                                // When the chat sits beside the video (wide
+                                // window, live stream) it's shown up top; only
+                                // fall back to stacking it here when it can't.
+                                if self.viewModel.hasLiveChat, !self.showsSideChat {
+                                    self.liveChatSection(height: 440)
                                 }
                                 self.relatedColumn
                             }
@@ -158,6 +168,11 @@ struct YouTubeWatchView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 20)
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.width
+            } action: { newWidth in
+                self.pageWidth = newWidth
+            }
         }
         .disabled(self.viewModel.ask.isExpanded)
         // PROTOTYPE: full-bleed ambient color behind the page. `.ignoresSafeArea`
@@ -264,6 +279,51 @@ struct YouTubeWatchView: View {
                 Image(systemName: "paintpalette")
             }
             .help(String(localized: "Ambient backdrop style"))
+        }
+    }
+
+    // MARK: - Video + Side Chat
+
+    /// Fixed width of the live-chat column when shown beside the video.
+    private static let sideChatWidth: CGFloat = 340
+
+    /// The page must be at least this wide before the chat can sit beside the
+    /// video; below it the chat stacks below (in the related column) instead.
+    private static let sideChatMinPageWidth: CGFloat = 820
+
+    /// Whether the live chat should render as a column beside the video (like
+    /// the official YouTube app) rather than stacked below it. Only for live
+    /// streams with an available chat, and only when the window is wide enough
+    /// to leave the video a reasonable size next to the chat column.
+    private var showsSideChat: Bool {
+        self.viewModel.hasLiveChat
+            && !self.settings.distractionFreeEnabled
+            && self.pageWidth >= Self.sideChatMinPageWidth
+    }
+
+    /// The top of the watch page: the video surface, with the live chat beside
+    /// it (side-by-side) for live streams on a wide-enough window, or on its own
+    /// (chat falls back to the related column below) otherwise.
+    @ViewBuilder
+    private var videoWithOptionalSideChat: some View {
+        if self.showsSideChat {
+            HStack(alignment: .top, spacing: 16) {
+                self.videoSurface
+                    .contextMenu { self.videoContextMenu }
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height
+                    } action: { newHeight in
+                        self.videoSurfaceHeight = newHeight
+                    }
+
+                self.liveChatSection(
+                    height: self.videoSurfaceHeight > 0 ? self.videoSurfaceHeight : 440
+                )
+                .frame(width: Self.sideChatWidth)
+            }
+        } else {
+            self.videoSurface
+                .contextMenu { self.videoContextMenu }
         }
     }
 
@@ -1694,7 +1754,9 @@ struct YouTubeWatchView: View {
 
     // MARK: - Live Chat
 
-    private var liveChatSection: some View {
+    /// The live-chat panel. `height` sizes the scroll area so it can match the
+    /// video height when shown beside it, or use a fixed height when stacked.
+    private func liveChatSection(height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 Circle()
@@ -1721,7 +1783,7 @@ struct YouTubeWatchView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 440)
+                    .frame(height: height)
                 } else {
                     ScrollViewReader { proxy in
                         ScrollView {
@@ -1736,7 +1798,7 @@ struct YouTubeWatchView: View {
                             }
                             .padding(10)
                         }
-                        .frame(height: 440)
+                        .frame(height: height)
                         .onChange(of: self.viewModel.liveChatMessages.count) { _, _ in
                             withAnimation(.easeOut(duration: 0.15)) {
                                 proxy.scrollTo("live-chat-bottom", anchor: .bottom)

@@ -36,12 +36,15 @@ struct YouTubeSettingsView: View {
             }
 
             Section {
+                Toggle(String(localized: "Keep Playing in the Player Bar When Navigating Away"), isOn: self.$settings.keepPlayingVideoOnNavigateAway)
+                    .help(String(localized: "Keep a playing video going, controlled from the bottom player bar, when you leave the page — with no floating pop-out window. Tap the thumbnail in the bar to return to the video."))
                 Toggle(String(localized: "Pop Out Video When Navigating Away"), isOn: self.$settings.popOutVideoOnNavigateAway)
                     .help(String(localized: "Keep a playing video in a floating window when you leave the page. When off, the video stops instead."))
+                    .disabled(self.settings.keepPlayingVideoOnNavigateAway)
             } header: {
                 Text(String(localized: "Video Window"))
             } footer: {
-                Text(String(localized: "When off, navigating back from a playing video stops it instead of opening the floating player. The pop-out and full-view buttons still work."))
+                Text(String(localized: "\"Keep Playing in the Player Bar\" takes precedence: the video keeps playing docked with no pop-out window, and you return to it from the bar. Otherwise, when \"Pop Out\" is off, navigating back from a playing video stops it. The pop-out and full-view buttons still work."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

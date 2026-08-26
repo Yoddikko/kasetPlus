@@ -69,3 +69,4 @@ Build
 
 # Wrangler local state (miniflare cache, kv, account cache)
 .wrangler/
+.claude/worktrees/

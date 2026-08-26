@@ -38,6 +38,7 @@ final class SettingsManager {
         static let ambientBackdropStyle = "settings.ambientBackdropStyle"
         static let controlsOnVideo = "settings.controlsOnVideo"
         static let popOutVideoOnNavigateAway = "settings.popOutVideoOnNavigateAway"
+        static let keepPlayingVideoOnNavigateAway = "settings.keepPlayingVideoOnNavigateAway"
         static let sponsorBlockEnabled = "settings.sponsorBlock.enabled"
         static let sponsorBlockCategories = "settings.sponsorBlock.categories"
         static let adBlockEnabled = "settings.adBlock.enabled"
@@ -562,6 +563,18 @@ final class SettingsManager {
         }
     }
 
+    /// Whether a playing YouTube video keeps playing docked — controlled from
+    /// the bottom player bar, with no floating pop-out window — when the user
+    /// navigates away from the inline watch view. When on, this takes precedence
+    /// over `popOutVideoOnNavigateAway`; the user returns to the video from the
+    /// bar. Off by default so existing behavior is unchanged. Regular YouTube
+    /// videos only, not the Music experience.
+    var keepPlayingVideoOnNavigateAway: Bool {
+        didSet {
+            UserDefaults.standard.set(self.keepPlayingVideoOnNavigateAway, forKey: Keys.keepPlayingVideoOnNavigateAway)
+        }
+    }
+
     /// Whether SponsorBlock auto-skip is enabled for YouTube videos.
     var sponsorBlockEnabled: Bool {
         didSet {
@@ -708,6 +721,7 @@ final class SettingsManager {
         self.ambientBackdropEnabled = UserDefaults.standard.object(forKey: Keys.ambientBackdropEnabled) as? Bool ?? true
         self.controlsOnVideoEnabled = UserDefaults.standard.object(forKey: Keys.controlsOnVideo) as? Bool ?? true
         self.popOutVideoOnNavigateAway = UserDefaults.standard.object(forKey: Keys.popOutVideoOnNavigateAway) as? Bool ?? true
+        self.keepPlayingVideoOnNavigateAway = UserDefaults.standard.object(forKey: Keys.keepPlayingVideoOnNavigateAway) as? Bool ?? false
         self.sponsorBlockEnabled = UserDefaults.standard.object(forKey: Keys.sponsorBlockEnabled) as? Bool ?? false
         self.sponsorBlockCategories = UserDefaults.standard.object(forKey: Keys.sponsorBlockCategories) as? [String] ?? ["sponsor", "selfpromo", "interaction"]
         self.adBlockEnabled = UserDefaults.standard.object(forKey: Keys.adBlockEnabled) as? Bool ?? false

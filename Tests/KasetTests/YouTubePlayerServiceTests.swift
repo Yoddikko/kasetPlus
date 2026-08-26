@@ -793,6 +793,93 @@ struct YouTubePlayerServiceTests {
         #expect(sut.surfaceLocation == .floating)
     }
 
+    @Test("Keep-playing option: inline disappearance while playing keeps playing docked (no PiP, no stop)")
+    func disappearWhilePlayingKeepsPlayingDockedWhenEnabled() {
+        let controller = MockYouTubeWatchPlaybackController()
+        let sut = YouTubePlayerService(
+            playbackController: controller,
+            shouldPopOutOnNavigateAway: { true },
+            shouldKeepPlayingOnNavigateAway: { true }
+        )
+        sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        sut.activeInlineVideoId = "abc"
+        sut.updatePlaybackState(.init(
+            isPlaying: true, progress: 0, duration: 10,
+            videoId: "abc", title: nil, isAd: false
+        ))
+
+        sut.inlineSurfaceWillDisappear(videoId: "abc")
+
+        // Surface stays inline (no floating window), playback isn't stopped.
+        #expect(sut.surfaceLocation == .inline)
+        #expect(sut.currentVideo?.videoId == "abc")
+        #expect(controller.tearDownCount == 0)
+        // The watch view is gone: docked without a watch view, so the bar can
+        // offer a way back.
+        #expect(sut.activeInlineVideoId == nil)
+        #expect(sut.isPlayingDockedWithoutWatchView)
+    }
+
+    @Test("Keep-playing option takes precedence over pop-out")
+    func keepPlayingTakesPrecedenceOverPopOut() {
+        let controller = MockYouTubeWatchPlaybackController()
+        let sut = YouTubePlayerService(
+            playbackController: controller,
+            shouldPopOutOnNavigateAway: { true },
+            shouldKeepPlayingOnNavigateAway: { true }
+        )
+        sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        sut.activeInlineVideoId = "abc"
+        sut.updatePlaybackState(.init(
+            isPlaying: true, progress: 0, duration: 10,
+            videoId: "abc", title: nil, isAd: false
+        ))
+
+        sut.inlineSurfaceWillDisappear(videoId: "abc")
+
+        #expect(sut.surfaceLocation == .inline)
+    }
+
+    @Test("Keep-playing while paused still stops (nothing to keep)")
+    func keepPlayingWhilePausedStillStops() {
+        let controller = MockYouTubeWatchPlaybackController()
+        let sut = YouTubePlayerService(
+            playbackController: controller,
+            shouldPopOutOnNavigateAway: { false },
+            shouldKeepPlayingOnNavigateAway: { true }
+        )
+        sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        sut.activeInlineVideoId = "abc"
+        // Never reports playing, so it's paused/not-playing on disappear.
+
+        sut.inlineSurfaceWillDisappear(videoId: "abc")
+
+        #expect(sut.surfaceLocation == .none)
+        #expect(sut.currentVideo == nil)
+        #expect(controller.tearDownCount == 1)
+    }
+
+    @Test("requestReturnToWatchView surfaces a pop-in request for the docked video")
+    func requestReturnToWatchViewSetsPopInRequest() {
+        let controller = MockYouTubeWatchPlaybackController()
+        let sut = YouTubePlayerService(
+            playbackController: controller,
+            shouldPopOutOnNavigateAway: { true },
+            shouldKeepPlayingOnNavigateAway: { true }
+        )
+        sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))
+        sut.activeInlineVideoId = "abc"
+        sut.updatePlaybackState(.init(
+            isPlaying: true, progress: 0, duration: 10,
+            videoId: "abc", title: nil, isAd: false
+        ))
+        sut.inlineSurfaceWillDisappear(videoId: "abc")
+
+        sut.requestReturnToWatchView()
+
+        #expect(sut.popInRequest?.videoId == "abc")
+    }
+
     @Test("Video ended invokes the hook and clears isPlaying")
     func videoEnded() {
         self.sut.play(video: MockYouTubeClient.makeVideo(videoId: "abc"))

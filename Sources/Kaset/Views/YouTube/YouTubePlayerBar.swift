@@ -257,8 +257,28 @@ struct YouTubePlayerBar: View {
                 }
                 .frame(width: 57, height: 32)
                 .clipShape(.rect(cornerRadius: 6, style: .continuous))
+                // When the video is playing docked with no watch view on screen
+                // (the "keep playing on navigate-away" option), the thumbnail
+                // returns the user to the video. Shown as a subtle overlay hint.
+                .overlay {
+                    if self.youtubePlayer.isPlayingDockedWithoutWatchView {
+                        Image(systemName: "rectangle.expand.vertical")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .shadow(radius: 2)
+                    }
+                }
             }
             .accessibilityHidden(self.youtubePlayer.currentVideo == nil)
+            .contentShape(.rect)
+            .onTapGesture {
+                guard self.youtubePlayer.isPlayingDockedWithoutWatchView else { return }
+                HapticService.toggle()
+                self.youtubePlayer.requestReturnToWatchView()
+            }
+            .help(self.youtubePlayer.isPlayingDockedWithoutWatchView
+                ? String(localized: "Return to video")
+                : "")
 
             if !usesCompactDetails {
                 VStack(alignment: .leading, spacing: 4) {

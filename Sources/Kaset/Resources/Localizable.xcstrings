@@ -76668,6 +76668,22 @@
         }
       }
     },
+    "Keep Playing in the Player Bar When Navigating Away" : {
+      "comment" : "Settings window → YouTube tab: navigate-away option that keeps the video playing docked in the bottom player bar with no pop-out window. Needs translation.",
+      "localizations" : {}
+    },
+    "Keep a playing video going, controlled from the bottom player bar, when you leave the page — with no floating pop-out window. Tap the thumbnail in the bar to return to the video." : {
+      "comment" : "Help text for the keep-playing-in-player-bar navigate-away option. Needs translation.",
+      "localizations" : {}
+    },
+    "\"Keep Playing in the Player Bar\" takes precedence: the video keeps playing docked with no pop-out window, and you return to it from the bar. Otherwise, when \"Pop Out\" is off, navigating back from a playing video stops it. The pop-out and full-view buttons still work." : {
+      "comment" : "Footer explaining precedence of the keep-playing vs pop-out navigate-away options. Needs translation.",
+      "localizations" : {}
+    },
+    "Return to video" : {
+      "comment" : "Tooltip / accessibility label on the player-bar thumbnail that returns to the video kept playing docked. Needs translation.",
+      "localizations" : {}
+    },
     "Pop Out Video When Navigating Away" : {
       "comment" : "Settings window → YouTube tab (YouTube video playback, ambient backdrop, SponsorBlock/DeArrow).",
       "localizations" : {

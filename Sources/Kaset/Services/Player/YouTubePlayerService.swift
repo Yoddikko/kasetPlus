@@ -525,15 +525,24 @@ final class YouTubePlayerService {
     /// without touching global `UserDefaults`.
     private let shouldPopOutOnNavigateAway: @MainActor () -> Bool
 
+    /// Whether a playing video should keep playing docked (surface stays inline,
+    /// controlled from the bottom player bar) when the inline watch view
+    /// disappears, instead of popping out into the floating PiP window. Takes
+    /// precedence over `shouldPopOutOnNavigateAway` when both are on. Read live
+    /// so the user's setting takes effect mid-session; injected for tests.
+    private let shouldKeepPlayingOnNavigateAway: @MainActor () -> Bool
+
     init(
         webKitManager: WebKitManager = .shared,
         playbackController: (any YouTubeWatchPlaybackControlling)? = nil,
         shouldPopOutOnNavigateAway: @escaping @MainActor () -> Bool = { SettingsManager.shared.popOutVideoOnNavigateAway },
+        shouldKeepPlayingOnNavigateAway: @escaping @MainActor () -> Bool = { SettingsManager.shared.keepPlayingVideoOnNavigateAway },
         playbackLoadingTimeout: Duration = .seconds(15)
     ) {
         self.webKitManager = webKitManager
         self.playbackController = playbackController ?? YouTubeWatchWebView.shared
         self.shouldPopOutOnNavigateAway = shouldPopOutOnNavigateAway
+        self.shouldKeepPlayingOnNavigateAway = shouldKeepPlayingOnNavigateAway
         self.playbackLoadingTimeout = playbackLoadingTimeout
     }
 
@@ -1028,6 +1037,24 @@ final class YouTubePlayerService {
         self.popInRequest = video
     }
 
+    /// Returns the user to the current video's watch view. Works both for a
+    /// popped-out (floating) video and for one kept playing docked after a
+    /// navigate-away (surface still `.inline`, watch view gone). Routes through
+    /// the same pop-in plumbing: KasetApp switches to the video source and
+    /// YouTubeContentView opens/adopts the watch view.
+    func requestReturnToWatchView() {
+        guard let video = self.currentVideo else { return }
+        self.popInRequest = video
+    }
+
+    /// Whether the current video is playing docked with no watch view on screen
+    /// (the "keep playing on navigate-away" case), so UI can offer a way back.
+    var isPlayingDockedWithoutWatchView: Bool {
+        self.currentVideo != nil
+            && self.surfaceLocation == .inline
+            && self.activeInlineVideoId == nil
+    }
+
     /// Marks the pop-in request as handled.
     func consumePopInRequest() {
         self.popInRequest = nil
@@ -1445,13 +1472,31 @@ extension YouTubePlayerService {
             return
         }
 
-        if self.isPlaying, self.shouldPopOutOnNavigateAway() {
+        if self.isPlaying, self.shouldKeepPlayingOnNavigateAway() {
+            // "No PiP" return option: keep the video playing docked. The surface
+            // stays .inline (so no floating window opens); the webview detaches
+            // from the view hierarchy and keeps playing (audio continues, like
+            // backgrounded music). The bottom player bar stays visible and the
+            // user returns to the video from there.
+            self.detachInlineSurfaceKeepingPlayback()
+        } else if self.isPlaying, self.shouldPopOutOnNavigateAway() {
             self.popOutToWindow()
         } else {
-            // Playing with pop-out disabled, or paused: stop instead of
+            // Playing with both options off, or paused: stop instead of
             // leaving a detached surface.
             self.stop()
         }
+    }
+
+    /// Keeps the current video playing while its inline watch view goes away,
+    /// without popping out to the floating window. The surface stays `.inline`
+    /// so the docked player bar remains the control surface and returning to the
+    /// video re-adopts the same inline surface (via a pop-in request).
+    private func detachInlineSurfaceKeepingPlayback() {
+        self.logger.info("YouTubePlayer: keep playing docked on navigate-away (no PiP)")
+        // Nothing else to change: surface remains .inline and playback continues.
+        // `activeInlineVideoId` was already cleared by the caller, so the next
+        // watch view for this video will re-adopt the surface on appear.
     }
 
     // MARK: - Bridge Callbacks
