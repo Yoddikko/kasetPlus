@@ -163,6 +163,12 @@ protocol YouTubeClientProtocol: Sendable {
     /// (params from a `ChannelNotificationPreference.Option`).
     func modifyNotificationPreference(params: String) async throws
 
+    /// Saves an entire playlist to the signed-in user's library.
+    func savePlaylistToLibrary(playlistId: String) async throws
+
+    /// Removes a previously-saved playlist from the library.
+    func removePlaylistFromLibrary(playlistId: String) async throws
+
     /// Adds a video to Watch Later.
     func addToWatchLater(videoId: String) async throws
 
@@ -216,6 +222,11 @@ extension YouTubeClientProtocol {
     func getAddToPlaylistOptions(videoId _: String) async throws -> AddToPlaylistMenu {
         AddToPlaylistMenu(title: nil, options: [], canCreatePlaylist: false)
     }
+
+    /// Defaults so mocks/UI-test clients compile; the real `YouTubeClient` overrides these.
+    func savePlaylistToLibrary(playlistId _: String) async throws {}
+
+    func removePlaylistFromLibrary(playlistId _: String) async throws {}
 
     func addToPlaylist(videoId _: String, playlistId _: String) async throws {}
 

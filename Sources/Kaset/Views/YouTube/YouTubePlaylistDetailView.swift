@@ -56,6 +56,9 @@ struct YouTubePlaylistDetailView: View {
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
+
+                    self.saveButton
+                        .padding(.top, 4)
                 }
 
                 if detail.videos.isEmpty {
@@ -80,5 +83,25 @@ struct YouTubePlaylistDetailView: View {
         // Edge-to-edge with a resting inset so content extends under the
         // floating glass sidebar.
         .contentMargins(.horizontal, DetailContentLayout.horizontalInset, for: .scrollContent)
+    }
+
+    /// "Save to library" toggle, mirroring how albums are saved. Shows the
+    /// saved state and un-saves on a second tap.
+    private var saveButton: some View {
+        Button {
+            Task {
+                await self.viewModel.toggleSaved()
+            }
+        } label: {
+            Label(
+                self.viewModel.isSaved
+                    ? String(localized: "Saved", comment: "YouTube playlist saved-to-library button, saved state")
+                    : String(localized: "Save to library", comment: "YouTube playlist save-to-library button"),
+                systemImage: self.viewModel.isSaved ? "checkmark" : "plus"
+            )
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(self.viewModel.isSaved ? .secondary : .accentColor)
+        .disabled(self.viewModel.isSaveInFlight)
     }
 }

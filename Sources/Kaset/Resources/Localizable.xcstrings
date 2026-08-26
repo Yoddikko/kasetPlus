@@ -87591,6 +87591,13 @@
         }
       }
     },
+    "Save to library" : {
+      "comment" : "YouTube playlist save-to-library button",
+      "extractionState" : "manual",
+      "localizations" : {
+
+      }
+    },
     "Save to Playlist" : {
       "comment" : "Action buttons at the bottom of the queue side panel (save as playlist, clear, etc.).",
       "localizations" : {
@@ -87774,6 +87781,13 @@
             "value" : "Save to Playlist"
           }
         }
+      }
+    },
+    "Saved" : {
+      "comment" : "YouTube playlist saved-to-library button, saved state",
+      "extractionState" : "manual",
+      "localizations" : {
+
       }
     },
     "Saving queue as playlist…" : {

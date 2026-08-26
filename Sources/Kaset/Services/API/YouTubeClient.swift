@@ -681,6 +681,27 @@ final class YouTubeClient: YouTubeClientProtocol { // swiftlint:disable:this typ
         _ = try await self.request("flag/flag", body: ["params": params], retry: false)
     }
 
+    /// Saves an entire playlist to the library. YouTube models "save playlist"
+    /// as a like on the playlist target (the same `like/like` request the web
+    /// client's playlist "Save" button sends), so the saved playlist then shows
+    /// up under the user's playlists.
+    func savePlaylistToLibrary(playlistId: String) async throws {
+        self.logger.info("Saving playlist to library")
+        let cleanId = playlistId.hasPrefix("VL") ? String(playlistId.dropFirst(2)) : playlistId
+        let body: [String: Any] = ["target": ["playlistId": cleanId]]
+        _ = try await self.request("like/like", body: body, retry: false)
+        APICache.shared.invalidate(matching: Self.cachePrefix)
+    }
+
+    /// Removes a saved playlist from the library by undoing the save "like".
+    func removePlaylistFromLibrary(playlistId: String) async throws {
+        self.logger.info("Removing playlist from library")
+        let cleanId = playlistId.hasPrefix("VL") ? String(playlistId.dropFirst(2)) : playlistId
+        let body: [String: Any] = ["target": ["playlistId": cleanId]]
+        _ = try await self.request("like/removelike", body: body, retry: false)
+        APICache.shared.invalidate(matching: Self.cachePrefix)
+    }
+
     func addToWatchLater(videoId: String) async throws {
         try await self.editPlaylist(playlistId: "WL", actions: [
             ["addedVideoId": videoId, "action": "ACTION_ADD_VIDEO"],

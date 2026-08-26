@@ -419,6 +419,8 @@ final class MockYouTubeClient: YouTubeClientProtocol {
     private(set) var notificationPreferenceChanges: [String] = []
     private(set) var watchLaterAdds: [String] = []
     private(set) var watchLaterRemovals: [String] = []
+    private(set) var savedPlaylistIds: [String] = []
+    private(set) var removedPlaylistIds: [String] = []
     private(set) var lastDestination: YouTubeDestination?
     private(set) var lastFeedContinuation: String?
     private(set) var destinationFeedCallCount = 0
@@ -536,6 +538,20 @@ final class MockYouTubeClient: YouTubeClientProtocol {
             throw error
         }
         self.notificationPreferenceChanges.append(params)
+    }
+
+    func savePlaylistToLibrary(playlistId: String) async throws {
+        if let error {
+            throw error
+        }
+        self.savedPlaylistIds.append(playlistId)
+    }
+
+    func removePlaylistFromLibrary(playlistId: String) async throws {
+        if let error {
+            throw error
+        }
+        self.removedPlaylistIds.append(playlistId)
     }
 
     func addToWatchLater(videoId: String) async throws {
