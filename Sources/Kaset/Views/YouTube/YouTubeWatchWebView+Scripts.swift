@@ -512,6 +512,31 @@ extension YouTubeWatchWebView {
                 });
                 video.addEventListener('timeupdate', handleTimelineUpdate);
                 video.addEventListener('ended', handleEnded);
+                // Ignore YouTube kevlar's involuntary pauses. YouTube's web app
+                // (kevlar) pauses the watch player during its player reconciliation
+                // — on fresh load (~1s in) and again after a seek — and the app
+                // can't tell it from a user pause, so playback gets stuck. Skip any
+                // pause that (a) originates in kevlar's app shell, (b) isn't an ad,
+                // and (c) the app itself did not request (every native/user pause
+                // sets `__kasetNativePausePending = true` first — see pause()/
+                // playPause()), so real pauses are always honoured.
+                // ponytail: stack-string heuristic; revisit if YouTube renames the
+                // kevlar modules or changes the reconciliation-pause behaviour.
+                if (!video.__kNoKevlarPause) {
+                    video.__kNoKevlarPause = true;
+                    var _origPause = video.pause.bind(video);
+                    video.pause = function() {
+                        try {
+                            var mp = document.getElementById('movie_player');
+                            var isAd = mp && mp.classList && mp.classList.contains('ad-showing');
+                            if (!isAd && window.__kasetNativePausePending !== true
+                                && (new Error().stack || '').indexOf('kevlar') !== -1) {
+                                return;
+                            }
+                        } catch (e) {}
+                        return _origPause();
+                    };
+                }
                 video.addEventListener('volumechange', function() {
                     enforceVolume(video);
                 });
