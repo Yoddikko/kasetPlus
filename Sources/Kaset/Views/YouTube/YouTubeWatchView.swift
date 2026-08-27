@@ -100,7 +100,7 @@ struct YouTubeWatchView: View {
 
                 // Below the video: title/metadata + chapters/comments down the
                 // left, the related rail down the right.
-                HStack(alignment: .top, spacing: 24) {
+                HStack(alignment: .top, spacing: Self.railSpacing) {
                     VStack(alignment: .leading, spacing: 16) {
                         self.metadataSection
 
@@ -161,7 +161,7 @@ struct YouTubeWatchView: View {
                             }
                         }
                         .scrollBounceBehavior(.basedOnSize)
-                        .frame(width: 360)
+                        .frame(width: Self.railWidth)
                         .frame(maxHeight: self.leftColumnHeight > 0 ? self.leftColumnHeight : nil)
                     }
                 }
@@ -284,8 +284,14 @@ struct YouTubeWatchView: View {
 
     // MARK: - Video + Side Chat
 
-    /// Fixed width of the live-chat column when shown beside the video.
-    private static let sideChatWidth: CGFloat = 340
+    /// Width of the right-hand rail — used for BOTH the related column below the
+    /// video and the live-chat column beside it — so the two rows line up as one
+    /// clean grid (video/chat above, metadata/related below).
+    static let railWidth: CGFloat = 360
+
+    /// Horizontal gap between the main (video/metadata) column and the rail.
+    /// Shared by both rows for the same reason.
+    static let railSpacing: CGFloat = 24
 
     /// The page must be at least this wide before the chat can sit beside the
     /// video; below it the chat stacks below (in the related column) instead.
@@ -307,7 +313,7 @@ struct YouTubeWatchView: View {
     @ViewBuilder
     private var videoWithOptionalSideChat: some View {
         if self.showsSideChat {
-            HStack(alignment: .top, spacing: 16) {
+            HStack(alignment: .top, spacing: Self.railSpacing) {
                 self.videoSurface
                     .contextMenu { self.videoContextMenu }
                     .onGeometryChange(for: CGFloat.self) { proxy in
@@ -319,7 +325,7 @@ struct YouTubeWatchView: View {
                 self.liveChatSection(
                     height: self.videoSurfaceHeight > 0 ? self.videoSurfaceHeight : 440
                 )
-                .frame(width: Self.sideChatWidth)
+                .frame(width: Self.railWidth)
             }
         } else {
             self.videoSurface
@@ -1754,8 +1760,10 @@ struct YouTubeWatchView: View {
 
     // MARK: - Live Chat
 
-    /// The live-chat panel. `height` sizes the scroll area so it can match the
-    /// video height when shown beside it, or use a fixed height when stacked.
+    /// The live-chat panel. `height` is the TOTAL panel height — the header sits
+    /// at the top, the composer at the bottom, and the message list fills the
+    /// space between — so beside the video the whole card matches the video
+    /// height exactly instead of overshooting it.
     private func liveChatSection(height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
@@ -1782,8 +1790,7 @@ struct YouTubeWatchView: View {
                                 .controlSize(.small)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: height)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollViewReader { proxy in
                         ScrollView {
@@ -1798,7 +1805,7 @@ struct YouTubeWatchView: View {
                             }
                             .padding(10)
                         }
-                        .frame(height: height)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .onChange(of: self.viewModel.liveChatMessages.count) { _, _ in
                             withAnimation(.easeOut(duration: 0.15)) {
                                 proxy.scrollTo("live-chat-bottom", anchor: .bottom)
@@ -1819,6 +1826,7 @@ struct YouTubeWatchView: View {
                 self.liveChatComposer
             }
         }
+        .frame(height: height, alignment: .top)
     }
 
     private var liveChatComposer: some View {
