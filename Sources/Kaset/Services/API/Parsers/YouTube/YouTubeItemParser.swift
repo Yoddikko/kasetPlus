@@ -260,8 +260,37 @@ enum YouTubeItemParser {
             isLive: badgeText?.localizedCaseInsensitiveCompare("live") == .orderedSame,
             isShort: isShort,
             isMembersOnly: self.containsMembersOnlyBadge(metadata),
+            newBadgeText: self.newBadgeText(of: metadata),
             watchedPercent: self.watchedPercent(ofLockup: lockup)
         )
+    }
+
+    /// YouTube's "New" badge for a lockup, read from the same `metadataRows`
+    /// badges that carry "Members only".
+    ///
+    /// Which items get it is InnerTube's decision, not a publish-date rule we
+    /// could reproduce: in a captured watch-next response it marked uploads
+    /// three and eighteen hours old and left a seven-day-old one unbadged. The
+    /// text arrives localized ("New", "Nuovo"), so it is passed through the way
+    /// the surrounding view counts and upload dates already are.
+    ///
+    /// `BADGE_DEFAULT` is the style this badge ships with; the members,
+    /// commerce ("Fundraiser") and promotion badges each carry their own style
+    /// and are handled — or ignored — elsewhere.
+    private static func newBadgeText(of metadata: [String: Any]?) -> String? {
+        for row in self.metadataRows(of: metadata) {
+            guard let badges = row["badges"] as? [[String: Any]] else { continue }
+            for badge in badges {
+                guard let viewModel = badge["badgeViewModel"] as? [String: Any],
+                      (viewModel["badgeStyle"] as? String) == "BADGE_DEFAULT",
+                      let text = (viewModel["badgeText"] as? String)?
+                      .trimmingCharacters(in: .whitespacesAndNewlines),
+                      !text.isEmpty
+                else { continue }
+                return text
+            }
+        }
+        return nil
     }
 
     /// Portrait (taller-than-wide) lockup thumbnails indicate Shorts.
@@ -404,13 +433,17 @@ enum YouTubeItemParser {
     }
 
     /// Metadata row texts: one inner array of part texts per row.
-    private static func metadataRowTexts(of metadata: [String: Any]?) -> [[String]] {
-        let rows = (
+    /// The lockup's metadata rows, which carry both the byline/stats text and
+    /// the per-item badges.
+    private static func metadataRows(of metadata: [String: Any]?) -> [[String: Any]] {
+        (
             (metadata?["metadata"] as? [String: Any])?["contentMetadataViewModel"]
                 as? [String: Any]
         )?["metadataRows"] as? [[String: Any]] ?? []
+    }
 
-        return rows.compactMap { row in
+    private static func metadataRowTexts(of metadata: [String: Any]?) -> [[String]] {
+        self.metadataRows(of: metadata).compactMap { row in
             guard let parts = row["metadataParts"] as? [[String: Any]] else { return nil }
             let texts = parts.compactMap { part in
                 (part["text"] as? [String: Any])?["content"] as? String

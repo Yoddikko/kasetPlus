@@ -65,6 +65,9 @@ struct VideoCard: View {
         if let metaText = self.metaText {
             parts.append(metaText)
         }
+        if let newBadgeText = self.video.newBadgeText {
+            parts.append(newBadgeText)
+        }
         if let percent = self.video.watchedPercent {
             parts.append(String(
                 localized: "Watched \(percent)%",
@@ -132,10 +135,30 @@ struct VideoThumbnailView: View {
                 self.badge
             }
             .overlay(alignment: .topLeading) {
-                if self.video.isMembersOnly {
-                    self.membersBadge
+                // Both can apply at once: YouTube badges a members-only upload
+                // as new like any other.
+                HStack(spacing: 4) {
+                    if let newBadgeText = self.video.newBadgeText {
+                        self.newBadge(text: newBadgeText)
+                    }
+                    if self.video.isMembersOnly {
+                        self.membersBadge
+                    }
                 }
+                .padding(6)
             }
+    }
+
+    /// YouTube's "New" badge, kept in YouTube's own wording: InnerTube decides
+    /// which uploads carry it and localizes the text, exactly like the view
+    /// counts and upload dates on the same card.
+    private func newBadge(text: String) -> some View {
+        Text(text)
+            .font(.system(size: 10, weight: .semibold))
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(.white, in: .rect(cornerRadius: 4))
+            .foregroundStyle(.black)
     }
 
     /// "Members only" badge for channel-membership-restricted videos (green,
@@ -151,7 +174,6 @@ struct VideoThumbnailView: View {
         .padding(.vertical, 2)
         .background(Color(red: 0.18, green: 0.55, blue: 0.34), in: .rect(cornerRadius: 4))
         .foregroundStyle(.white)
-        .padding(6)
     }
 
     /// Thin red resume-progress bar pinned flush to the thumbnail's bottom edge.

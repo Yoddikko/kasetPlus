@@ -23,6 +23,11 @@ struct YouTubeVideo: Identifiable, Hashable {
     let isShort: Bool
     /// Whether the video is restricted to channel members ("Members only").
     let isMembersOnly: Bool
+    /// YouTube's own "New" badge for the item, already localized by InnerTube
+    /// ("New", "Nuovo", "Novità"). Which items carry it is YouTube's call — it
+    /// marks fresh uploads the viewer has not seen — so the text is passed
+    /// through rather than recomputed from the publish date. `nil` when absent.
+    let newBadgeText: String?
     /// The auto-generated Mix (radio) playlist this card seeds, when it's a "Mix"
     /// card (`RD…`). Opening it plays the endless mix queue, not just this video.
     /// Also stamped onto each track of a playing mix so advancing keeps the mix
@@ -48,6 +53,7 @@ struct YouTubeVideo: Identifiable, Hashable {
         isLive: Bool = false,
         isShort: Bool = false,
         isMembersOnly: Bool = false,
+        newBadgeText: String? = nil,
         mixPlaylistId: String? = nil,
         watchedPercent: Int? = nil
     ) {
@@ -62,6 +68,7 @@ struct YouTubeVideo: Identifiable, Hashable {
         self.isLive = isLive
         self.isShort = isShort
         self.isMembersOnly = isMembersOnly
+        self.newBadgeText = newBadgeText
         self.mixPlaylistId = mixPlaylistId
         self.watchedPercent = watchedPercent
     }

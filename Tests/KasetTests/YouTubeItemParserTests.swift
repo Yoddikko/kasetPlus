@@ -254,6 +254,65 @@ struct YouTubeItemParserTests {
         #expect(video.isMembersOnly)
     }
 
+    /// Captured from a live watch-next response: the badge sits in the same
+    /// `metadataRows` badges as "Members only", carries `BADGE_DEFAULT`, and
+    /// arrives already localized.
+    @Test("Carries YouTube's New badge through, in YouTube's own wording")
+    func carriesTheNewLockupBadge() throws {
+        func lockup(badges: [[String: Any]]) -> [String: Any] {
+            [
+                "contentId": "new123",
+                "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                "metadata": [
+                    "lockupMetadataViewModel": [
+                        "title": ["content": "Fresh Upload"],
+                        "metadata": [
+                            "contentMetadataViewModel": [
+                                "metadataRows": [
+                                    ["metadataParts": [["text": ["content": "Channel"]]]],
+                                    ["badges": badges],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]
+        }
+
+        let newBadge: [String: Any] = [
+            "badgeViewModel": ["badgeText": "Nuovo", "badgeStyle": "BADGE_DEFAULT"],
+        ]
+        let membersBadge: [String: Any] = [
+            "badgeViewModel": [
+                "badgeText": "Riservato agli abbonati",
+                "badgeStyle": "BADGE_MEMBERS_ONLY",
+                "iconName": "SPONSORSHIP_STAR",
+            ],
+        ]
+        let fundraiserBadge: [String: Any] = [
+            "badgeViewModel": ["badgeText": "Fundraiser", "badgeStyle": "BADGE_COMMERCE"],
+        ]
+
+        let badged = try #require(YouTubeItemParser.video(fromLockup: lockup(badges: [newBadge])))
+        #expect(badged.newBadgeText == "Nuovo")
+
+        // A members-only upload can be new too, and each badge is read on its own.
+        let both = try #require(
+            YouTubeItemParser.video(fromLockup: lockup(badges: [membersBadge, newBadge]))
+        )
+        #expect(both.newBadgeText == "Nuovo")
+        #expect(both.isMembersOnly)
+
+        // Other badge styles are somebody else's business.
+        let commerce = try #require(
+            YouTubeItemParser.video(fromLockup: lockup(badges: [fundraiserBadge]))
+        )
+        #expect(commerce.newBadgeText == nil)
+
+        let plain = try #require(YouTubeItemParser.video(fromLockup: lockup(badges: [])))
+        #expect(plain.newBadgeText == nil)
+    }
+
     @Test("Detects a legacy Members only videoRenderer badge; normal videos are not flagged")
     func detectsMembersOnlyVideoRendererBadge() throws {
         let renderer: [String: Any] = [

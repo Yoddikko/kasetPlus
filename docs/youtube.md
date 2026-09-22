@@ -106,6 +106,27 @@ Use `swift run api-explorer --youtube browse <id>` to inspect live
 responses — the renderer histogram in its output shows what a surface
 currently serves.
 
+#### Lockup badges
+
+A `lockupViewModel` carries its badges in
+`metadata.lockupMetadataViewModel.metadata.contentMetadataViewModel.metadataRows[].badges[].badgeViewModel`,
+each one a `badgeStyle` plus already-localized `badgeText`. Observed styles:
+
+| `badgeStyle` | `badgeText` | Handling |
+|---|---|---|
+| `BADGE_DEFAULT` | "New" / "Nuovo" | `YouTubeVideo.newBadgeText`, rendered verbatim |
+| `BADGE_MEMBERS_ONLY` | "Members only" | `YouTubeVideo.isMembersOnly`, own localized badge |
+| `BADGE_COMMERCE` | "Fundraiser" | ignored |
+| `BADGE_PROMOTED` | "YouTube featured" | ignored |
+| `BADGE_OVERLAY_WHITE` | "New" | Shorts lockups only (`badge`, not a metadata row); ignored |
+
+Which items get the "New" badge is InnerTube's decision, not a publish-date
+rule worth reproducing: a captured watch-next response badged uploads three and
+eighteen hours old and left a seven-day-old one unbadged. The text is passed
+through rather than re-localized, the way view counts and upload dates already
+are. The legacy `videoRenderer` equivalent has not been observed in the wild,
+so it is not parsed.
+
 ### Ask Gemini Activation Gate
 
 Current `get_panel` replies arrive through a singular list-mutation command.
