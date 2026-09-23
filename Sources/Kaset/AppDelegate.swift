@@ -140,6 +140,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.delegate = self
         MainWindowLayout.configureKnownPrimaryWindow(window)
         self.mainWindow = window
+        WindowOcclusionMonitor.shared.isMainWindowVisible = window.occlusionState.contains(.visible)
     }
 
     /// Releases a detached primary scene without disturbing a newer window.
@@ -149,6 +150,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.delegate = nil
         }
         self.mainWindow = nil
+        WindowOcclusionMonitor.shared.isMainWindowVisible = false
     }
 
     // MARK: - Dock Menu
@@ -348,7 +350,15 @@ extension AppDelegate: NSWindowDelegate {
 
         // Hide the window instead of closing it
         sender.orderOut(nil)
+        WindowOcclusionMonitor.shared.isMainWindowVisible = false
         return false // Don't actually close
+    }
+
+    /// Automatically tracks when the main window becomes visible or hidden (e.g., switched to another
+    /// desktop Space, obscured behind full-screen windows, or un-minimized).
+    func windowDidChangeOcclusionState(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, window === self.mainWindow else { return }
+        WindowOcclusionMonitor.shared.isMainWindowVisible = window.occlusionState.contains(.visible)
     }
 }
 
