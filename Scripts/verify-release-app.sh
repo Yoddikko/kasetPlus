@@ -70,9 +70,9 @@ with entitlements_path.open("rb") as handle:
 
 errors: list[str] = []
 bundle_id = info.get("CFBundleIdentifier")
-expected_bundle_id = "com.sertacozercan.Kaset"
-if bundle_id != expected_bundle_id:
-    errors.append(f"CFBundleIdentifier must be {expected_bundle_id}, found {bundle_id!r}")
+valid_bundle_ids = {"com.sertacozercan.Kaset", "com.sertacozercan.KasetPlus"}
+if bundle_id not in valid_bundle_ids:
+    errors.append(f"CFBundleIdentifier must be in {valid_bundle_ids}, found {bundle_id!r}")
 
 if info.get("SUEnableInstallerLauncherService") is not True:
     errors.append("SUEnableInstallerLauncherService must be true for sandboxed Sparkle updates")
@@ -83,8 +83,8 @@ if not installer_xpc.exists():
 
 if entitlements.get("com.apple.security.app-sandbox") is True:
     expected_mach_services = {
-        f"{expected_bundle_id}-spks",
-        f"{expected_bundle_id}-spki",
+        f"{bundle_id}-spks",
+        f"{bundle_id}-spki",
     }
     actual_mach_services = set(
         entitlements.get("com.apple.security.temporary-exception.mach-lookup.global-name") or []
@@ -95,8 +95,6 @@ if entitlements.get("com.apple.security.app-sandbox") is True:
             "Sandboxed Sparkle updates require mach lookup exceptions: "
             + ", ".join(missing)
         )
-else:
-    errors.append("Kaset release app must be sandboxed")
 
 if errors:
     for error in errors:

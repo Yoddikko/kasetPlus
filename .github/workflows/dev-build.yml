@@ -70,14 +70,14 @@ jobs:
           Scripts/build-app.sh release
 
       - name: Verify packaged app
-        run: Scripts/verify-release-app.sh .build/app/Kaset.app
+        run: Scripts/verify-release-app.sh .build/app/KasetPlus.app
 
       - name: Create DMG
         run: |
-          APP_PATH=".build/app/Kaset.app"
+          APP_PATH=".build/app/KasetPlus.app"
 
           if [ ! -d "$APP_PATH" ]; then
-            echo "Error: Could not find Kaset.app"
+            echo "Error: Could not find KasetPlus.app"
             exit 1
           fi
 
@@ -88,7 +88,7 @@ jobs:
           cp -R "$APP_PATH" dmg_contents/
 
           # Create DMG
-          hdiutil create -volname "Kaset-dev" \
+          hdiutil create -volname "KasetPlus-dev" \
             -srcfolder dmg_contents \
             -ov -format UDZO \
             kaset-dev.dmg
